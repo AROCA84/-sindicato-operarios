@@ -112,7 +112,7 @@ export function CourseCatalog() {
                       Ver Temario
                     </Link>
                     <Link
-                      href={`/cursos/${course.id}#examen`}
+                      href={`/cursos/${course.id}/test`}
                       className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-safety px-4 py-2.5 text-sm font-bold text-navy shadow-sm transition-colors hover:bg-safety-dark"
                     >
                       Empezar Test Gratis

@@ -115,8 +115,24 @@ export function SiteFooter() {
                 Contacto
               </h3>
               <ul className="mt-4 space-y-2 text-sm text-white/70">
-                <li>900 000 000</li>
-                <li>formacion@sindicatooperarios.es</li>
+                <li>
+                  <a
+                    href="https://wa.me/34642077425"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="transition-colors hover:text-safety"
+                  >
+                    WhatsApp: +34 642 077 425
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="mailto:contacto@sindicatodeoperarios.es"
+                    className="transition-colors hover:text-safety"
+                  >
+                    contacto@sindicatodeoperarios.es
+                  </a>
+                </li>
                 <li>Lunes a Viernes, 9:00 - 18:00</li>
               </ul>
             </div>
