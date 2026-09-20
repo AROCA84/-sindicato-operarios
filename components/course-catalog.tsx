@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { courses, categories, type Category } from "@/lib/courses";
 
@@ -93,18 +94,31 @@ export function CourseCatalog() {
                 </div>
                 <div className="flex flex-1 flex-col p-5">
                   <h3 className="text-lg font-bold leading-snug text-navy">
-                    {course.title}
+                    <Link
+                      href={`/cursos/${course.id}`}
+                      className="outline-none transition-colors hover:text-safety-dark focus-visible:text-safety-dark"
+                    >
+                      {course.title}
+                    </Link>
                   </h3>
                   <p className="mt-2 flex-1 text-sm text-slate-600">
                     {course.description}
                   </p>
-                  <a
-                    href="#contacto"
-                    className="mt-5 inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-safety-dark transition-colors hover:text-navy"
-                  >
-                    Más información
-                    <ArrowIcon />
-                  </a>
+                  <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+                    <Link
+                      href={`/cursos/${course.id}`}
+                      className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border-2 border-navy px-4 py-2.5 text-sm font-bold text-navy transition-colors hover:bg-navy hover:text-white"
+                    >
+                      Ver Temario
+                    </Link>
+                    <Link
+                      href={`/cursos/${course.id}#examen`}
+                      className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-safety px-4 py-2.5 text-sm font-bold text-navy shadow-sm transition-colors hover:bg-safety-dark"
+                    >
+                      Empezar Test Gratis
+                      <ArrowIcon />
+                    </Link>
+                  </div>
                 </div>
               </article>
             ))}
