@@ -17,6 +17,86 @@ export const categories: Category[] = [
   "Logística y PRL",
 ];
 
+export type Lesson = {
+  title: string;
+  intro: string;
+  points: string[];
+};
+
+export type Module = {
+  id: string;
+  title: string;
+  lesson: Lesson;
+};
+
+export function getCourse(id: string): Course | undefined {
+  return courses.find((c) => c.id === id);
+}
+
+export function getTemario(course: Course): Module[] {
+  return [
+    {
+      id: "modulo-1",
+      title: "Módulo 1: Introducción y Tipos de Maquinaria",
+      lesson: {
+        title: "Conociendo el equipo y su clasificación",
+        intro: `En este primer módulo del ${course.title.replace(/^Curso de /, "")} conocerás el equipo, sus componentes principales y las distintas variantes que encontrarás en el entorno de trabajo.`,
+        points: [
+          "Identificación de los componentes principales de la máquina y su función.",
+          "Tipos y variantes según capacidad de carga, tracción y entorno de uso.",
+          "Placa de características: cómo leer la capacidad nominal y el centro de carga.",
+          "Documentación obligatoria: marcado CE, manual del fabricante y libro de mantenimiento.",
+        ],
+      },
+    },
+    {
+      id: "modulo-2",
+      title: "Módulo 2: Prevención de Riesgos Laborales (PRL) y Normativa",
+      lesson: {
+        title: "Seguridad, normativa y equipos de protección",
+        intro:
+          "La prevención es la base de todo trabajo con maquinaria. Aquí repasamos la normativa aplicable y los riesgos más habituales.",
+        points: [
+          "Marco legal: Ley 31/1995 de PRL y normativa específica del equipo.",
+          "Equipos de protección individual (EPI) obligatorios: casco, calzado, chaleco y guantes.",
+          "Riesgos frecuentes: vuelcos, atrapamientos, caídas y colisiones con peatones.",
+          "Señalización de seguridad y delimitación de zonas de circulación.",
+        ],
+      },
+    },
+    {
+      id: "modulo-3",
+      title: "Módulo 3: Conducción, Manejo de Carga y Estabilidad",
+      lesson: {
+        title: "Operación segura y control de la carga",
+        intro:
+          "El corazón del curso: cómo operar la máquina con seguridad manteniendo la estabilidad en todo momento.",
+        points: [
+          "El triángulo de estabilidad y el efecto del centro de gravedad de la carga.",
+          "Técnicas de recogida, transporte y depósito de cargas sin comprometer la estabilidad.",
+          "Circulación en rampas, pendientes y superficies irregulares.",
+          "Velocidad adecuada, visibilidad y maniobras en marcha atrás.",
+        ],
+      },
+    },
+    {
+      id: "modulo-4",
+      title: "Módulo 4: Mantenimiento y Revisiones Diarias",
+      lesson: {
+        title: "Revisión preoperacional y conservación",
+        intro:
+          "Un equipo bien mantenido es un equipo seguro. Aprende la revisión diaria y las tareas básicas de conservación.",
+        points: [
+          "Checklist de revisión preoperacional antes de cada turno.",
+          "Comprobación de niveles, neumáticos, frenos y sistemas hidráulicos.",
+          "Detección y comunicación de averías o anomalías.",
+          "Carga de baterías y repostaje seguro según el tipo de máquina.",
+        ],
+      },
+    },
+  ];
+}
+
 export const courses: Course[] = [
   {
     id: "carretillero",
