@@ -42,18 +42,6 @@ export function CourseDetail({ course, modules }: CourseDetailProps) {
             <p className="mt-5 max-w-3xl text-lg leading-relaxed text-white/70">
               {course.description}
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <a
-                href="#examen"
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-safety px-6 py-3 font-black uppercase tracking-wide text-navy shadow-lg transition-colors hover:bg-safety-dark"
-              >
-                Ir directamente al Test Gratis
-                <ClipboardCheck className="h-5 w-5" />
-              </a>
-              <span className="inline-flex items-center rounded-lg border border-white/15 bg-white/5 px-6 py-3 font-bold text-white/80">
-                Estudiar: GRATIS
-              </span>
-            </div>
           </div>
         </div>
       </section>
