@@ -46,10 +46,16 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
 
   const affiliationNumber = useMemo(() => createAffiliationNumber(), []);
 
+  const verificationParams = new URLSearchParams({
+    codigo: "SO-" + affiliationNumber,
+    nombre: name.trim(),
+    curso: courseTitle,
+    resultado: "APTO",
+  });
   const verificationUrl =
     typeof window !== "undefined"
-      ? window.location.origin + "/verificar/" + affiliationNumber
-      : "/verificar/" + affiliationNumber;
+      ? window.location.origin + "/verificar?" + verificationParams.toString()
+      : "/verificar?" + verificationParams.toString();
 
   const qrUrl =
     "https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=10&data=" +
