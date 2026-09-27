@@ -39,8 +39,7 @@ export function CourseCatalog() {
             Nuestros cursos de maquinaria y seguridad
           </h2>
           <p className="mt-4 text-pretty text-slate-600">
-            Formación práctica y certificada para operarios. Encuentra el curso
-            que impulsa tu carrera profesional.
+            {affiliated ? "Como afiliado, todos los cursos de formación están disponibles a 0 €." : "Afíliate gratuitamente al Sindicato para acceder a toda la formación a 0 €."}
           </p>
         </div>
 
