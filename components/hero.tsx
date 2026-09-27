@@ -6,8 +6,8 @@ const slides = [
   {
     image: "/hero/hero-1.png",
     tag: "Afiliación gratuita",
-    title: "Fórmate en maquinaria industrial con garantía sindical",
-    text: "Cursos prácticos de carretillas, grúas y plataformas impartidos por profesionales del sector.",
+    title: "Afíliate al Sindicato y accede a formación gratuita",
+    text: "La formación es gratuita para las personas afiliadas. Estudia, realiza tus tests y accede a nuestros cursos de maquinaria, logística y prevención.",
   },
   {
     image: "/hero/hero-2.png",
@@ -85,10 +85,10 @@ export function Hero() {
 
               <div className="mt-8 flex flex-wrap gap-4">
                 <a
-                  href="#cursos"
+                  href="/afiliarse"
                   className="rounded-md bg-safety px-7 py-3.5 text-sm font-bold uppercase tracking-wide text-navy transition-colors hover:bg-safety-dark"
                 >
-                  Ver cursos
+                  Afiliarme gratis
                 </a>
                 <a
                   href="#contacto"
