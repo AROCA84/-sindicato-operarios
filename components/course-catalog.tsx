@@ -41,6 +41,11 @@ export function CourseCatalog() {
           <p className="mt-4 text-pretty text-slate-600">
             {affiliated ? "Como afiliado, todos los cursos de formación están disponibles a 0 €." : "Afíliate gratuitamente al Sindicato para acceder a toda la formación a 0 €."}
           </p>
+          {!affiliated && (
+            <Link href="/afiliarse" className="mt-5 inline-flex rounded-lg bg-navy px-6 py-3 text-sm font-bold uppercase tracking-wide text-white">
+              Afiliarme gratis y acceder a 0 €
+            </Link>
+          )}
         </div>
 
         {/* Controls */}
