@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 const slides = [
   {
     image: "/hero/hero-1.png",
-    tag: "Formación certificada",
+    tag: "Afiliación gratuita",
     title: "Fórmate en maquinaria industrial con garantía sindical",
     text: "Cursos prácticos de carretillas, grúas y plataformas impartidos por profesionales del sector.",
   },
