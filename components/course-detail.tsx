@@ -1,34 +1,58 @@
 "use client";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, BookOpen, ClipboardCheck } from "lucide-react";
+import { useEffect, useState, type FormEvent } from "react";
+import { ArrowLeft, CheckCircle2, BookOpen, ClipboardCheck, UserPlus } from "lucide-react";
 import type { Course, Module } from "@/lib/courses";
 import { TemarioDownload } from "@/components/temario-download";
+
 interface CourseDetailProps {
   course: Course;
   modules: Module[];
 }
+
 export function CourseDetail({ course, modules }: CourseDetailProps) {
+  const [affiliated, setAffiliated] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    setAffiliated(window.localStorage.getItem("sdo-afiliado") === "true");
+    setName(window.localStorage.getItem("sdo-nombre") || "");
+    setEmail(window.localStorage.getItem("sdo-email") || "");
+  }, []);
+
+  function handleAffiliate(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const cleanName = name.trim();
+    const cleanEmail = email.trim();
+
+    if (!cleanName || !cleanEmail) return;
+
+    window.localStorage.setItem("sdo-afiliado", "true");
+    window.localStorage.setItem("sdo-nombre", cleanName);
+    window.localStorage.setItem("sdo-email", cleanEmail);
+    setName(cleanName);
+    setEmail(cleanEmail);
+    setAffiliated(true);
+    setShowForm(false);
+  }
+
   return (
     <main className="min-h-screen bg-navy text-white">
-      {/* Header */}
       <header className="border-b border-white/10 bg-navy/95">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-5 sm:px-6 lg:px-8">
-          <Link
-            href="/cursos"
-            className="inline-flex items-center gap-2 text-sm font-bold text-white/80 transition-colors hover:text-safety"
-          >
+          <Link href="/cursos" className="inline-flex items-center gap-2 text-sm font-bold text-white/80 transition-colors hover:text-safety">
             <ArrowLeft className="h-4 w-4" />
             Volver a cursos
           </Link>
           <div className="text-right">
-            <p className="text-sm font-black uppercase tracking-wider text-safety">
-              Sindicato de Operarios
-            </p>
+            <p className="text-sm font-black uppercase tracking-wider text-safety">Sindicato de Operarios</p>
             <p className="text-xs text-white/50">Formación gratuita</p>
           </div>
         </div>
       </header>
-      {/* Course header */}
+
       <section className="border-b border-white/10 bg-navy">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <div className="max-w-4xl">
@@ -36,60 +60,36 @@ export function CourseDetail({ course, modules }: CourseDetailProps) {
               <BookOpen className="h-4 w-4" />
               Curso gratuito
             </div>
-            <h1 className="text-3xl font-black uppercase leading-tight tracking-tight sm:text-4xl lg:text-5xl">
-              {course.title}
-            </h1>
-            <p className="mt-5 max-w-3xl text-lg leading-relaxed text-white/70">
-              {course.description}
-            </p>
+            <h1 className="text-3xl font-black uppercase leading-tight tracking-tight sm:text-4xl lg:text-5xl">{course.title}</h1>
+            <p className="mt-5 max-w-3xl text-lg leading-relaxed text-white/70">{course.description}</p>
           </div>
         </div>
       </section>
-      {/* Temario */}
+
       <section id="temario" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="max-w-4xl">
-          <h2 className="text-2xl font-black uppercase tracking-tight sm:text-3xl">
-            Temario
-          </h2>
+          <h2 className="text-2xl font-black uppercase tracking-tight sm:text-3xl">Temario</h2>
           <p className="mt-3 text-white/60">
             Consulta aquí todo el contenido antes de realizar el test final. También puedes descargar el temario para estudiarlo cuando quieras.
           </p>
           <div className="mt-5"><TemarioDownload course={course} modules={modules} /></div>
           <div className="mt-8 space-y-6">
             {modules.map((module, moduleIndex) => (
-              <article
-                key={module.id}
-                className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]"
-              >
+              <article key={module.id} className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
                 <div className="border-b border-white/10 bg-white/[0.03] p-5">
                   <div className="flex items-start gap-4">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-safety font-black text-navy">
-                      {moduleIndex + 1}
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-black uppercase">
-                        {module.title}
-                      </h3>
-                    </div>
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-safety font-black text-navy">{moduleIndex + 1}</div>
+                    <div><h3 className="text-lg font-black uppercase">{module.title}</h3></div>
                   </div>
                 </div>
                 <div className="p-5">
-                  <h4 className="font-bold text-white">
-                    {module.lesson.title}
-                  </h4>
-                  <p className="mt-2 text-sm leading-relaxed text-white/60">
-                    {module.lesson.intro}
-                  </p>
+                  <h4 className="font-bold text-white">{module.lesson.title}</h4>
+                  <p className="mt-2 text-sm leading-relaxed text-white/60">{module.lesson.intro}</p>
                   <div className="mt-5 space-y-3">
                     {module.lesson.points.map((point, pointIndex) => (
-                      <div
-                        key={`${module.id}-point-${pointIndex}`}
-                        className="flex items-start gap-3"
-                      >
+                      <div key={`${module.id}-point-${pointIndex}`} className="flex items-start gap-3">
                         <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-safety" />
-                        <p className="text-sm leading-relaxed text-white/70">
-                          {point}
-                        </p>
+                        <p className="text-sm leading-relaxed text-white/70">{point}</p>
                       </div>
                     ))}
                   </div>
@@ -99,28 +99,72 @@ export function CourseDetail({ course, modules }: CourseDetailProps) {
           </div>
         </div>
       </section>
-      {/* Final exam CTA */}
-      <section
-        id="examen"
-        className="border-t border-white/10 bg-navy-dark px-4 py-16 sm:px-6 lg:px-8"
-      >
+
+      <section id="examen" className="border-t border-white/10 bg-navy-dark px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-safety/10">
-            <ClipboardCheck className="h-8 w-8 text-safety" />
+            {affiliated ? <ClipboardCheck className="h-8 w-8 text-safety" /> : <UserPlus className="h-8 w-8 text-safety" />}
           </div>
           <h2 className="mt-6 text-3xl font-black uppercase tracking-tight">
-            ¿Has terminado de estudiar?
+            {affiliated ? "Formación desbloqueada" : "Afíliate gratis para comenzar"}
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-white/60">
-            Cuando hayas terminado de estudiar, puedes realizar el test final.
+            {affiliated
+              ? "Ya estás afiliado. Puedes estudiar el temario y realizar el test final gratis cuando estés preparado."
+              : "Completa tus datos una sola vez. La afiliación es gratuita y, al terminar, podrás continuar con este curso sin salir de aquí."}
           </p>
-          <a
-            href={`/cursos/${course.id}/test`}
-            className="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-safety px-8 py-4 text-base font-black uppercase tracking-wide text-navy shadow-lg transition-colors hover:bg-safety-dark"
-          >
-            Realizar Test Final Gratis
-            <ClipboardCheck className="h-5 w-5" />
-          </a>
+
+          {!affiliated && !showForm && (
+            <button
+              type="button"
+              onClick={() => setShowForm(true)}
+              className="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-safety px-8 py-4 text-base font-black uppercase tracking-wide text-navy shadow-lg transition-colors hover:bg-safety-dark"
+            >
+              Afíliate gratis para comenzar
+              <UserPlus className="h-5 w-5" />
+            </button>
+          )}
+
+          {!affiliated && showForm && (
+            <form onSubmit={handleAffiliate} className="mx-auto mt-8 max-w-md rounded-2xl border border-white/10 bg-white/[0.05] p-6 text-left">
+              <h3 className="text-xl font-black uppercase">Afiliación gratuita</h3>
+              <p className="mt-2 text-sm text-white/60">Introduce tus datos para desbloquear la formación.</p>
+              <label className="mt-5 block text-sm font-bold">Nombre y apellidos</label>
+              <input
+                required
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                className="mt-2 w-full rounded-lg border border-white/15 bg-white/10 px-4 py-3 text-white outline-none focus:border-safety"
+                placeholder="Nombre y apellidos"
+              />
+              <label className="mt-4 block text-sm font-bold">Correo electrónico</label>
+              <input
+                required
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                className="mt-2 w-full rounded-lg border border-white/15 bg-white/10 px-4 py-3 text-white outline-none focus:border-safety"
+                placeholder="tu@email.com"
+              />
+              <button
+                type="submit"
+                className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-safety px-6 py-4 text-base font-black uppercase tracking-wide text-navy shadow-lg"
+              >
+                Afiliarme gratis y comenzar
+                <UserPlus className="h-5 w-5" />
+              </button>
+            </form>
+          )}
+
+          {affiliated && (
+            <a
+              href={`/cursos/${course.id}/test`}
+              className="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-safety px-8 py-4 text-base font-black uppercase tracking-wide text-navy shadow-lg transition-colors hover:bg-safety-dark"
+            >
+              Realizar Test Final Gratis
+              <ClipboardCheck className="h-5 w-5" />
+            </a>
+          )}
         </div>
       </section>
     </main>
