@@ -91,10 +91,10 @@ export function Hero() {
                   Afiliarme gratis
                 </a>
                 <a
-                  href="#contacto"
+                  href="#cursos"
                   className="rounded-md border border-white/25 px-7 py-3.5 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-white/10"
                 >
-                  Solicitar información
+                  Ver cursos
                 </a>
               </div>
             </div>
