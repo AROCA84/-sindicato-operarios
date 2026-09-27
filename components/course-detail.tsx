@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, BookOpen, ClipboardCheck } from "lucide-react";
 import type { Course, Module } from "@/lib/courses";
+import { TemarioDownload } from "@/components/temario-download";
 interface CourseDetailProps {
   course: Course;
   modules: Module[];
@@ -56,34 +57,16 @@ export function CourseDetail({ course, modules }: CourseDetailProps) {
           </div>
         </div>
       </section>
-      {/* Free training message */}
-      <section className="border-b border-white/10 bg-white/[0.03]">
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="rounded-xl border border-safety/30 bg-safety/10 p-6">
-            <div className="flex items-start gap-4">
-              <CheckCircle2 className="mt-1 h-6 w-6 shrink-0 text-safety" />
-              <div>
-                <h2 className="text-lg font-black uppercase text-safety">
-                  Formación y test gratuitos
-                </h2>
-                <p className="mt-2 text-base leading-relaxed text-white/80">
-                  ESTUDIAR Y HACER EL TEST ES GRATIS. SOLO PAGAS AL FINAL SI
-                  QUIERES OBTENER TU CERTIFICADO.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
       {/* Temario */}
-      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <section id="temario" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="max-w-4xl">
           <h2 className="text-2xl font-black uppercase tracking-tight sm:text-3xl">
             Temario
           </h2>
           <p className="mt-3 text-white/60">
-            Estudia todo el contenido del curso antes de realizar el test final.
+            Consulta aquí todo el contenido antes de realizar el test final. También puedes descargar el temario para estudiarlo cuando quieras.
           </p>
+          <div className="mt-5"><TemarioDownload course={course} modules={modules} /></div>
           <div className="mt-8 space-y-6">
             {modules.map((module, moduleIndex) => (
               <article
@@ -141,8 +124,7 @@ export function CourseDetail({ course, modules }: CourseDetailProps) {
             ¿Has terminado de estudiar?
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-white/60">
-            Realiza ahora el test final completamente gratis. No tienes que
-            pagar para estudiar ni para hacer el examen.
+            Cuando hayas terminado de estudiar, puedes realizar el test final.
           </p>
           <a
             href={`/cursos/${course.id}/test`}
