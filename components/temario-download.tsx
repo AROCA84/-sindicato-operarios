@@ -4,41 +4,23 @@ import { Download } from "lucide-react";
 import type { Course, Module } from "@/lib/courses";
 
 export function TemarioDownload({ course, modules }: { course: Course; modules: Module[] }) {
-  function download() {
-    const lines: string[] = [];
-    lines.push("SINDICATO DE OPERARIOS");
-    lines.push("");
-    lines.push(course.title);
-    lines.push("TEMARIO COMPLETO");
-    lines.push("");
-    lines.push(course.description);
-    lines.push("");
-    modules.forEach((module, index) => {
-      lines.push((index + 1) + ". " + module.title);
-      lines.push(module.lesson.title);
-      lines.push(module.lesson.intro);
-      module.lesson.points.forEach((point) => lines.push("• " + point));
-      lines.push("");
-    });
-    const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "temario-" + course.id + ".txt";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+  function downloadPdf() {
+    const moduleHtml = modules.map((module, index) =>
+      "<section><h2>" + (index + 1) + ". " + module.title + "</h2><h3>" + module.lesson.title + "</h3><p>" + module.lesson.intro + "</p><ul>" +
+      module.lesson.points.map((point) => "<li>" + point + "</li>").join("") + "</ul></section>"
+    ).join("");
+    const win = window.open("", "_blank");
+    if (!win) return;
+    win.document.write("<!doctype html><html lang=\"es\"><head><meta charset=\"utf-8\"><title>Temario - " + course.title + "</title><style>@page{size:A4;margin:18mm}body{font-family:Arial,sans-serif;color:#172033;line-height:1.55}header{border-bottom:4px solid #f5b400;padding-bottom:16px;margin-bottom:24px}h1{font-size:24px;margin:0 0 8px}h2{font-size:17px;margin-top:24px;border-bottom:1px solid #ddd;padding-bottom:6px}h3{font-size:14px}p,li{font-size:12px}li{margin:5px 0}.brand{font-weight:800;letter-spacing:1px;color:#d89000}.note{font-size:11px;color:#666}</style></head><body><header><div class=\"brand\">SINDICATO DE OPERARIOS</div><h1>" + course.title + "</h1><div class=\"note\">Temario completo · Formación gratuita</div></header>" + moduleHtml + "</body></html>");
+    win.document.close();
+    win.focus();
+    setTimeout(() => win.print(), 350);
   }
 
   return (
-    <button
-      type="button"
-      onClick={download}
-      className="inline-flex items-center gap-2 rounded-lg border-2 border-safety bg-safety/10 px-5 py-3 text-sm font-black uppercase tracking-wide text-safety transition-colors hover:bg-safety hover:text-navy"
-    >
+    <button type="button" onClick={downloadPdf} className="inline-flex items-center gap-2 rounded-lg border-2 border-safety bg-safety/10 px-5 py-3 text-sm font-black uppercase tracking-wide text-safety transition-colors hover:bg-safety hover:text-navy">
       <Download className="h-5 w-5" />
-      Descargar temario
+      Descargar temario en PDF
     </button>
   );
 }
