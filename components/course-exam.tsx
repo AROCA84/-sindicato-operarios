@@ -1,5 +1,4 @@
 "use client";
-
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { Course } from "@/lib/courses";
@@ -9,22 +8,17 @@ import {
   TOTAL_QUESTIONS,
   type ExamQuestion,
 } from "@/lib/exam";
-
 type Phase = "quiz" | "result";
-
 export function CourseExam({ course }: { course: Course }) {
   const questions = useMemo(() => getExam(course), [course]);
-
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<number[]>(() =>
     Array(questions.length).fill(-1),
   );
   const [phase, setPhase] = useState<Phase>("quiz");
-
   const total = questions.length;
   const selected = answers[current];
   const isLast = current === total - 1;
-
   const score = useMemo(
     () =>
       answers.reduce(
@@ -33,9 +27,7 @@ export function CourseExam({ course }: { course: Course }) {
       ),
     [answers, questions],
   );
-
   const passed = score >= PASS_MARK;
-
   function select(optionIndex: number) {
     setAnswers((prev) => {
       const next = [...prev];
@@ -43,7 +35,6 @@ export function CourseExam({ course }: { course: Course }) {
       return next;
     });
   }
-
   function next() {
     if (isLast) {
       setPhase("result");
@@ -51,16 +42,13 @@ export function CourseExam({ course }: { course: Course }) {
     }
     setCurrent((c) => c + 1);
   }
-
   function retry() {
     setAnswers(Array(questions.length).fill(-1));
     setCurrent(0);
     setPhase("quiz");
   }
-
   return (
     <main className="min-h-screen bg-slate-50">
-      {/* Exam header */}
       <header className="bg-navy text-white">
         <div className="mx-auto max-w-3xl px-6 py-8 sm:py-10">
           <Link
@@ -70,7 +58,6 @@ export function CourseExam({ course }: { course: Course }) {
             <BackIcon />
             Volver al curso
           </Link>
-
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <span className="inline-block rounded-md bg-safety px-3 py-1 text-xs font-black uppercase tracking-wide text-navy">
               Test 100% Gratuito
@@ -79,14 +66,12 @@ export function CourseExam({ course }: { course: Course }) {
               Aprobado: {PASS_MARK} / {TOTAL_QUESTIONS} aciertos
             </span>
           </div>
-
           <h1 className="mt-4 text-balance text-2xl font-black leading-tight sm:text-3xl">
-            Examen Oficial ·{" "}
+            Test Final ·{" "}
             <span className="text-safety">
               {course.title.replace(/^Curso de /, "")}
             </span>
           </h1>
-
           {phase === "quiz" && (
             <div className="mt-6">
               <div className="flex items-center justify-between text-sm font-semibold text-slate-300">
@@ -100,14 +85,15 @@ export function CourseExam({ course }: { course: Course }) {
               <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/15">
                 <div
                   className="h-full rounded-full bg-safety transition-all duration-300"
-                  style={{ width: `${((current + 1) / total) * 100}%` }}
+                  style={{
+                    width: `${((current + 1) / total) * 100}%`,
+                  }}
                 />
               </div>
             </div>
           )}
         </div>
       </header>
-
       <div className="mx-auto max-w-3xl px-6 py-10 sm:py-14">
         {phase === "quiz" ? (
           <QuizCard
@@ -130,7 +116,6 @@ export function CourseExam({ course }: { course: Course }) {
     </main>
   );
 }
-
 function QuizCard({
   question,
   selected,
@@ -145,13 +130,11 @@ function QuizCard({
   isLast: boolean;
 }) {
   const letters = ["A", "B", "C", "D"];
-
   return (
     <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 sm:p-8">
       <h2 className="text-balance text-xl font-black leading-snug text-navy sm:text-2xl">
         {question.q}
       </h2>
-
       <div className="mt-6 grid gap-3">
         {question.options.map((option, i) => {
           const active = selected === i;
@@ -187,7 +170,6 @@ function QuizCard({
           );
         })}
       </div>
-
       <div className="mt-8 flex items-center justify-between border-t border-slate-200 pt-6">
         <p className="text-xs font-medium text-slate-400">
           Selecciona una respuesta para continuar
@@ -205,7 +187,6 @@ function QuizCard({
     </div>
   );
 }
-
 function ResultCard({
   passed,
   score,
@@ -238,29 +219,35 @@ function ResultCard({
         </h2>
         <p className="mt-3 text-pretty text-slate-300">
           {passed
-            ? "Has superado el examen oficial. ¡Enhorabuena!"
+            ? "Has superado el test final. ¡Enhorabuena!"
             : `Necesitas al menos ${PASS_MARK} aciertos para aprobar. Repasa el temario y vuelve a intentarlo, es gratis.`}
         </p>
-
         <div className="mx-auto mt-6 inline-flex items-baseline gap-2 rounded-xl bg-white/10 px-6 py-3">
-          <span className="text-4xl font-black text-safety">{score}</span>
-          <span className="text-lg font-bold text-white/70">/ {total}</span>
+          <span className="text-4xl font-black text-safety">
+            {score}
+          </span>
+          <span className="text-lg font-bold text-white/70">
+            / {total}
+          </span>
           <span className="ml-2 text-sm font-semibold text-white/70">
             aciertos
           </span>
         </div>
       </div>
-
       <div className="p-6 sm:p-10">
         {passed ? (
           <div className="flex flex-col gap-4">
             <a
-              href="/#contacto"
+              href={`/certificado/${course.id}?score=${score}&total=${total}`}
               className="inline-flex items-center justify-center gap-2 rounded-lg bg-safety px-8 py-4 text-base font-black uppercase tracking-wide text-navy shadow-lg transition-colors hover:bg-safety-dark"
             >
-              Ver Resultado y Tramitar Certificado
+              Ver resultado y obtener certificado
               <ArrowIcon />
             </a>
+            <p className="text-center text-sm leading-relaxed text-slate-500">
+              El estudio y el test son gratuitos. El certificado tiene un
+              coste de 4,99 € y solo se solicita después de aprobar.
+            </p>
             <Link
               href={`/cursos/${course.id}`}
               className="text-center text-sm font-semibold text-slate-500 transition-colors hover:text-navy"
@@ -290,37 +277,93 @@ function ResultCard({
     </div>
   );
 }
-
 function ArrowIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M5 12h14M13 6l6 6-6 6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
-
 function BackIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M19 12H5M11 18l-6-6 6-6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
-
 function TrophyIcon() {
   return (
-    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <svg
+      width="36"
+      height="36"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
-
 function RetryIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M3 12a9 9 0 1 0 3-6.7L3 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M3 3v5h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M3 12a9 9 0 1 0 3-6.7L3 8"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M3 3v5h5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
