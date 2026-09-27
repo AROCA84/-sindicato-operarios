@@ -113,7 +113,7 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
             <h3 className="mt-2 text-2xl font-black text-white">¿Quieres certificar tus aptitudes?</h3>
             <p className="mt-2 text-sm leading-6 text-slate-300">La certificación cuesta 4,99 € y solo se solicita después de aprobar el test.</p>
             <a
-              href="https://buy.stripe.com/7sY7sL3R02kIefMb5Y63K00"
+              href="https://mypos.com/@sindicato499/4.99"
               target="_blank"
               rel="noopener noreferrer"
               className="mt-5 block w-full rounded-xl bg-safety px-6 py-4 text-center text-sm font-black uppercase tracking-wide text-navy transition hover:bg-safety-dark"
@@ -121,7 +121,7 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
               Certificar mis aptitudes · 4,99 €
             </a>
             <p className="mt-3 text-xs leading-5 text-slate-400">
-              Pago seguro mediante Stripe. En la página de pago se mostrarán los métodos disponibles para tu cuenta, incluidos Bizum y las opciones bancarias/SEPA que estén activadas.
+              Pago seguro mediante myPOS. Completa el pago de 4,99 € para continuar con la certificación.
             </p>
           </div>
         </>
