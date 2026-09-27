@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { courses, categories, type Category } from "@/lib/courses";
 
 type Filter = "Todos" | Category;
@@ -10,6 +10,11 @@ const filters: Filter[] = ["Todos", ...categories];
 export function CourseCatalog() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("Todos");
+  const [affiliated, setAffiliated] = useState(false);
+
+  useEffect(() => {
+    setAffiliated(window.localStorage.getItem("sdo-afiliado") === "true");
+  }, []);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
