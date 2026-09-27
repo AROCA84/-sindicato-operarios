@@ -100,7 +100,7 @@ export function getTemario(course: Course): Module[] {
 export const courses: Course[] = [
   {
     id: "carretillero",
-    title: "Curso de Carretillero / Toro (Carretilla Elevadora)",
+    title: "Operario de Carretillas Elevadoras, Frontales y Retráctiles",
     description:
       "Aprende a manejar la carretilla elevadora con seguridad: estabilidad, carga y circulación.",
     category: "Maquinaria de Elevación",
