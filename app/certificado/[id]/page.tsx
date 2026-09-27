@@ -39,11 +39,6 @@ export default async function CertificatePage({ params, searchParams }: Certific
               <p className="mt-2 text-2xl font-black text-white">GRATUITO</p>
             </div>
           </div>
-          <div className="mt-8 rounded-2xl border border-orange-400/30 bg-orange-400/10 p-5 text-center">
-            <p className="text-sm font-black leading-6 text-orange-200 sm:text-base">
-              ESTUDIAR Y HACER EL TEST ES GRATIS. SOLO PAGAS AL FINAL SI QUIERES OBTENER TU CERTIFICADO.
-            </p>
-          </div>
         </section>
 
         <CertificatePreview
