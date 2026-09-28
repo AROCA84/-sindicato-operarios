@@ -107,6 +107,8 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
       if (!response.ok) throw new Error(data.error || "No se pudo comprobar el pago.");
       if (data.emitido) {
         setPaymentConfirmed(true);
+        window.localStorage.setItem("sdo-certificado-codigo", certificateCode);
+        window.localStorage.setItem("sdo-certificado-curso", courseId);
         setShowPreview(true);
       } else {
         setError("El pago todavía no ha sido confirmado. Si acabas de pagar, espera unos segundos y vuelve a comprobarlo.");
@@ -217,7 +219,7 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
       pdf.text("CORREO ELECTRÓNICO", 98, 167);
       pdf.setTextColor(navy);
       pdf.setFontSize(9);
-      pdf.text(certificateCode, 98, 150.5);
+      pdf.text(affiliationNumber, 98, 150.5);
       pdf.setFontSize(8);
       pdf.text(certificateCode, 98, 161.5);
       pdf.setFontSize(email.trim().length > 35 ? 6.8 : 8);
@@ -264,7 +266,7 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
           </div>
         </div>
         <p className="mt-4 text-sm leading-6 text-slate-300">
-          Introduce tus datos. El certificado se podrá visualizar y descargar únicamente después de iniciar el proceso de pago de 4,99 €.
+          Introduce tus datos. El certificado se podrá visualizar y descargar únicamente después de que myPOS confirme el pago de 4,99 €.
         </p>
 
         <label className="mt-6 block text-sm font-bold text-white">
@@ -343,7 +345,7 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
           </section>
 
           <div className="rounded-2xl border border-safety/30 bg-safety/10 p-6 text-center">
-            <p className="text-sm font-black uppercase tracking-wide text-safety">✓ Pago iniciado</p>
+            <p className="text-sm font-black uppercase tracking-wide text-safety">✓ Pago confirmado</p>
             <h3 className="mt-2 text-2xl font-black text-white">Tu certificado está listo</h3>
             <p className="mt-2 text-sm leading-6 text-slate-300">Puedes descargar el PDF con el diseño profesional, número de afiliado y QR de verificación.</p>
             <button type="button" onClick={downloadCertificate} disabled={downloading} className="mt-5 w-full rounded-xl bg-safety px-6 py-4 text-sm font-black uppercase tracking-wide text-navy transition hover:bg-safety-dark disabled:opacity-60">
