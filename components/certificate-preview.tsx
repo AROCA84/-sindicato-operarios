@@ -12,6 +12,8 @@ type Props = {
   total: number;
 };
 
+const PAYMENT_URL = "https://mypos.com/@sindicato499/4.99";
+
 function createAffiliationNumber() {
   const year = new Date().getFullYear();
   const random = Math.floor(100000 + Math.random() * 900000);
@@ -21,13 +23,14 @@ function createAffiliationNumber() {
 function SindicatoMark({ size = "md" }: { size?: "sm" | "md" }) {
   const box = size === "sm" ? "h-12 w-12" : "h-16 w-16";
   return (
-    <svg viewBox="0 0 72 72" className={`${box} shrink-0`} role="img" aria-label="Logotipo Sindicato de Operarios">
-      <path d="M36 3 8 13v21c0 16 12.5 27.3 28 33 15.5-5.7 28-17 28-33V13L36 3Z" fill="#101820" stroke="#f5b400" strokeWidth="3" />
-      <circle cx="36" cy="36" r="17" fill="#243746" />
-      <path d="M23 42h26v4H23z" fill="#f5b400" />
-      <path d="M25 39c0-8 5-13 11-13s11 5 11 13H25Z" fill="#f5b400" />
-      <path d="M33 26h6v-5h-6z" fill="#d89500" />
-      <circle cx="36" cy="36" r="4" fill="#101820" />
+    <svg viewBox="0 0 72 72" className={`${box} shrink-0`} role="img" aria-label="Emblema Sindicato de Operarios">
+      <circle cx="36" cy="36" r="33" fill="#101820" stroke="#f5b400" strokeWidth="2.5" />
+      <path d="M36 9 16 16v16c0 12 8.8 21 20 26 11.2-5 20-14 20-26V16L36 9Z" fill="#243746" stroke="#f5b400" strokeWidth="2" />
+      <path d="M22 39h28v4H22z" fill="#f5b400" />
+      <path d="M25 36c0-7 4.8-12 11-12s11 5 11 12H25Z" fill="#f5b400" />
+      <path d="M33 24h6v-5h-6z" fill="#d89500" />
+      <circle cx="36" cy="35" r="3.5" fill="#101820" />
+      <path d="M17 51c5 4 11 7 19 10 8-3 14-6 19-10" fill="none" stroke="#f5b400" strokeWidth="1.8" strokeLinecap="round" />
     </svg>
   );
 }
@@ -53,6 +56,7 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [showPreview, setShowPreview] = useState(false);
+  const [paymentStarted, setPaymentStarted] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
   const affiliationNumber = useMemo(() => createAffiliationNumber(), []);
@@ -74,8 +78,14 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
     name.trim().length >= 3 &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
+  function goToPayment() {
+    if (!canPreview) return;
+    setPaymentStarted(true);
+    window.open(PAYMENT_URL, "_blank", "noopener,noreferrer");
+  }
+
   async function downloadCertificate() {
-    if (!canPreview || downloading) return;
+    if (!canPreview || downloading || !paymentStarted) return;
     setDownloading(true);
 
     try {
@@ -108,11 +118,14 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
       pdf.rect(8, 32.5, W - 16, 2.5, "F");
 
       pdf.setFillColor(gold);
-      pdf.roundedRect(18, 14, 17, 17, 2, 2, "F");
+      pdf.circle(26.5, 22.5, 8.5, "F");
       pdf.setFillColor(navy);
       pdf.setFont("helvetica", "bold");
-      pdf.setFontSize(15);
-      pdf.text("SO", 20.7, 25.3);
+      pdf.setFontSize(10.5);
+      pdf.text("SO", 26.5, 25.7, { align: "center" });
+      pdf.setDrawColor(gold);
+      pdf.setLineWidth(0.6);
+      pdf.circle(26.5, 22.5, 6.2, "S");
 
       pdf.setTextColor(255, 255, 255);
       pdf.setFont("helvetica", "bold");
@@ -219,7 +232,7 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
           </div>
         </div>
         <p className="mt-4 text-sm leading-6 text-slate-300">
-          El certificado se genera con tus datos y un código QR único de verificación. Revisa el nombre y el correo antes de descargarlo.
+          Introduce tus datos. El certificado se podrá visualizar y descargar únicamente después de iniciar el proceso de pago de 4,99 €.
         </p>
 
         <label className="mt-6 block text-sm font-bold text-white">
@@ -230,12 +243,23 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
           Correo electrónico
           <input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="tu@email.com" type="email" autoComplete="email" className="mt-2 w-full rounded-xl border border-white/15 bg-white px-4 py-3 text-base font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-safety" />
         </label>
-        <button type="button" disabled={!canPreview} onClick={() => setShowPreview(true)} className="mt-5 w-full rounded-xl bg-safety px-5 py-4 text-sm font-black uppercase tracking-wide text-navy transition hover:bg-safety-dark disabled:cursor-not-allowed disabled:opacity-40">
-          Ver mi certificado
-        </button>
+
+        {!paymentStarted ? (
+          <button type="button" disabled={!canPreview} onClick={goToPayment} className="mt-5 w-full rounded-xl bg-safety px-5 py-4 text-sm font-black uppercase tracking-wide text-navy transition hover:bg-safety-dark disabled:cursor-not-allowed disabled:opacity-40">
+            Continuar al pago · 4,99 €
+          </button>
+        ) : (
+          <button type="button" onClick={() => setShowPreview(true)} className="mt-5 w-full rounded-xl border-2 border-safety bg-safety/10 px-5 py-4 text-sm font-black uppercase tracking-wide text-safety transition hover:bg-safety/20">
+            ✓ He completado el pago · Ver certificado
+          </button>
+        )}
+
+        <p className="mt-3 text-center text-xs leading-5 text-slate-400">
+          Estudiar y hacer el test es gratis. El certificado cuesta 4,99 € y el pago se realiza mediante myPOS.
+        </p>
       </div>
 
-      {showPreview && canPreview && (
+      {showPreview && canPreview && paymentStarted && (
         <>
           <section className="overflow-hidden rounded-[2rem] bg-[#f7f5ef] p-3 shadow-2xl ring-1 ring-black/10 sm:p-5">
             <div className="relative overflow-hidden rounded-[1.5rem] border-[3px] border-[#101820] bg-white px-5 py-7 text-slate-900 sm:px-10 sm:py-9">
@@ -286,15 +310,12 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
           </section>
 
           <div className="rounded-2xl border border-safety/30 bg-safety/10 p-6 text-center">
-            <p className="text-sm font-black uppercase tracking-wide text-safety">✓ Test superado</p>
+            <p className="text-sm font-black uppercase tracking-wide text-safety">✓ Pago iniciado</p>
             <h3 className="mt-2 text-2xl font-black text-white">Tu certificado está listo</h3>
-            <p className="mt-2 text-sm leading-6 text-slate-300">Estudiar y hacer el test es gratis. Solo pagas al final si quieres obtener tu certificado.</p>
+            <p className="mt-2 text-sm leading-6 text-slate-300">Puedes descargar el PDF con el diseño profesional, número de afiliado y QR de verificación.</p>
             <button type="button" onClick={downloadCertificate} disabled={downloading} className="mt-5 w-full rounded-xl bg-safety px-6 py-4 text-sm font-black uppercase tracking-wide text-navy transition hover:bg-safety-dark disabled:opacity-60">
               {downloading ? "Preparando PDF…" : "Descargar certificado PDF"}
             </button>
-            <a href="https://mypos.com/@sindicato499/4.99" target="_blank" rel="noopener noreferrer" className="mt-3 block text-xs font-bold text-safety underline underline-offset-4">
-              Después de aprobar · Obtener certificado por 4,99 €
-            </a>
           </div>
         </>
       )}
