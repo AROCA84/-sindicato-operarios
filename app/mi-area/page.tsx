@@ -91,7 +91,30 @@ export default function MiAreaPage() {
         <div className="rounded-2xl bg-navy p-6 text-white shadow-xl sm:p-8"><div className="flex flex-col gap-6 sm:flex-row sm:items-center"><div className="flex-1"><p className="text-xs font-black uppercase tracking-widest text-safety">Afiliado activo</p><h2 className="mt-2 text-2xl font-black">{data.nombre} {data.apellidos}</h2><div className="mt-5 space-y-2 text-sm text-white/75"><p><b className="text-white">Nº afiliado:</b> {data.numero}</p><p><b className="text-white">Correo:</b> {data.email}</p><p><b className="text-white">Organización:</b> Sindicato de Operarios</p></div></div><div className="rounded-2xl bg-white p-3 text-center">{qr ? <img src={qr} alt="QR de verificación" className="h-40 w-40" /> : <div className="h-40 w-40 bg-slate-100" />}<p className="mt-2 text-[10px] font-black uppercase tracking-wider text-slate-500">Verificación</p></div></div></div>
         <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200"><p className="text-xs font-black uppercase tracking-widest text-safety-dark">Tu progreso</p><p className="mt-2 text-4xl font-black">{completed}/{courses.length}</p><p className="text-sm text-slate-500">cursos completados</p><div className="mt-5 h-3 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-safety" style={{ width: overall + "%" }} /></div><p className="mt-2 text-right text-xs font-bold">{overall}% global</p></div>
       </section>
-      <section className="mt-8"><p className="text-xs font-black uppercase tracking-widest text-safety-dark">Mi formación</p><h2 className="mt-1 text-2xl font-black">Cursos y progreso</h2><div className="mt-5 grid gap-4 md:grid-cols-2">{courses.map((course) => { const value = progress[course.id] || 0; return <article key={course.id} className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200"><div className="flex gap-4"><img src={course.image} alt="" className="h-20 w-24 rounded-xl object-cover" /><div className="min-w-0 flex-1"><p className="text-xs font-bold uppercase text-safety-dark">{course.category}</p><h3 className="mt-1 font-black leading-snug">{course.title}</h3></div></div><div className="mt-5 flex justify-between text-xs font-bold"><span>{value >= 100 ? "Completado" : value > 0 ? "En curso" : "Sin comenzar"}</span><span>{value}%</span></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-safety" style={{ width: value + "%" }} /></div><Link href={"/cursos/" + course.id} className="mt-4 inline-flex w-full justify-center rounded-lg border-2 border-navy px-4 py-2.5 text-sm font-black text-navy">{value >= 100 ? "Repasar curso" : "Continuar formación"}</Link></article>; })}</div></section>
+      <section className="mt-8">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div><p className="text-xs font-black uppercase tracking-widest text-safety-dark">Mi formación</p><h2 className="mt-1 text-2xl font-black">Cursos y progreso</h2></div>
+          <Link href="/cursos" className="text-sm font-black text-navy underline">Ver todos los cursos →</Link>
+        </div>
+        {(() => {
+          const active = courses.filter((course) => (progress[course.id] || 0) > 0 && (progress[course.id] || 0) < 100);
+          const next = active[0] || courses.find((course) => (progress[course.id] || 0) === 0);
+          return next ? (
+            <div className="mt-5 overflow-hidden rounded-2xl bg-navy p-5 text-white shadow-lg sm:p-6">
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+                <img src={next.image} alt="" className="h-28 w-full rounded-xl object-cover sm:h-24 sm:w-36" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-black uppercase tracking-widest text-safety">{active.length ? "Continúa donde lo dejaste" : "Empieza tu formación"}</p>
+                  <h3 className="mt-1 text-lg font-black">{next.title}</h3>
+                  <p className="mt-2 text-sm text-white/60">{progress[next.id] || 0}% completado · Estudia gratis y realiza el test cuando estés preparado.</p>
+                </div>
+                <Link href={"/cursos/" + next.id} className="inline-flex shrink-0 justify-center rounded-xl bg-safety px-5 py-3 text-sm font-black text-navy">{progress[next.id] ? "Continuar" : "Empezar curso"}</Link>
+              </div>
+            </div>
+          ) : null;
+        })()}
+        <div className="mt-5 grid gap-4 md:grid-cols-2">{courses.map((course) => { const value = progress[course.id] || 0; return <article key={course.id} className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200"><div className="flex gap-4"><img src={course.image} alt="" className="h-20 w-24 rounded-xl object-cover" /><div className="min-w-0 flex-1"><p className="text-xs font-bold uppercase text-safety-dark">{course.category}</p><h3 className="mt-1 font-black leading-snug">{course.title}</h3></div></div><div className="mt-5 flex justify-between text-xs font-bold"><span>{value >= 100 ? "Completado" : value > 0 ? "En curso" : "Sin comenzar"}</span><span>{value}%</span></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-safety" style={{ width: value + "%" }} /></div><Link href={"/cursos/" + course.id} className="mt-4 inline-flex w-full justify-center rounded-lg border-2 border-navy px-4 py-2.5 text-sm font-black text-navy">{value >= 100 ? "Repasar curso" : value > 0 ? "Continuar formación" : "Ver curso"}</Link></article>; })}</div>
+      </section>
       <button onClick={() => { localStorage.removeItem("sdo-afiliado"); window.location.reload(); }} className="mt-8 text-sm font-bold text-slate-500 underline">Cerrar sesión</button>
     </div>
   </main>;
