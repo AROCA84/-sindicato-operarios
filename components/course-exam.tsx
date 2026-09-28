@@ -24,7 +24,12 @@ export function CourseExam({ course }: { course: Course }) {
     setAnswers((prev) => { const next = [...prev]; next[current] = optionIndex; return next; });
   }
   function next() {
-    if (isLast) { setPhase("result"); return; }
+    if (isLast) {
+      if (score >= PASS_MARK) window.localStorage.setItem("sdo-progreso-" + course.id, "100");
+      else window.localStorage.setItem("sdo-progreso-" + course.id, String(Math.min(99, Math.round((score / total) * 100))));
+      setPhase("result");
+      return;
+    }
     setCurrent((c) => c + 1);
   }
   function retry() {
