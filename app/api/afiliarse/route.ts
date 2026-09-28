@@ -33,9 +33,16 @@ export async function POST(request: Request) {
 
     const supabaseUrl =
       process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey =
+    // Vercel/Supabase secrets must be ASCII in HTTP headers. When a key is
+    // copied from a formatted screen, an invisible Unicode character can
+    // occasionally be introduced and make fetch() fail before reaching Supabase.
+    const rawSupabaseKey =
       process.env.SUPABASE_SECRET_KEY ||
       process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseKey = rawSupabaseKey
+      ?.trim()
+      .replace(/[\\u0000-\\u001F\\u007F-\\u009F]/g, "")
+      .replace(/[•·]/g, "");
 
     if (!supabaseUrl || !supabaseKey) {
       return NextResponse.json(
