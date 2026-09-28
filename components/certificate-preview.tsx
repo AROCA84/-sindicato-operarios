@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
 import jsPDF from "jspdf";
 
@@ -92,9 +92,7 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
       const gold = "#f5b400";
       const orange = "#e86f00";
       const grey = "#68727c";
-      const light = "#f5f7f8";
 
-      // Paper and double professional border.
       pdf.setFillColor(255, 255, 255);
       pdf.rect(0, 0, W, H, "F");
       pdf.setDrawColor(navy);
@@ -104,13 +102,11 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
       pdf.setLineWidth(0.7);
       pdf.rect(12, 12, W - 24, H - 24, "S");
 
-      // Industrial top band.
       pdf.setFillColor(navy);
       pdf.rect(8, 8, W - 16, 27, "F");
       pdf.setFillColor(gold);
       pdf.rect(8, 32.5, W - 16, 2.5, "F");
 
-      // Simple geometric mark.
       pdf.setFillColor(gold);
       pdf.roundedRect(18, 14, 17, 17, 2, 2, "F");
       pdf.setFillColor(navy);
@@ -127,7 +123,6 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
       pdf.setTextColor(210, 218, 224);
       pdf.text("FORMACIÓN PROFESIONAL · CERTIFICACIÓN DE APTITUD", 42, 27);
 
-      // Certificate title.
       pdf.setTextColor(navy);
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(25);
@@ -136,7 +131,6 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
       pdf.setTextColor(grey);
       pdf.text("DE FORMACIÓN Y APTITUD", W / 2, 60, { align: "center" });
 
-      // Main name area.
       pdf.setTextColor(grey);
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(7.5);
@@ -148,7 +142,6 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
       pdf.setLineWidth(0.8);
       pdf.line(62, 91, 235, 91);
 
-      // Course block.
       pdf.setFillColor(245, 247, 248);
       pdf.roundedRect(38, 99, 221, 30, 3, 3, "F");
       pdf.setTextColor(grey);
@@ -160,7 +153,6 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
       const courseLines = wrapText(courseTitle, courseTitle.length > 58 ? 55 : 62).slice(0, 2);
       courseLines.forEach((line, index) => pdf.text(line, W / 2, 117 + index * 6, { align: "center" }));
 
-      // Result badge.
       pdf.setFillColor(225, 247, 235);
       pdf.roundedRect(42, 139, 45, 24, 3, 3, "F");
       pdf.setTextColor(27, 122, 72);
@@ -172,7 +164,6 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
       pdf.setFontSize(6.5);
       pdf.text(`${score}/${total} respuestas`, 64.5, 161, { align: "center" });
 
-      // Identity details.
       pdf.setTextColor(grey);
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(6.5);
@@ -187,7 +178,6 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
       pdf.setFontSize(email.trim().length > 35 ? 6.8 : 8);
       pdf.text(email.trim(), 98, 172.5);
 
-      // QR verification panel.
       pdf.setDrawColor(navy);
       pdf.setLineWidth(0.6);
       pdf.roundedRect(239, 136, 39, 39, 2, 2, "S");
@@ -197,7 +187,6 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
       pdf.setFontSize(5.2);
       pdf.text("ESCANEA PARA VERIFICAR", 258.5, 179, { align: "center" });
 
-      // Footer.
       pdf.setDrawColor(220, 224, 227);
       pdf.setLineWidth(0.3);
       pdf.line(20, 184, 277, 184);
@@ -250,7 +239,7 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
         <>
           <section className="overflow-hidden rounded-[2rem] bg-[#f7f5ef] p-3 shadow-2xl ring-1 ring-black/10 sm:p-5">
             <div className="relative overflow-hidden rounded-[1.5rem] border-[3px] border-[#101820] bg-white px-5 py-7 text-slate-900 sm:px-10 sm:py-9">
-              <div className="absolute inset-2 rounded-[1.1rem] border border-[#f5b400]/70 pointer-events-none" />
+              <div className="pointer-events-none absolute inset-2 rounded-[1.1rem] border border-[#f5b400]/70" />
               <div className="relative">
                 <div className="flex items-center justify-between gap-4 border-b-2 border-[#f5b400] pb-5">
                   <div className="flex items-center gap-3">
@@ -316,14 +305,18 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
 }
 
 function QRCodeImage({ url }: { url: string }) {
-  const [src, setSrc] = useState<string>("");
+  const [src, setSrc] = useState("");
 
-  useMemo(() => {
+  useEffect(() => {
     let active = true;
-    QRCode.toDataURL(url, { width: 240, margin: 1, errorCorrectionLevel: "H" }).then((value) => {
-      if (active) setSrc(value);
-    }).catch(() => undefined);
-    return () => { active = false; };
+    QRCode.toDataURL(url, { width: 240, margin: 1, errorCorrectionLevel: "H" })
+      .then((value) => {
+        if (active) setSrc(value);
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
   }, [url]);
 
   if (!src) return <div className="h-[130px] w-[130px] animate-pulse bg-slate-100" />;
