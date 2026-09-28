@@ -68,12 +68,12 @@ async function findCertificates(affiliateId: string): Promise<Certificate[]> {
 export default async function VerificationPage({ searchParams }: Props) {
   const params = await searchParams;
   const afiliado = params.afiliado ?? "";
-  const legacyValid = Boolean(params.codigo && params.nombre && params.curso && params.resultado === "APTO");
+  const certificateCode = params.codigo ?? "";
   const member = afiliado ? await findAffiliate(afiliado) : null;
   const certificates = member ? await findCertificates(member.id) : [];
 
   const verifiedMember = member?.activo ? member : null;
-  const legacy = !afiliado && legacyValid;
+  const certificateMatch = certificateCode ? certificates.find((certificate) => certificate.codigo === certificateCode) : null;
 
   return (
     <main className="min-h-screen bg-slate-950 px-5 py-12 text-white">
@@ -129,23 +129,23 @@ export default async function VerificationPage({ searchParams }: Props) {
 
                 <p className="mt-8 text-xs leading-5 text-slate-500">La información de esta página se consulta directamente en el registro del Sindicato de Operarios. No muestra datos privados como contraseña o información de pago.</p>
               </div>
-            ) : legacy ? (
+            ) : certificateMatch ? (
               <div className="pt-8">
                 <div className="rounded-2xl border-2 border-emerald-600 bg-emerald-50 p-5 text-center">
-                  <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Resultado del documento</p>
-                  <p className="mt-2 text-4xl font-black text-emerald-700">APTO ✓</p>
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Certificado verificado</p>
+                  <p className="mt-2 text-4xl font-black text-emerald-700">VÁLIDO ✓</p>
                 </div>
                 <div className="mt-7 space-y-4">
-                  <div><p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Titular</p><p className="mt-1 text-xl font-black">{params.nombre}</p></div>
-                  <div><p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Formación</p><p className="mt-1 font-bold">{params.curso}</p></div>
-                  <div><p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Código</p><p className="mt-1 font-black">{params.codigo}</p></div>
+                  <div><p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Titular</p><p className="mt-1 text-xl font-black">{verifiedMember?.nombre} {verifiedMember?.apellidos}</p></div>
+                  <div><p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Formación</p><p className="mt-1 font-bold">{getCourse(certificateMatch.curso_id)?.title ?? certificateMatch.curso_id}</p></div>
+                  <div><p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Resultado</p><p className="mt-1 font-black text-emerald-700">APTO · {certificateMatch.puntuacion}/{certificateMatch.total}</p></div>
+                  <div><p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Código</p><p className="mt-1 font-black">{certificateMatch.codigo}</p></div>
                 </div>
-                <p className="mt-8 rounded-xl bg-amber-50 p-4 text-xs leading-5 text-amber-800">Este formato antiguo contiene los datos en el propio QR. Los nuevos documentos utilizan verificación directa del registro.</p>
               </div>
             ) : (
               <div className="py-12 text-center">
-                <p className="text-2xl font-black">Código no válido</p>
-                <p className="mt-2 text-sm text-slate-500">El QR no identifica una afiliación activa del Sindicato de Operarios.</p>
+                <p className="text-2xl font-black">Verificación no disponible</p>
+                <p className="mt-2 text-sm text-slate-500">Este código no corresponde a un certificado emitido y pagado del Sindicato de Operarios. El resultado del test por sí solo no acredita un certificado.</p>
               </div>
             )}
 
