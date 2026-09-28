@@ -27,10 +27,19 @@ function AfiliarseForm() {
         body: JSON.stringify({ nombre, apellidos, email, telefono }),
       });
 
-      const data = await response.json();
+      const raw = await response.text();
+      let data: { ok?: boolean; error?: string; detail?: string; numero_afiliado?: number; nombre?: string; apellidos?: string; email?: string } = {};
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        throw new Error(`Error HTTP ${response.status}: ${raw.slice(0, 300) || "respuesta vacía"}`);
+      }
 
       if (!response.ok || !data.ok) {
-        throw new Error(data.error || "No se ha podido completar la afiliación.");
+        throw new Error(
+          [data.error, data.detail].filter(Boolean).join(" — ") ||
+            `Error HTTP ${response.status}`
+        );
       }
 
       window.localStorage.setItem("sdo-afiliado", "true");
