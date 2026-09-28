@@ -14,12 +14,6 @@ type Props = {
 
 const PAYMENT_URL = "https://mypos.com/@sindicato499/4.99";
 
-function createAffiliationNumber() {
-  const year = new Date().getFullYear();
-  const random = Math.floor(100000 + Math.random() * 900000);
-  return `${year}-${random}`;
-}
-
 function SindicatoMark({ size = "md" }: { size?: "sm" | "md" }) {
   const box = size === "sm" ? "h-12 w-12" : "h-16 w-16";
   return (
@@ -57,16 +51,23 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
   const [email, setEmail] = useState("");
   const [showPreview, setShowPreview] = useState(false);
   const [paymentStarted, setPaymentStarted] = useState(false);
+  const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [certificateCode, setCertificateCode] = useState("");
+  const [paymentUrl, setPaymentUrl] = useState(PAYMENT_URL);
+  const [affiliationNumber, setAffiliationNumber] = useState("");
+  const [error, setError] = useState("");
 
-  const affiliationNumber = useMemo(() => createAffiliationNumber(), []);
-  const certificateCode = `SO-${affiliationNumber}`;
+  useEffect(() => {
+    setAffiliationNumber(window.localStorage.getItem("sdo-numero-afiliado") || "");
+    const storedName = [window.localStorage.getItem("sdo-afiliado-nombre"), window.localStorage.getItem("sdo-afiliado-apellidos")].filter(Boolean).join(" ");
+    if (storedName) setName(storedName);
+    const storedEmail = window.localStorage.getItem("sdo-afiliado-email");
+    if (storedEmail) setEmail(storedEmail);
+  }, []);
 
   const verificationParams = new URLSearchParams({
     codigo: certificateCode,
-    nombre: name.trim(),
-    curso: courseTitle,
-    resultado: "APTO",
   });
 
   const verificationUrl =
@@ -78,14 +79,45 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
     name.trim().length >= 3 &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
-  function goToPayment() {
-    if (!canPreview) return;
-    setPaymentStarted(true);
-    window.open(PAYMENT_URL, "_blank", "noopener,noreferrer");
+  async function goToPayment() {
+    if (!canPreview || !affiliationNumber) return;
+    setError("");
+    try {
+      const response = await fetch("/api/certificados/iniciar", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, numero_afiliado: Number(affiliationNumber), curso_id: courseId, puntuacion: score, total }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "No se pudo iniciar el certificado.");
+      setCertificateCode(data.codigo);
+      setPaymentUrl(data.payment_url || PAYMENT_URL);
+      setPaymentStarted(true);
+      window.open(data.payment_url || PAYMENT_URL, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo iniciar el certificado.");
+    }
+  }
+
+  async function checkPayment() {
+    if (!certificateCode) return;
+    setError("");
+    try {
+      const response = await fetch(`/api/certificados/estado?codigo=${encodeURIComponent(certificateCode)}`, { cache: "no-store" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "No se pudo comprobar el pago.");
+      if (data.emitido) {
+        setPaymentConfirmed(true);
+        setShowPreview(true);
+      } else {
+        setError("El pago todavía no ha sido confirmado. Si acabas de pagar, espera unos segundos y vuelve a comprobarlo.");
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo comprobar el pago.");
+    }
   }
 
   async function downloadCertificate() {
-    if (!canPreview || downloading || !paymentStarted) return;
+    if (!canPreview || downloading || !paymentConfirmed || !certificateCode) return;
     setDownloading(true);
 
     try {
@@ -249,9 +281,10 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
             Continuar al pago · 4,99 €
           </button>
         ) : (
-          <button type="button" onClick={() => setShowPreview(true)} className="mt-5 w-full rounded-xl border-2 border-safety bg-safety/10 px-5 py-4 text-sm font-black uppercase tracking-wide text-safety transition hover:bg-safety/20">
-            ✓ He completado el pago · Ver certificado
-          </button>
+          <div className="mt-5 space-y-3">
+            <a href={paymentUrl} target="_blank" rel="noreferrer" className="block w-full rounded-xl bg-safety px-5 py-4 text-center text-sm font-black uppercase tracking-wide text-navy">Pagar 4,99 € en myPOS</a>
+            <button type="button" onClick={checkPayment} className="w-full rounded-xl border-2 border-safety bg-safety/10 px-5 py-4 text-sm font-black uppercase tracking-wide text-safety transition hover:bg-safety/20">Comprobar pago y desbloquear certificado</button>
+          </div>
         )}
 
         <p className="mt-3 text-center text-xs leading-5 text-slate-400">
@@ -259,7 +292,7 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
         </p>
       </div>
 
-      {showPreview && canPreview && paymentStarted && (
+      {showPreview && canPreview && paymentStarted && paymentConfirmed && (
         <>
           <section className="overflow-hidden rounded-[2rem] bg-[#f7f5ef] p-3 shadow-2xl ring-1 ring-black/10 sm:p-5">
             <div className="relative overflow-hidden rounded-[1.5rem] border-[3px] border-[#101820] bg-white px-5 py-7 text-slate-900 sm:px-10 sm:py-9">
