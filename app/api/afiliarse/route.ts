@@ -95,7 +95,7 @@ export async function POST(request: Request) {
         nombre,
         apellidos,
         email,
-        ...(telefono ? { Teléfono: telefono } : {}),
+        ...(telefono ? { telefono } : {}),
       }),
       cache: "no-store",
     });
@@ -103,6 +103,39 @@ export async function POST(request: Request) {
     if (!insertResponse.ok) {
       const detail = await insertResponse.text();
       console.error("Supabase insert error:", detail);
+
+      // Si dos solicitudes llegan casi a la vez con el mismo correo,
+      // la restricción UNIQUE de Supabase puede producir un 409.
+      // En ese caso recuperamos el afiliado existente en lugar de mostrar un error.
+      if (insertResponse.status === 409) {
+        const conflictResponse = await fetch(
+          `${baseUrl}/rest/v1/afiliados?select=id,numero_afiliado,nombre,apellidos,email&email=eq.${encodeURIComponent(email)}&limit=1`,
+          { headers, cache: "no-store" }
+        );
+
+        if (conflictResponse.ok) {
+          const conflictRows = (await conflictResponse.json()) as Array<{
+            id: string;
+            numero_afiliado: number;
+            nombre: string;
+            apellidos: string;
+            email: string;
+          }>;
+
+          if (conflictRows.length > 0) {
+            const affiliate = conflictRows[0];
+            return NextResponse.json({
+              ok: true,
+              existing: true,
+              numero_afiliado: affiliate.numero_afiliado,
+              nombre: affiliate.nombre,
+              apellidos: affiliate.apellidos,
+              email: affiliate.email,
+            });
+          }
+        }
+      }
+
       return NextResponse.json(
         { error: "No se ha podido crear la afiliación. Inténtalo de nuevo." },
         { status: 502 }
