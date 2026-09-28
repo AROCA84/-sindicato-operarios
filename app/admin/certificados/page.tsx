@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { CheckCircle2, Eye, Mail, QrCode, ShieldCheck } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { CheckCircle2, Eye, Mail, Printer, ShieldCheck } from "lucide-react";
 
 const courseTitle = "Operario de Carretillas Elevadoras, Frontales y Retráctiles";
 const unionName = "Sindicato de Operarios";
@@ -14,9 +14,7 @@ function generateAffiliateNumber() {
 function BrandMark({ dark = false }: { dark?: boolean }) {
   return (
     <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border-2 ${dark ? "border-safety bg-slate-950 text-safety" : "border-slate-900 bg-slate-900 text-safety"} font-black text-sm shadow-lg`}>
-      <span className="relative">
-        S<span className="text-white">O</span>
-      </span>
+      <span className="relative">S<span className="text-white">O</span></span>
     </div>
   );
 }
@@ -43,6 +41,19 @@ export default function AdminCertificadosPage() {
     "https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data=" +
     encodeURIComponent(verificationUrl);
 
+  useEffect(() => {
+    const clear = () => {
+      delete document.body.dataset.printTarget;
+    };
+    window.addEventListener("afterprint", clear);
+    return () => window.removeEventListener("afterprint", clear);
+  }, []);
+
+  function printDocument(target: "card" | "certificate") {
+    document.body.dataset.printTarget = target;
+    window.setTimeout(() => window.print(), 100);
+  }
+
   return (
     <main className="min-h-screen bg-navy px-4 py-8 text-white sm:px-6">
       <div className="mx-auto max-w-7xl">
@@ -52,9 +63,7 @@ export default function AdminCertificadosPage() {
             <h1 className="mt-2 text-3xl font-black">Vista previa de certificados</h1>
             <p className="mt-2 text-sm text-slate-300">Diseño profesional horizontal de carné y certificado.</p>
           </div>
-          <a href="/" className="rounded-xl border border-white/15 px-4 py-3 text-center text-sm font-bold hover:bg-white/10">
-            ← Volver a la web
-          </a>
+          <a href="/" className="rounded-xl border border-white/15 px-4 py-3 text-center text-sm font-bold hover:bg-white/10">← Volver a la web</a>
         </div>
 
         <section className="mb-8 grid gap-4 rounded-2xl border border-white/10 bg-white/5 p-5 md:grid-cols-2">
@@ -74,15 +83,17 @@ export default function AdminCertificadosPage() {
 
         <div className="space-y-10">
           <section>
-            <div className="mb-3 flex items-center gap-2">
-              <Eye className="h-5 w-5 text-safety" />
-              <h2 className="text-xl font-black">Carné de aptitud · Horizontal</h2>
+            <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between no-print">
+              <div className="flex items-center gap-2">
+                <Eye className="h-5 w-5 text-safety" />
+                <h2 className="text-xl font-black">Carné de aptitud · Horizontal</h2>
+              </div>
+              <button type="button" onClick={() => printDocument("card")} className="inline-flex items-center justify-center gap-2 rounded-xl bg-safety px-4 py-3 text-sm font-black uppercase tracking-wide text-navy hover:bg-safety-dark">
+                <Printer className="h-4 w-4" /> Guardar carné en PDF
+              </button>
             </div>
 
-            <div
-              className="relative mx-auto aspect-[1.586/1] max-w-4xl overflow-hidden rounded-2xl border border-safety/40 bg-slate-950 p-5 text-white shadow-2xl sm:p-7"
-              style={{ backgroundImage: "radial-gradient(circle at 15% 20%, rgba(250,180,35,.18) 0 2px, transparent 3px), linear-gradient(135deg, transparent 0 45%, rgba(255,255,255,.035) 45% 46%, transparent 46% 100%), repeating-linear-gradient(25deg, rgba(255,255,255,.025) 0 1px, transparent 1px 9px)" }}
-            >
+            <div className="print-card-document relative mx-auto aspect-[1.586/1] max-w-4xl overflow-hidden rounded-2xl border border-safety/40 bg-slate-950 p-5 text-white shadow-2xl sm:p-7" style={{ backgroundImage: "radial-gradient(circle at 15% 20%, rgba(250,180,35,.18) 0 2px, transparent 3px), linear-gradient(135deg, transparent 0 45%, rgba(255,255,255,.035) 45% 46%, transparent 46% 100%), repeating-linear-gradient(25deg, rgba(255,255,255,.025) 0 1px, transparent 1px 9px)" }}>
               <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full border border-safety/20" />
               <div className="relative flex h-full flex-col">
                 <div className="flex items-start justify-between gap-4">
@@ -120,18 +131,21 @@ export default function AdminCertificadosPage() {
                 </div>
               </div>
             </div>
+            <p className="mt-2 text-center text-xs text-slate-400 no-print">PDF físico: 85,60 × 53,98 mm · formato PVC/tarjeta bancaria · horizontal.</p>
           </section>
 
           <section>
-            <div className="mb-3 flex items-center gap-2">
-              <ShieldCheck className="h-5 w-5 text-safety" />
-              <h2 className="text-xl font-black">Certificado de aptitud · Horizontal</h2>
+            <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between no-print">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-safety" />
+                <h2 className="text-xl font-black">Certificado de aptitud · Horizontal</h2>
+              </div>
+              <button type="button" onClick={() => printDocument("certificate")} className="inline-flex items-center justify-center gap-2 rounded-xl bg-safety px-4 py-3 text-sm font-black uppercase tracking-wide text-navy hover:bg-safety-dark">
+                <Printer className="h-4 w-4" /> Guardar certificado en PDF
+              </button>
             </div>
 
-            <div
-              className="relative mx-auto aspect-[1.414/1] max-w-5xl overflow-hidden rounded-xl border-4 border-[#8f6c18] bg-[#d5b45a] p-3 text-slate-900 shadow-2xl sm:p-5"
-              style={{ backgroundImage: "radial-gradient(circle at 10% 20%, rgba(255,255,255,.22) 0 2px, transparent 3px), radial-gradient(circle at 80% 70%, rgba(80,55,10,.08) 0 1px, transparent 2px), repeating-linear-gradient(45deg, rgba(120,90,20,.055) 0 2px, transparent 2px 12px)" }}
-            >
+            <div className="print-certificate-document relative mx-auto aspect-[1.414/1] max-w-5xl overflow-hidden rounded-xl border-4 border-[#8f6c18] bg-[#d5b45a] p-3 text-slate-900 shadow-2xl sm:p-5" style={{ backgroundImage: "radial-gradient(circle at 10% 20%, rgba(255,255,255,.22) 0 2px, transparent 3px), radial-gradient(circle at 80% 70%, rgba(80,55,10,.08) 0 1px, transparent 2px), repeating-linear-gradient(45deg, rgba(120,90,20,.055) 0 2px, transparent 2px 12px)" }}>
               <div className="relative h-full rounded-lg border-2 border-[#8a6615] bg-[#ead17d]/55 p-4 sm:p-6">
                 <div className="flex items-start justify-between gap-4 border-b-2 border-[#8a6615]/60 pb-3">
                   <div className="flex items-center gap-3">
@@ -154,7 +168,6 @@ export default function AdminCertificadosPage() {
                   <div className="mx-auto mt-3 h-1 w-28 rounded-full bg-[#8a6615]" />
                   <p className="mt-4 text-xs text-slate-700">ha superado satisfactoriamente la formación:</p>
                   <p className="mx-auto mt-2 max-w-3xl text-base font-black leading-tight sm:text-xl">{courseTitle}</p>
-
                   <div className="mt-4 flex flex-wrap justify-center gap-2">
                     <span className="rounded border border-[#8a6615]/50 bg-white/30 px-3 py-1 text-[9px] font-black uppercase">APTO · 18/20</span>
                     <span className="rounded border border-[#8a6615]/50 bg-white/30 px-3 py-1 text-[9px] font-black uppercase">AFILIACIÓN · {affiliationNumber}</span>
@@ -176,11 +189,12 @@ export default function AdminCertificadosPage() {
                 </div>
               </div>
             </div>
+            <p className="mt-2 text-center text-xs text-slate-400 no-print">PDF físico: A4 horizontal · 297 × 210 mm · sin márgenes añadidos por el documento.</p>
           </section>
         </div>
 
-        <div className="mt-8 rounded-2xl border border-safety/20 bg-safety/10 p-5 text-sm text-slate-200">
-          <strong className="text-white">Nota:</strong> el logotipo SO es una marca gráfica propia del proyecto y no representa a ninguna administración pública. Los datos y QR mostrados son de previsualización.
+        <div className="mt-8 rounded-2xl border border-safety/20 bg-safety/10 p-5 text-sm text-slate-200 no-print">
+          <strong className="text-white">Formato PDF:</strong> el botón de cada documento prepara la impresión con el tamaño físico exacto. En iPhone, en la pantalla de impresión puedes usar «Compartir» → «Guardar en Archivos» para conservar el PDF.
         </div>
       </div>
     </main>
