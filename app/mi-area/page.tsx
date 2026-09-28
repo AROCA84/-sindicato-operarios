@@ -118,6 +118,48 @@ export default function MiAreaPage() {
         })()}
         <div className="mt-5 grid gap-4 md:grid-cols-2">{courses.map((course) => { const value = progress[course.id] || 0; return <article key={course.id} className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200"><div className="flex gap-4"><img src={course.image} alt="" className="h-20 w-24 rounded-xl object-cover" /><div className="min-w-0 flex-1"><p className="text-xs font-bold uppercase text-safety-dark">{course.category}</p><h3 className="mt-1 font-black leading-snug">{course.title}</h3></div></div><div className="mt-5 flex justify-between text-xs font-bold"><span>{value >= 100 ? "Completado" : value > 0 ? "En curso" : "Sin comenzar"}</span><span>{value}%</span></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-safety" style={{ width: value + "%" }} /></div><Link href={"/cursos/" + course.id} className="mt-4 inline-flex w-full justify-center rounded-lg border-2 border-navy px-4 py-2.5 text-sm font-black text-navy">{value >= 100 ? "Repasar curso" : value > 0 ? "Continuar formación" : "Ver curso"}</Link></article>; })}</div>
       </section>
+      <section className="mt-8 grid gap-5 lg:grid-cols-2">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+          <p className="text-xs font-black uppercase tracking-widest text-safety-dark">Identificación</p>
+          <h2 className="mt-1 text-2xl font-black">🪪 Carné de afiliado</h2>
+          <div className="mt-5 space-y-3 text-sm">
+            <p><span className="font-bold">Estado:</span> Afiliado activo</p>
+            <p><span className="font-bold">Nombre:</span> {data.nombre} {data.apellidos}</p>
+            <p><span className="font-bold">Nº de afiliado:</span> {data.numero}</p>
+            <p><span className="font-bold">Correo:</span> {data.email}</p>
+            <p><span className="font-bold">Organización:</span> Sindicato de Operarios</p>
+          </div>
+          <div className="mt-5 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">
+            El QR de tu carné permite comprobar que tu afiliación está activa.
+          </div>
+        </div>
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+          <p className="text-xs font-black uppercase tracking-widest text-safety-dark">Certificación</p>
+          <h2 className="mt-1 text-2xl font-black">📜 Mis certificados</h2>
+          {certificates.length > 0 ? (
+            <div className="mt-5 space-y-3">
+              {certificates.map((certificate) => {
+                const course = courses.find((item) => item.id === certificate.curso_id);
+                return (
+                  <div key={certificate.codigo} className="rounded-xl border border-slate-200 p-4">
+                    <p className="font-black">{course?.title || certificate.curso_id}</p>
+                    <p className="mt-1 text-sm text-slate-500">APTO · {certificate.puntuacion}/{certificate.total} · Código {certificate.codigo}</p>
+                    <Link href={"/verificar?codigo=" + encodeURIComponent(certificate.codigo)} className="mt-3 inline-flex rounded-lg bg-navy px-4 py-2.5 text-sm font-black text-white">
+                      Ver certificado
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="mt-5 rounded-xl bg-slate-50 p-4">
+              <p className="font-bold">Todavía no tienes certificados emitidos.</p>
+              <p className="mt-1 text-sm text-slate-500">Aprueba un test y, si quieres el certificado, completa el pago de 4,99 €.</p>
+              <Link href="/cursos" className="mt-4 inline-flex rounded-lg bg-safety px-4 py-2.5 text-sm font-black text-navy">Ver formación</Link>
+            </div>
+          )}
+        </div>
+      </section>
       <button onClick={() => { localStorage.removeItem("sdo-afiliado"); window.location.reload(); }} className="mt-8 text-sm font-bold text-slate-500 underline">Cerrar sesión</button>
     </div>
   </main>;
