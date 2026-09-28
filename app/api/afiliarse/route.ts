@@ -41,7 +41,7 @@ export async function POST(request: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY;
     const supabaseKey = rawSupabaseKey
       ?.trim()
-      .replace(/[\\u0000-\\u001F\\u007F-\\u009F]/g, "")
+      .replace(/[\u0000-\u001F\u007F-\u009F]/g, "")
       .replace(/[•·]/g, "");
 
     if (!supabaseUrl || !supabaseKey) {
@@ -52,10 +52,17 @@ export async function POST(request: Request) {
     }
 
     const baseUrl = supabaseUrl.replace(/\/$/, "");
-    const headers = {
+    // Supabase's new sb_secret_* keys must be sent in the apikey header.
+    // Sending an sb_secret_* key as "Authorization: Bearer ..." can make
+    // Supabase treat it as a JWT and reject the request. Legacy
+    // service_role keys still use the Authorization header.
+    const isNewSecretKey = supabaseKey.startsWith("sb_secret_");
+    const headers: Record<string, string> = {
       apikey: supabaseKey,
-      Authorization: `Bearer ${supabaseKey}`,
       "Content-Type": "application/json",
+      ...(isNewSecretKey
+        ? {}
+        : { Authorization: `Bearer ${supabaseKey}` }),
     };
 
     const existingResponse = await fetch(
