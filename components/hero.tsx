@@ -1,119 +1,72 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 
 const slides = [
   {
     image: "/hero/hero-1.png",
-    tag: "Afiliación gratuita",
-    title: "Afíliate al Sindicato y accede a formación gratuita",
-    text: "La formación es gratuita para las personas afiliadas. Estudia, realiza tus tests y accede a nuestros cursos de maquinaria, logística y prevención.",
+    tag: "Formación gratuita",
+    title: "Aprende. Haz el test. Consigue tu certificado.",
+    text: "Afíliate gratis al Sindicato de Operarios, estudia desde el móvil y realiza tus tests sin pagar. Solo pagas 4,99 € al final si quieres obtener el certificado.",
   },
   {
     image: "/hero/hero-2.png",
-    tag: "Movimiento de tierras",
-    title: "Domina la maquinaria pesada de obra",
-    text: "Retropala, dúmper y telescópica con formación real en obra y certificado oficial.",
+    tag: "Maquinaria",
+    title: "Formación para operarios que quieren avanzar.",
+    text: "Carretillas, PEMP, puente grúa, maquinaria de obra, logística y prevención en una sola plataforma.",
   },
   {
     image: "/hero/hero-3.png",
-    tag: "Logística y almacén",
-    title: "Especialízate en logística y prevención de riesgos",
-    text: "Transpaletas, apiladores y gestión de almacén con los máximos estándares de seguridad.",
+    tag: "Tu progreso, contigo",
+    title: "Continúa donde lo dejaste.",
+    text: "Desde Mi Área puedes consultar tu número de afiliado, QR, cursos y progreso formativo.",
   },
 ];
 
 export function Hero() {
   const [current, setCurrent] = useState(0);
-
-  const next = useCallback(
-    () => setCurrent((c) => (c + 1) % slides.length),
-    [],
-  );
-  const go = (i: number) => setCurrent(i);
+  const next = useCallback(() => setCurrent((c) => (c + 1) % slides.length), []);
 
   useEffect(() => {
-    const timer = setInterval(next, 6000);
+    const timer = setInterval(next, 6500);
     return () => clearInterval(timer);
   }, [next]);
 
   return (
     <section id="inicio" className="relative isolate overflow-hidden bg-navy">
-      <div className="relative h-[560px] w-full sm:h-[600px]">
+      <div className="relative min-h-[620px] w-full sm:min-h-[650px]">
         {slides.map((slide, i) => (
-          <div
-            key={slide.image}
-            className={`absolute inset-0 transition-opacity duration-1000 ${
-              i === current ? "opacity-100" : "opacity-0"
-            }`}
-            aria-hidden={i !== current}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={slide.image || "/placeholder.svg"}
-              alt=""
-              className="h-full w-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-navy via-navy/85 to-navy/30" />
+          <div key={slide.image} className={`absolute inset-0 transition-opacity duration-700 ${i === current ? "opacity-100" : "opacity-0"}`} aria-hidden={i !== current}>
+            <img src={slide.image} alt="" className="h-full w-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-r from-navy via-navy/90 to-navy/35" />
             <div className="absolute inset-0 bg-gradient-to-t from-navy via-transparent to-transparent" />
           </div>
         ))}
-
         <div className="absolute inset-0">
-          <div className="mx-auto flex h-full max-w-7xl items-center px-6">
-            <div className="max-w-2xl">
-              {slides.map((slide, i) => (
-                <div
-                  key={slide.title}
-                  className={`transition-all duration-700 ${
-                    i === current
-                      ? "block translate-y-0 opacity-100"
-                      : "hidden translate-y-4 opacity-0"
-                  }`}
-                >
-                  <span className="inline-flex items-center gap-2 rounded-full border border-safety/40 bg-safety/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-safety">
-                    {slide.tag}
-                  </span>
-                  <h1 className="mt-5 text-balance text-4xl font-black leading-tight text-white sm:text-5xl lg:text-6xl">
-                    {slide.title}
-                  </h1>
-                  <p className="mt-5 max-w-xl text-pretty text-base text-white/75 sm:text-lg">
-                    {slide.text}
-                  </p>
-                </div>
-              ))}
-
-              <div className="mt-8 flex flex-wrap gap-4">
-                <a
-                  href="/afiliarse"
-                  className="rounded-md bg-safety px-7 py-3.5 text-sm font-bold uppercase tracking-wide text-navy transition-colors hover:bg-safety-dark"
-                >
-                  Afiliarme gratis
-                </a>
-                <a
-                  href="#cursos"
-                  className="rounded-md border border-white/25 px-7 py-3.5 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-white/10"
-                >
-                  Ver cursos
-                </a>
+          <div className="mx-auto flex h-full max-w-7xl items-center px-5 pb-8 sm:px-6">
+            <div className="max-w-3xl">
+              <div className="min-h-[270px]">
+                {slides.map((slide, i) => i === current ? (
+                  <div key={slide.title}>
+                    <span className="inline-flex rounded-full border border-safety/40 bg-safety/10 px-4 py-2 text-xs font-black uppercase tracking-widest text-safety">{slide.tag}</span>
+                    <h1 className="mt-5 text-balance text-4xl font-black leading-[1.05] text-white sm:text-5xl lg:text-6xl">{slide.title}</h1>
+                    <p className="mt-5 max-w-2xl text-pretty text-base leading-7 text-white/80 sm:text-lg">{slide.text}</p>
+                  </div>
+                ) : null)}
+              </div>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                <Link href="/afiliarse" className="rounded-xl bg-safety px-7 py-4 text-center text-sm font-black uppercase tracking-wide text-navy shadow-lg hover:bg-safety-dark">Afiliarme gratis</Link>
+                <Link href="/cursos" className="rounded-xl border border-white/30 px-7 py-4 text-center text-sm font-black uppercase tracking-wide text-white hover:bg-white/10">Ver formación</Link>
+              </div>
+              <div className="mt-7 grid max-w-2xl grid-cols-2 gap-3 text-xs font-bold text-white/85 sm:grid-cols-4">
+                <span>✓ Afiliación gratis</span><span>✓ Formación gratis</span><span>✓ Test gratis</span><span>✓ Certificado 4,99 €</span>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Dots */}
         <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 gap-3">
-          {slides.map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => go(i)}
-              aria-label={`Ir a la diapositiva ${i + 1}`}
-              className={`h-2.5 rounded-full transition-all ${
-                i === current ? "w-8 bg-safety" : "w-2.5 bg-white/40 hover:bg-white/70"
-              }`}
-            />
-          ))}
+          {slides.map((slide, i) => <button key={slide.image} type="button" onClick={() => setCurrent(i)} aria-label={`Ir a la diapositiva ${i + 1}`} aria-current={i === current} className={`h-2.5 rounded-full transition-all ${i === current ? "w-8 bg-safety" : "w-2.5 bg-white/40 hover:bg-white/70"}`} />)}
         </div>
       </div>
     </section>
