@@ -72,7 +72,7 @@ export default async function VerificationPage({ searchParams }: Props) {
   const member = afiliado ? await findAffiliate(afiliado) : null;
   const certificates = member ? await findCertificates(member.id) : [];
 
-  const verified = Boolean(member?.activo);
+  const verifiedMember = member?.activo ? member : null;
   const legacy = !afiliado && legacyValid;
 
   return (
@@ -89,7 +89,7 @@ export default async function VerificationPage({ searchParams }: Props) {
               </div>
             </div>
 
-            {verified ? (
+            {verifiedMember ? (
               <div className="pt-8">
                 <div className="rounded-2xl border-2 border-emerald-600 bg-emerald-50 p-5 text-center">
                   <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Afiliación verificada</p>
@@ -99,11 +99,11 @@ export default async function VerificationPage({ searchParams }: Props) {
                 <div className="mt-7 grid gap-5 sm:grid-cols-2">
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Titular</p>
-                    <p className="mt-1 text-lg font-black">{member.nombre} {member.apellidos}</p>
+                    <p className="mt-1 text-lg font-black">{verifiedMember.nombre} {verifiedMember.apellidos}</p>
                   </div>
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Nº de afiliado</p>
-                    <p className="mt-1 text-lg font-black">{member.numero_afiliado}</p>
+                    <p className="mt-1 text-lg font-black">{verifiedMember.numero_afiliado}</p>
                   </div>
                 </div>
 
