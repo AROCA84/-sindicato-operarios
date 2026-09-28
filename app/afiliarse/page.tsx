@@ -45,9 +45,20 @@ function AfiliarseForm() {
       window.localStorage.setItem("sdo-afiliado", "true");
       window.localStorage.setItem("sdo-afiliacion-fecha", new Date().toISOString());
       window.localStorage.setItem("sdo-numero-afiliado", String(data.numero_afiliado));
-      window.localStorage.setItem("sdo-afiliado-nombre", data.nombre);
-      window.localStorage.setItem("sdo-afiliado-apellidos", data.apellidos);
-      window.localStorage.setItem("sdo-afiliado-email", data.email);
+      const afiliadoNombre = data.nombre ?? nombre.trim();
+      const afiliadoApellidos = data.apellidos ?? apellidos.trim();
+      const afiliadoEmail = data.email ?? email.trim().toLowerCase();
+
+      if (
+        typeof data.numero_afiliado !== "number" ||
+        !Number.isFinite(data.numero_afiliado)
+      ) {
+        throw new Error("La afiliación se ha procesado, pero el servidor no ha devuelto un número de afiliado válido.");
+      }
+
+      window.localStorage.setItem("sdo-afiliado-nombre", afiliadoNombre);
+      window.localStorage.setItem("sdo-afiliado-apellidos", afiliadoApellidos);
+      window.localStorage.setItem("sdo-afiliado-email", afiliadoEmail);
 
       setNumeroAfiliado(data.numero_afiliado);
 
