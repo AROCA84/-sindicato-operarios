@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, CheckCircle2, BookOpen, ClipboardCheck, UserPlus } from "lucide-react";
 import type { Course, Module } from "@/lib/courses";
 import { TemarioDownload } from "@/components/temario-download";
@@ -12,31 +12,10 @@ interface CourseDetailProps {
 
 export function CourseDetail({ course, modules }: CourseDetailProps) {
   const [affiliated, setAffiliated] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
 
   useEffect(() => {
     setAffiliated(window.localStorage.getItem("sdo-afiliado") === "true");
-    setName(window.localStorage.getItem("sdo-nombre") || "");
-    setEmail(window.localStorage.getItem("sdo-email") || "");
   }, []);
-
-  function handleAffiliate(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const cleanName = name.trim();
-    const cleanEmail = email.trim();
-
-    if (!cleanName || !cleanEmail) return;
-
-    window.localStorage.setItem("sdo-afiliado", "true");
-    window.localStorage.setItem("sdo-nombre", cleanName);
-    window.localStorage.setItem("sdo-email", cleanEmail);
-    setName(cleanName);
-    setEmail(cleanEmail);
-    setAffiliated(true);
-    setShowForm(false);
-  }
 
   return (
     <main className="min-h-screen bg-navy text-white">
@@ -114,46 +93,14 @@ export function CourseDetail({ course, modules }: CourseDetailProps) {
               : "Completa tus datos una sola vez. La afiliación es gratuita y, al terminar, podrás continuar con este curso sin salir de aquí."}
           </p>
 
-          {!affiliated && !showForm && (
-            <button
-              type="button"
-              onClick={() => setShowForm(true)}
+          {!affiliated && (
+            <Link
+              href={`/afiliarse?returnTo=${encodeURIComponent(`/cursos/${course.id}`)}`}
               className="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-safety px-8 py-4 text-base font-black uppercase tracking-wide text-navy shadow-lg transition-colors hover:bg-safety-dark"
             >
               Afíliate gratis para comenzar
               <UserPlus className="h-5 w-5" />
-            </button>
-          )}
-
-          {!affiliated && showForm && (
-            <form onSubmit={handleAffiliate} className="mx-auto mt-8 max-w-md rounded-2xl border border-white/10 bg-white/[0.05] p-6 text-left">
-              <h3 className="text-xl font-black uppercase">Afiliación gratuita</h3>
-              <p className="mt-2 text-sm text-white/60">Introduce tus datos para desbloquear la formación.</p>
-              <label className="mt-5 block text-sm font-bold">Nombre y apellidos</label>
-              <input
-                required
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                className="mt-2 w-full rounded-lg border border-white/15 bg-white/10 px-4 py-3 text-white outline-none focus:border-safety"
-                placeholder="Nombre y apellidos"
-              />
-              <label className="mt-4 block text-sm font-bold">Correo electrónico</label>
-              <input
-                required
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                className="mt-2 w-full rounded-lg border border-white/15 bg-white/10 px-4 py-3 text-white outline-none focus:border-safety"
-                placeholder="tu@email.com"
-              />
-              <button
-                type="submit"
-                className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-safety px-6 py-4 text-base font-black uppercase tracking-wide text-navy shadow-lg"
-              >
-                Afiliarme gratis y comenzar
-                <UserPlus className="h-5 w-5" />
-              </button>
-            </form>
+            </Link>
           )}
 
           {affiliated && (
