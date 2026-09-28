@@ -61,10 +61,7 @@ function AfiliarseForm() {
       window.localStorage.setItem("sdo-afiliado-email", afiliadoEmail);
 
       setNumeroAfiliado(data.numero_afiliado);
-
-      setTimeout(() => {
-        window.location.href = returnTo.startsWith("/") ? returnTo : "/";
-      }, 1600);
+      setLoading(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se ha podido completar la afiliación.");
       setLoading(false);
@@ -108,8 +105,22 @@ function AfiliarseForm() {
                 Nº {numeroAfiliado}
               </p>
               <p className="mt-2 text-sm font-semibold text-slate-600">
-                Redirigiendo a tu contenido…
+                Tu afiliación ha quedado registrada correctamente.
               </p>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                <a
+                  href="/mi-area"
+                  className="rounded-xl bg-safety px-5 py-3 text-center text-sm font-black text-navy shadow-lg transition hover:bg-safety-dark"
+                >
+                  Entrar en Mi área
+                </a>
+                <a
+                  href="/"
+                  className="rounded-xl border-2 border-slate-200 bg-white px-5 py-3 text-center text-sm font-black text-navy transition hover:border-safety"
+                >
+                  Volver al inicio
+                </a>
+              </div>
             </div>
           ) : (
             <form onSubmit={join} className="mt-8 space-y-4">
