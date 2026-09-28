@@ -1,10 +1,22 @@
 create extension if not exists pgcrypto;
 
-create sequence if not exists public.numero_afiliado_seq start 1;
+-- La numeracion publica empieza en 1137 para que el primer afiliado generado sea 1137.
+-- La secuencia es persistente, unica y consecutiva: 1137, 1138, 1139...
+create sequence if not exists public.numero_afiliado_seq start 1137;
+
+-- Si la secuencia ya existia con la configuracion anterior, la ajustamos solo si aun no ha generado afiliados.
+do $$
+declare current_value bigint;
+begin
+  current_value := last_value from public.numero_afiliado_seq;
+  if current_value < 1137 then
+    perform setval('public.numero_afiliado_seq', 1137, false);
+  end if;
+end $$;
 
 create table if not exists public.afiliados (
   id uuid primary key default gen_random_uuid(),
-  numero_afiliado text unique not null,
+  numero_afiliado bigint unique,
   nombre text not null,
   apellidos text not null,
   email text unique not null,
@@ -17,13 +29,11 @@ create table if not exists public.afiliados (
 );
 
 create or replace function public.generar_numero_afiliado()
-returns text
+returns bigint
 language plpgsql
 as $$
-declare n bigint;
 begin
-  n := nextval('public.numero_afiliado_seq');
-  return 'SO-' || to_char(current_date, 'YYYY') || '-' || lpad(n::text, 6, '0');
+  return nextval('public.numero_afiliado_seq');
 end;
 $$;
 
@@ -32,7 +42,7 @@ returns trigger
 language plpgsql
 as $$
 begin
-  if new.numero_afiliado is null or new.numero_afiliado = '' then
+  if new.numero_afiliado is null then
     new.numero_afiliado := public.generar_numero_afiliado();
   end if;
   return new;
@@ -81,5 +91,5 @@ alter table public.afiliados enable row level security;
 alter table public.intentos_test enable row level security;
 alter table public.certificados enable row level security;
 
--- Las políticas públicas se añadirán junto con la autenticación del área de administración.
--- No se permite acceso anónimo directo a estas tablas por defecto.
+-- Las politicas publicas se anadiran junto con la autenticacion del area de administracion.
+-- No se permite acceso anonimo directo a estas tablas por defecto.
