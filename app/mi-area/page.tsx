@@ -17,6 +17,7 @@ export default function MiAreaPage() {
   const [qr, setQr] = useState("");
   const [data, setData] = useState({ nombre: "", apellidos: "", email: "", numero: "" });
   const [progress, setProgress] = useState<Record<string, number>>({});
+  const [certificates, setCertificates] = useState<Array<{ codigo: string; curso_id: string; puntuacion: number; total: number; emitido_at: string | null }>>([]);
 
   function loadArea() {
     const ok = localStorage.getItem("sdo-afiliado") === "true";
@@ -31,6 +32,8 @@ export default function MiAreaPage() {
       const saved: Record<string, number> = {};
       courses.forEach((c) => { saved[c.id] = Number(localStorage.getItem("sdo-progreso-" + c.id) || 0); });
       setProgress(saved);
+      fetch("/api/mi-area/certificados", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, numero }) })
+        .then((r) => r.ok ? r.json() : null).then((result) => { if (result?.ok) setCertificates(result.certificados || []); }).catch(() => undefined);
     }
     setLoaded(true);
   }
