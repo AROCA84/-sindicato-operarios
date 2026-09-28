@@ -1,9 +1,9 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
-export default function AfiliarsePage() {
+function AfiliarseForm() {
   const searchParams = useSearchParams();
   const returnTo = searchParams.get("returnTo") || "/";
 
@@ -177,5 +177,14 @@ export default function AfiliarsePage() {
         </div>
       </div>
     </main>
+  );
+}
+
+
+export default function AfiliarsePage() {
+  return (
+    <Suspense fallback={<main className="min-h-screen bg-navy px-6 py-10 text-white"><div className="mx-auto max-w-xl">Cargando…</div></main>}>
+      <AfiliarseForm />
+    </Suspense>
   );
 }
