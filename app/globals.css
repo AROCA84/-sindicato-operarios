@@ -11,12 +11,79 @@
 }
 
 @layer base {
-  html {
-    scroll-behavior: smooth;
-  }
+  html { scroll-behavior: smooth; }
   body {
     background-color: #ffffff;
     color: var(--color-navy);
     -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Physical output sizes: PVC/credit-card and A4 landscape. */
+@page card-pdf {
+  size: 85.6mm 53.98mm;
+  margin: 0;
+}
+
+@page certificate-pdf {
+  size: 297mm 210mm;
+  margin: 0;
+}
+
+@media print {
+  html, body {
+    width: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  body * { visibility: hidden !important; }
+
+  body[data-print-target="card"] .print-card-document,
+  body[data-print-target="card"] .print-card-document * {
+    visibility: visible !important;
+  }
+
+  body[data-print-target="certificate"] .print-certificate-document,
+  body[data-print-target="certificate"] .print-certificate-document * {
+    visibility: visible !important;
+  }
+
+  body[data-print-target="card"] .print-card-document {
+    page: card-pdf;
+    width: 85.6mm !important;
+    height: 53.98mm !important;
+    min-width: 85.6mm !important;
+    max-width: 85.6mm !important;
+    min-height: 53.98mm !important;
+    max-height: 53.98mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  body[data-print-target="certificate"] .print-certificate-document {
+    page: certificate-pdf;
+    width: 297mm !important;
+    height: 210mm !important;
+    min-width: 297mm !important;
+    max-width: 297mm !important;
+    min-height: 210mm !important;
+    max-height: 210mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  body[data-print-target="card"] .print-card-document img,
+  body[data-print-target="certificate"] .print-certificate-document img {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 }
