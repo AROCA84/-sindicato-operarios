@@ -77,7 +77,6 @@ function AfiliarseForm() {
             <p>✓ Acceso a formación desde 0 €</p>
             <p>✓ Temarios y test gratuitos</p>
             <p>✓ Número de afiliado generado automáticamente</p>
-            <p>✓ Solo pagas 4,99 € si, después de aprobar, quieres tu certificado</p>
           </div>
 
           {numeroAfiliado ? (
@@ -170,7 +169,7 @@ function AfiliarseForm() {
               </button>
 
               <p className="text-center text-xs leading-5 text-slate-500">
-                No se cobra nada por afiliarte, estudiar ni realizar el test.
+                No se cobra nada por afiliarte, estudiar ni realizar el test. El certificado se ofrece, si lo deseas, únicamente después de aprobar.
               </p>
             </form>
           )}
