@@ -60,7 +60,7 @@ export async function POST(request: Request) {
       const detail = await existingResponse.text();
       console.error("Supabase lookup error:", detail);
       return NextResponse.json(
-        { error: "No se ha podido comprobar el correo en la base de datos." },
+        { error: "No se ha podido comprobar el correo en la base de datos.", detail },
         { status: 502 }
       );
     }
@@ -137,7 +137,7 @@ export async function POST(request: Request) {
       }
 
       return NextResponse.json(
-        { error: "No se ha podido crear la afiliación. Inténtalo de nuevo." },
+        { error: "No se ha podido crear la afiliación.", detail },
         { status: 502 }
       );
     }
@@ -162,8 +162,9 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("Affiliate API error:", error);
+    const detail = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: "Se ha producido un error inesperado. Inténtalo de nuevo." },
+      { error: "Error del servidor al procesar la afiliación.", detail },
       { status: 500 }
     );
   }
