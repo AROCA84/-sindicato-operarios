@@ -12,7 +12,7 @@ type Props = {
   total: number;
 };
 
-const PAYMENT_URL = "https://mypos.com/@sindicato499/4.99";
+const PAYMENT_URL = "/api/certificados/pago";
 
 function SindicatoMark({ size = "md" }: { size?: "sm" | "md" }) {
   const box = size === "sm" ? "h-12 w-12" : "h-16 w-16";
@@ -90,7 +90,7 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "No se pudo iniciar el certificado.");
       setCertificateCode(data.codigo);
-      setPaymentUrl(data.payment_url || PAYMENT_URL);
+      setPaymentUrl(data.payment_url || `${PAYMENT_URL}?codigo=${encodeURIComponent(data.codigo)}`);
       setPaymentStarted(true);
       window.open(data.payment_url || PAYMENT_URL, "_blank", "noopener,noreferrer");
     } catch (e) {
