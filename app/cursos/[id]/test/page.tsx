@@ -27,7 +27,7 @@ export default async function TestPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const course = getCourse(id);
+  const course = allCourses.find((item) => item.id === id);
   if (!course) notFound();
   return <CourseExam course={course} />;
 }
