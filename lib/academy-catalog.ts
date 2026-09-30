@@ -201,210 +201,142 @@ export function getAllTemario(course: Course): Module[] {
   const existing = getTemario(course);
   if (existing.length) return existing;
 
-  const guides: Record<string, {name: string; topics: string[]}[]> = {
-    "Manutención y Carretillas": [
-      {name:"Fundamentos y equipos",topics:["tipos de equipos y aplicaciones","componentes y mandos","capacidades y limitaciones","responsabilidades del operador"]},
-      {name:"Preparación del trabajo",topics:["inspección previa","estado del entorno","señalización y circulación","planificación de la tarea"]},
-      {name:"Operación segura",topics:["arranque y parada","desplazamiento y maniobras","manipulación de cargas","apilado y desapilado"]},
-      {name:"Riesgos y prevención",topics:["vuelco y estabilidad","atrapamientos y golpes","caídas de cargas","EPI y medidas preventivas"]},
-      {name:"Mantenimiento básico",topics:["revisiones diarias","baterías y repostaje cuando proceda","detección de anomalías","comunicación de averías"]},
-      {name:"Casos prácticos y test",topics:["situaciones habituales","errores frecuentes","actuación ante incidencias","repaso final"]},
-    ],
-    "Maquinaria y Movimiento de Tierras": [
-      {name:"Equipo y funcionamiento",topics:["tipos de maquinaria","componentes principales","mandos y sistemas de seguridad","capacidades y limitaciones"]},
-      {name:"Preparación de la tarea",topics:["inspección previa","terreno y estabilidad","zona de trabajo","señalización"]},
-      {name:"Operación segura",topics:["maniobras","carga y descarga","desplazamientos","trabajo en pendientes"]},
-      {name:"Riesgos y PRL",topics:["vuelcos","atropellos y atrapamientos","proyección de materiales","EPI y prevención"]},
-      {name:"Mantenimiento",topics:["revisiones","niveles y componentes","anomalías","puesta fuera de servicio"]},
-      {name:"Casos prácticos y test",topics:["situaciones reales","decisiones seguras","errores frecuentes","repaso final"]},
-    ],
-    "Elevación y Plataformas": [
-      {name:"Tipos y componentes",topics:["clasificación de equipos","componentes","mandos","dispositivos de seguridad"]},
-      {name:"Entorno y preparación",topics:["evaluación del terreno","estabilidad y nivelación","obstáculos","líneas eléctricas y entorno"]},
-      {name:"Operación",topics:["ascenso y descenso","traslación","posicionamiento","límites de carga y condiciones ambientales"]},
-      {name:"Trabajo en altura",topics:["caídas","sistemas anticaídas cuando proceda","atrapamientos","rescate y emergencias"]},
-      {name:"Inspección y mantenimiento",topics:["checklist","revisiones","averías","fin de jornada"]},
-      {name:"Casos prácticos y test",topics:["escenarios de trabajo","identificación de riesgos","medidas preventivas","repaso final"]},
-    ],
-    "Grúas y Equipos de Elevación": [
-      {name:"Equipos y accesorios",topics:["tipos de grúas y polipastos","componentes","eslingas y accesorios","capacidades y limitaciones"]},
-      {name:"Planificación de la maniobra",topics:["peso y centro de gravedad","recorrido de la carga","zona de exclusión","señalización y comunicación"]},
-      {name:"Izado y desplazamiento",topics:["amarre","elevación","traslación","descarga y colocación"]},
-      {name:"Riesgos y prevención",topics:["caída de cargas","balanceo","sobrecargas","EPI y medidas preventivas"]},
-      {name:"Inspección y mantenimiento",topics:["comprobaciones","estado de accesorios","anomalías","puesta fuera de servicio"]},
-      {name:"Casos prácticos y test",topics:["selección de accesorios","maniobras seguras","errores frecuentes","repaso final"]},
-    ],
-    "Construcción y Obra Civil": [
-      {name:"Fundamentos de obra",topics:["fases de una obra","equipos y materiales","organización del puesto","documentación básica"]},
-      {name:"Herramientas y maquinaria",topics:["uso previsto","comprobaciones","orden del área","mantenimiento básico"]},
-      {name:"Procedimientos de trabajo",topics:["preparación","ejecución","control de calidad","finalización"]},
-      {name:"PRL en obra",topics:["caídas","golpes y atrapamientos","riesgos eléctricos","EPI y señalización"]},
-      {name:"Emergencias y buenas prácticas",topics:["incidentes","evacuación","comunicación","orden y limpieza"]},
-      {name:"Casos prácticos y test",topics:["situaciones de obra","identificación de riesgos","decisiones preventivas","repaso final"]},
-    ],
-    "Mecánica": [
-      {name:"Fundamentos mecánicos",topics:["magnitudes básicas","componentes","herramientas","principios de funcionamiento"]},
-      {name:"Desmontaje y montaje",topics:["preparación","secuencia de trabajo","pares y ajustes","verificación"]},
-      {name:"Diagnóstico de averías",topics:["síntomas","mediciones","causas","comprobación de reparación"]},
-      {name:"Mantenimiento preventivo",topics:["lubricación","desgaste","inspecciones","registros"]},
-      {name:"Seguridad en taller",topics:["atrapamientos","proyecciones","productos","EPI y orden"]},
-      {name:"Casos prácticos y test",topics:["diagnóstico","procedimientos","errores frecuentes","repaso final"]},
-    ],
-    "Mantenimiento Industrial": [
-      {name:"Fundamentos del mantenimiento",topics:["preventivo y correctivo","activos","documentación","planificación"]},
-      {name:"Inspección y diagnóstico",topics:["inspecciones","mediciones","síntomas","análisis de averías"]},
-      {name:"Intervenciones",topics:["secuencias de trabajo","reparación","verificación","puesta en servicio"]},
-      {name:"Seguridad y consignación",topics:["energías peligrosas","bloqueo y señalización","EPI","permisos de trabajo"]},
-      {name:"Gestión del mantenimiento",topics:["órdenes de trabajo","repuestos","indicadores","registro de intervenciones"]},
-      {name:"Casos prácticos y test",topics:["averías","priorización","decisiones seguras","repaso final"]},
-    ],
-    "Soldadura y Fabricación Mecánica": [
-      {name:"Procesos y equipos",topics:["MIG/MAG","TIG y electrodo","equipos","materiales"]},
-      {name:"Preparación y parámetros",topics:["preparación de piezas","consumibles","parámetros","posición de trabajo"]},
-      {name:"Ejecución y calidad",topics:["cordones","defectos","inspección visual","acabados"]},
-      {name:"Seguridad",topics:["humos","radiación","incendio","EPI y ventilación"]},
-      {name:"Fabricación y montaje",topics:["medición","corte","unión","verificación dimensional"]},
-      {name:"Casos prácticos y test",topics:["selección del proceso","defectos","medidas preventivas","repaso final"]},
-    ],
-    "Logística y Almacén": [
-      {name:"Organización del almacén",topics:["zonas","flujos","ubicaciones","documentación"]},
-      {name:"Recepción y expedición",topics:["recepción","comprobación","preparación","expedición"]},
-      {name:"Stock y picking",topics:["inventario","rotación","picking","trazabilidad"]},
-      {name:"Equipos y manipulación",topics:["equipos de manutención","cargas","estanterías","seguridad"]},
-      {name:"PRL y buenas prácticas",topics:["caídas","golpes","ergonomía","orden y limpieza"]},
-      {name:"Casos prácticos y test",topics:["flujo de pedidos","incidencias","decisiones operativas","repaso final"]},
-    ],
-    "Transporte": [
-      {name:"Fundamentos del transporte",topics:["tipos de transporte","operaciones","roles","documentación"]},
-      {name:"Planificación",topics:["rutas","cargas","tiempos","costes básicos"]},
-      {name:"Carga y descarga",topics:["distribución de cargas","sujeción","comprobaciones","entrega"]},
-      {name:"Seguridad vial y laboral",topics:["riesgos","fatiga","maniobras","emergencias"]},
-      {name:"Documentación e incidencias",topics:["albaranes","trazabilidad","incidencias","comunicación"]},
-      {name:"Casos prácticos y test",topics:["planificación","carga segura","resolución de incidencias","repaso final"]},
-    ],
-    "Automoción": [
-      {name:"Sistemas del vehículo",topics:["motor","transmisión","frenos","dirección y suspensión"]},
-      {name:"Electricidad y electrónica",topics:["batería","circuitos","sensores","diagnóstico"]},
-      {name:"Mantenimiento preventivo",topics:["niveles","neumáticos","frenos","revisiones"]},
-      {name:"Diagnóstico",topics:["síntomas","mediciones","herramientas","verificación"]},
-      {name:"Seguridad en taller",topics:["elevación del vehículo","productos","herramientas","EPI"]},
-      {name:"Casos prácticos y test",topics:["averías","mantenimiento","diagnóstico","repaso final"]},
-    ],
-    "Prevención de Riesgos Laborales": [
-      {name:"Principios de PRL",topics:["conceptos básicos","derechos y obligaciones","organización preventiva","evaluación de riesgos"]},
-      {name:"Riesgos del puesto",topics:["seguridad","higiene","ergonomía","factores organizativos"]},
-      {name:"Medidas preventivas",topics:["protecciones colectivas","EPI","procedimientos","señalización"]},
-      {name:"Emergencias",topics:["accidentes","evacuación","primeras actuaciones","comunicación"]},
-      {name:"Equipos de trabajo",topics:["uso seguro","comprobaciones","mantenimiento","prohibiciones"]},
-      {name:"Casos prácticos y test",topics:["identificación de riesgos","medidas preventivas","situaciones reales","repaso final"]},
-    ],
-    "Manipulación y Seguridad": [
-      {name:"Principios de manipulación",topics:["tipos de cargas","posturas","técnicas","planificación"]},
-      {name:"Ergonomía",topics:["sobreesfuerzos","movimientos repetitivos","organización","pausas"]},
-      {name:"Equipos y ayudas",topics:["medios auxiliares","carros","elevación","comprobaciones"]},
-      {name:"Riesgos y EPI",topics:["golpes","atrapamientos","caídas","protección"]},
-      {name:"Buenas prácticas",topics:["orden","señalización","comunicación","actuación ante incidencias"]},
-      {name:"Casos prácticos y test",topics:["manipulación","ergonomía","prevención","repaso final"]},
-    ],
-    "Emergencias y Seguridad": [
-      {name:"Plan de emergencia",topics:["tipos de emergencia","organización","alarmas","responsabilidades"]},
-      {name:"Evacuación",topics:["rutas","puntos de reunión","señalización","ayuda a personas"]},
-      {name:"Primeras actuaciones",topics:["protección del lugar","aviso","valoración inicial","coordinación"]},
-      {name:"Incendios",topics:["clases de fuego","medios de extinción","uso seguro","evacuación"]},
-      {name:"Comunicación y prevención",topics:["avisos","simulacros","registro","mejora continua"]},
-      {name:"Casos prácticos y test",topics:["escenarios","decisiones","errores frecuentes","repaso final"]},
-    ],
-    "Electricidad y Electrónica": [
-      {name:"Fundamentos eléctricos",topics:["tensión","corriente","resistencia","potencia"]},
-      {name:"Circuitos y componentes",topics:["componentes","esquemas","medición","protecciones"]},
-      {name:"Instalación y diagnóstico",topics:["montaje","comprobaciones","averías","mantenimiento"]},
-      {name:"Seguridad eléctrica",topics:["contacto eléctrico","consignación","protecciones","EPI"]},
-      {name:"Automatismos básicos",topics:["sensores","actuadores","relés","control"]},
-      {name:"Casos prácticos y test",topics:["interpretación de esquemas","mediciones","diagnóstico","repaso final"]},
-    ],
-    "Automatización, Robótica e Industria 4.0": [
-      {name:"Fundamentos de automatización",topics:["automatismos","sensores","actuadores","control"]},
-      {name:"PLC y control",topics:["entradas y salidas","lógica","secuencias","diagnóstico"]},
-      {name:"Robótica industrial",topics:["tipos de robots","zonas de trabajo","programación básica","seguridad"]},
-      {name:"Datos e Industria 4.0",topics:["conectividad","monitorización","datos","mantenimiento predictivo"]},
-      {name:"Seguridad y mantenimiento",topics:["paradas","bloqueo","riesgos","mantenimiento"]},
-      {name:"Casos prácticos y test",topics:["automatización","diagnóstico","seguridad","repaso final"]},
-    ],
-    "Energía y Renovables": [
-      {name:"Sistemas energéticos",topics:["fuentes de energía","consumo","eficiencia","magnitudes"]},
-      {name:"Energía solar",topics:["componentes","generación","instalaciones","mantenimiento"]},
-      {name:"Otras renovables",topics:["eólica","biomasa","geotermia","integración"]},
-      {name:"Seguridad",topics:["riesgos eléctricos","trabajos en altura","EPI","emergencias"]},
-      {name:"Eficiencia y mantenimiento",topics:["inspecciones","rendimiento","averías","registros"]},
-      {name:"Casos prácticos y test",topics:["dimensionamiento básico","mantenimiento","seguridad","repaso final"]},
-    ],
-    "Climatización y Refrigeración": [
-      {name:"Fundamentos térmicos",topics:["temperatura","presión","calor","transferencia térmica"]},
-      {name:"Equipos y circuitos",topics:["componentes","circuito frigorífico","controles","funcionamiento"]},
-      {name:"Instalación y puesta en marcha",topics:["montaje","comprobaciones","ajustes","pruebas"]},
-      {name:"Mantenimiento",topics:["limpieza","fugas","mediciones","averías"]},
-      {name:"Seguridad",topics:["electricidad","presiones","refrigerantes","EPI"]},
-      {name:"Casos prácticos y test",topics:["diagnóstico","mantenimiento","seguridad","repaso final"]},
-    ],
-    "Química e Industria": [
-      {name:"Procesos y productos",topics:["materias primas","procesos","equipos","variables"]},
-      {name:"Almacenamiento y manipulación",topics:["etiquetado","compatibilidades","trasvases","contención"]},
-      {name:"Control de proceso",topics:["medición","muestreo","calidad","registros"]},
-      {name:"Riesgos químicos",topics:["exposición","incendio","derrames","EPI"]},
-      {name:"Emergencias y residuos",topics:["actuación ante fugas","evacuación","gestión de residuos","comunicación"]},
-      {name:"Casos prácticos y test",topics:["situaciones de proceso","prevención","incidencias","repaso final"]},
-    ],
-    "Informática y Competencias Digitales": [
-      {name:"Entorno digital",topics:["hardware","sistemas","archivos","configuración básica"]},
-      {name:"Productividad",topics:["documentos","hojas de cálculo","presentaciones","gestión de archivos"]},
-      {name:"Internet y comunicación",topics:["navegación","correo","videollamadas","servicios online"]},
-      {name:"Seguridad digital",topics:["contraseñas","phishing","actualizaciones","copias de seguridad"]},
-      {name:"Buenas prácticas",topics:["organización","privacidad","accesibilidad","resolución de problemas"]},
-      {name:"Casos prácticos y test",topics:["tareas digitales","seguridad","productividad","repaso final"]},
-    ],
-    "Inteligencia Artificial": [
-      {name:"Fundamentos de IA",topics:["conceptos","modelos generativos","casos de uso","limitaciones"]},
-      {name:"Prompting y trabajo con IA",topics:["instrucciones","contexto","iteración","verificación"]},
-      {name:"Productividad",topics:["texto","resumen","análisis","automatización de tareas"]},
-      {name:"Contenido y creatividad",topics:["ideas","imágenes","presentaciones","edición asistida"]},
-      {name:"Privacidad y uso responsable",topics:["datos","sesgos","verificación","propiedad intelectual"]},
-      {name:"Casos prácticos y test",topics:["casos profesionales","prompts","verificación","repaso final"]},
-    ],
-    "Programación y Desarrollo": [
-      {name:"Fundamentos",topics:["algoritmos","variables","condicionales","bucles"]},
-      {name:"Código y estructuras",topics:["funciones","datos","errores","modularidad"]},
-      {name:"Desarrollo web",topics:["HTML","CSS","JavaScript","estructura de una página"]},
-      {name:"Pruebas y depuración",topics:["errores","pruebas","consola","mantenimiento"]},
-      {name:"Buenas prácticas",topics:["legibilidad","versionado","seguridad","documentación"]},
-      {name:"Casos prácticos y test",topics:["resolver problemas","crear una pequeña solución","depurar","repaso final"]},
-    ],
-    "Ciberseguridad": [
-      {name:"Fundamentos de seguridad",topics:["amenazas","activos","riesgos","controles"]},
-      {name:"Cuentas y dispositivos",topics:["contraseñas","MFA","actualizaciones","copias"]},
-      {name:"Internet y correo",topics:["phishing","fraude","enlaces","descargas"]},
-      {name:"Datos y privacidad",topics:["datos personales","permisos","cifrado","buenas prácticas"]},
-      {name:"Incidentes",topics:["detección","aislamiento","notificación","recuperación"]},
-      {name:"Casos prácticos y test",topics:["identificar amenazas","decisiones seguras","respuesta","repaso final"]},
-    ],
+  const title = course.title.replace(/^Curso de /i, "").replace(/^Curso /i, "");
+  const category = course.category;
+
+  const profiles: Record<string, {
+    context: string;
+    safety: string;
+    operation: string;
+    maintenance: string;
+    practice: string;
+  }> = {
+    "Manutención y Carretillas": {
+      context: "La manutención mecánica permite mover, elevar y colocar materiales de forma controlada. En este curso se estudian las características del equipo, su capacidad, los órganos de mando y las condiciones que deben comprobarse antes de iniciar una tarea.",
+      safety: "Los principales peligros están relacionados con vuelcos, caída de cargas, atropellos, golpes y atrapamientos. La prevención exige respetar la capacidad del equipo, mantener una velocidad adecuada, separar las zonas de paso y utilizar los sistemas de protección previstos.",
+      operation: "La operación segura comienza con una inspección visual y funcional. El operador debe comprobar ruedas, horquillas o implementos, frenos, dirección, alarmas y ausencia de fugas. La carga debe colocarse estable y el desplazamiento realizarse con buena visibilidad y control del entorno.",
+      maintenance: "Las revisiones de usuario permiten detectar defectos antes de que provoquen un incidente. Las anomalías deben comunicarse y el equipo no debe utilizarse cuando exista un defecto que pueda comprometer la seguridad.",
+      practice: "Los ejercicios deben plantear situaciones reales: pasillos estrechos, cargas descentradas, rampas, cruces con peatones, estanterías y operaciones de carga y descarga."
+    },
+    "Maquinaria y Movimiento de Tierras": {
+      context: "La maquinaria de movimiento de tierras trabaja con grandes masas, inercias y esfuerzos. El operador debe conocer las características del equipo, el terreno, los límites de estabilidad y la zona de influencia de la máquina.",
+      safety: "Los riesgos más importantes incluyen vuelco, atropello, atrapamiento, caída de materiales y contacto con instalaciones. La prevención requiere delimitar la zona, controlar pendientes y mantener comunicación con las personas próximas.",
+      operation: "Antes de trabajar se revisan mandos, frenos, neumáticos u orugas, implementos, alarmas y posibles fugas. Durante la operación se realizan movimientos progresivos, evitando maniobras bruscas y respetando las limitaciones indicadas por el fabricante.",
+      maintenance: "El mantenimiento de usuario comprende comprobaciones, limpieza, niveles cuando corresponda y comunicación de averías. Las intervenciones que requieran desmontaje o reparación deben quedar reservadas al personal autorizado.",
+      practice: "Los casos prácticos deben simular excavación, carga, descarga, circulación, trabajo en pendientes y coordinación con otros equipos."
+    },
+    "Elevación y Plataformas": {
+      context: "Las plataformas elevadoras están diseñadas para posicionar personas en altura. Su utilización exige conocer el tipo de plataforma, los mandos, la estabilidad, la capacidad nominal y los dispositivos de seguridad.",
+      safety: "El riesgo principal es la caída de personas, junto con vuelco, atrapamiento, colisión y contacto con obstáculos o instalaciones. El operador debe evaluar el terreno y el entorno antes de elevar la plataforma.",
+      operation: "Antes de usarla se comprueban controles, parada de emergencia, estructura, ruedas, estabilizadores cuando existan, sistemas de descenso de emergencia y señalización. La plataforma debe utilizarse dentro de los límites establecidos por el fabricante.",
+      maintenance: "El usuario realiza las comprobaciones previstas y comunica cualquier anomalía. Nunca deben anularse dispositivos de seguridad ni utilizarse el equipo de una forma distinta a la prevista.",
+      practice: "Los ejercicios incluyen posicionamiento, obstáculos superiores, desplazamiento, trabajo cerca de bordes y actuación ante una emergencia."
+    },
+    "Grúas y Equipos de Elevación": {
+      context: "Las operaciones de elevación requieren conocer la grúa, los accesorios de amarre y las características de la carga. Antes de cada maniobra se debe planificar el recorrido y mantener controlada la zona de influencia.",
+      safety: "Una carga suspendida puede caer, balancearse o golpear obstáculos. La prevención se basa en seleccionar accesorios adecuados, respetar capacidades, evitar personas bajo la carga y utilizar señales o comunicaciones claras.",
+      operation: "La maniobra comienza con la identificación de peso, centro de gravedad y puntos de amarre. Se realiza una elevación de comprobación y después se desplaza la carga suavemente, evitando tirones y movimientos innecesarios.",
+      maintenance: "Los accesorios y equipos deben inspeccionarse y retirarse de servicio cuando presenten daños o dudas sobre su integridad. Las anomalías deben quedar comunicadas y registradas.",
+      practice: "Los casos prácticos trabajan selección de accesorios, amarre, elevación de prueba, desplazamiento y colocación de cargas."
+    },
+    "Logística y Almacén": {
+      context: "La logística de almacén coordina la recepción, ubicación, preparación y expedición de mercancías. Una organización correcta reduce desplazamientos, errores y riesgos y facilita la trazabilidad.",
+      safety: "Los riesgos habituales incluyen caídas, golpes, atrapamientos, sobreesfuerzos y caída de objetos. Las medidas preventivas incluyen orden, señalización, circulación separada, uso correcto de equipos y manipulación adecuada.",
+      operation: "La mercancía debe recibirse, identificarse y comprobarse antes de su ubicación. En la preparación de pedidos se verifica referencia, cantidad y estado del producto y se mantiene una secuencia de trabajo que reduzca errores.",
+      maintenance: "El control de existencias exige registrar entradas y salidas, revisar ubicaciones y realizar inventarios. Los equipos y estanterías deben mantenerse en condiciones adecuadas y cualquier daño debe comunicarse.",
+      practice: "Los ejercicios plantean recepción de mercancías, ubicación, picking, inventario, preparación de expediciones y resolución de incidencias."
+    },
+    "Prevención de Riesgos Laborales": {
+      context: "La prevención parte de identificar los peligros existentes en el puesto y valorar cómo pueden afectar a las personas. La formación debe ayudar a reconocer riesgos antes de iniciar una tarea y a aplicar medidas preventivas eficaces.",
+      safety: "Las medidas deben priorizar la eliminación o reducción del riesgo y las protecciones colectivas antes de recurrir al EPI. También son esenciales los procedimientos de trabajo, la señalización, la información y la comunicación de condiciones inseguras.",
+      operation: "Una tarea segura se prepara revisando el entorno, los equipos, las instrucciones y las condiciones personales necesarias. Durante el trabajo se controla que las condiciones previstas se mantienen y se detiene la actividad cuando aparece un riesgo no controlado.",
+      maintenance: "La prevención necesita seguimiento: inspecciones, comunicación de incidentes, revisión de procedimientos y actualización de medidas. La detección temprana de desviaciones evita que pequeñas anomalías se conviertan en accidentes.",
+      practice: "Los casos prácticos presentan puestos de trabajo y piden identificar peligros, valorar situaciones y elegir medidas preventivas razonables."
+    },
+    "Informática y Competencias Digitales": {
+      context: "Las competencias digitales permiten utilizar ordenadores, teléfonos, aplicaciones y servicios de Internet para realizar tareas profesionales. El aprendizaje parte de la organización de archivos y continúa con herramientas de productividad y comunicación.",
+      safety: "La seguridad digital requiere contraseñas robustas, autenticación adicional cuando esté disponible, actualizaciones y precaución ante enlaces y archivos inesperados. La información personal y profesional debe tratarse con cuidado.",
+      operation: "Una tarea digital eficiente se prepara definiendo el objetivo, seleccionando la herramienta y organizando la información. Documentos, hojas de cálculo y presentaciones deben mantenerse estructurados y fáciles de revisar.",
+      maintenance: "El mantenimiento digital incluye actualizaciones, copias de seguridad, limpieza de archivos innecesarios y revisión de permisos. También conviene comprobar periódicamente la configuración de privacidad.",
+      practice: "Los ejercicios simulan tareas de oficina, gestión de archivos, correo electrónico, navegación, creación de documentos y resolución de incidencias comunes."
+    },
+    "Inteligencia Artificial": {
+      context: "La inteligencia artificial generativa puede ayudar a redactar, resumir, analizar información, crear ideas y automatizar determinadas tareas. Su utilidad depende de formular instrucciones claras y comprobar siempre los resultados.",
+      safety: "No se deben introducir datos confidenciales sin conocer las condiciones del servicio. Las respuestas pueden contener errores o información inventada, por lo que una salida generada por IA no debe aceptarse automáticamente como correcta.",
+      operation: "Un buen uso comienza definiendo objetivo, contexto, formato y restricciones. Después se revisa la respuesta, se corrigen instrucciones y se repite el proceso hasta obtener un resultado útil y verificable.",
+      maintenance: "El trabajo con IA requiere conservar versiones útiles de instrucciones, revisar cambios de las herramientas y establecer criterios de comprobación. En tareas profesionales conviene documentar cuándo y cómo se utilizó la herramienta.",
+      practice: "Los casos prácticos incluyen redactar un procedimiento, resumir información, transformar un texto, generar una lista de tareas y detectar errores en una respuesta de IA."
+    },
+    "Programación y Desarrollo": {
+      context: "Programar consiste en transformar un problema en instrucciones que un sistema pueda ejecutar. Para ello se utilizan variables, condiciones, bucles, funciones y estructuras de datos.",
+      safety: "El desarrollo seguro implica validar entradas, proteger credenciales y evitar exponer información sensible. También es importante revisar dependencias y comprobar el comportamiento antes de publicar una aplicación.",
+      operation: "El proceso comienza definiendo el problema y dividiéndolo en partes pequeñas. Se escribe código, se ejecutan pruebas, se observan errores y se corrige de forma iterativa.",
+      maintenance: "Un programa necesita documentación, control de versiones y revisiones. Los cambios deben realizarse de forma ordenada para poder identificar qué se modificó y recuperar una versión anterior si fuera necesario.",
+      practice: "Los ejercicios plantean pequeños problemas de lógica, páginas web sencillas, validación de datos y depuración de errores."
+    },
+    "Ciberseguridad": {
+      context: "La ciberseguridad busca proteger dispositivos, cuentas, redes y datos frente a accesos no autorizados, fraude, pérdida de información y otros incidentes.",
+      safety: "Las amenazas más comunes incluyen phishing, contraseñas comprometidas, malware y engaños mediante ingeniería social. La prevención combina hábitos seguros, actualizaciones, copias de seguridad y controles de acceso.",
+      operation: "Ante un mensaje sospechoso se debe verificar el remitente, evitar abrir enlaces o archivos dudosos y utilizar canales oficiales. Si se produce un incidente, conviene aislar el equipo afectado y comunicarlo siguiendo el procedimiento establecido.",
+      maintenance: "La seguridad debe mantenerse en el tiempo mediante actualizaciones, revisión de permisos, copias de seguridad y comprobaciones periódicas. Las cuentas que ya no se utilizan deben cerrarse o deshabilitarse.",
+      practice: "Los ejercicios presentan correos sospechosos, páginas falsas, dispositivos perdidos y contraseñas débiles para practicar decisiones seguras."
+    }
   };
 
-  const generic = [
-    {name:"Fundamentos y conceptos",topics:["conceptos esenciales","terminología","herramientas y recursos","funciones profesionales"]},
-    {name:"Procedimientos y operaciones",topics:["preparación","procedimiento paso a paso","control de calidad","errores frecuentes"]},
-    {name:"Organización y buenas prácticas",topics:["planificación","documentación","orden y limpieza","comunicación"]},
-    {name:"Seguridad y prevención",topics:["riesgos principales","medidas preventivas","EPI cuando proceda","actuación ante incidencias"]},
-    {name:"Aplicación profesional",topics:["situaciones habituales","resolución de problemas","comprobaciones","mejora continua"]},
-    {name:"Casos prácticos y test",topics:["supuestos prácticos","identificación de riesgos","decisiones profesionales","repaso final"]},
+  const p = profiles[category] ?? {
+    context: `El curso de ${title} introduce los conocimientos necesarios para comprender el sector de ${category}. Se explican los conceptos fundamentales, las herramientas habituales y la forma de organizar el trabajo antes de realizar una tarea profesional.`,
+    safety: `La seguridad forma parte de todas las operaciones de ${category}. El alumno aprende a reconocer los peligros más habituales, aplicar medidas preventivas, utilizar correctamente los medios de protección cuando sean necesarios y comunicar cualquier condición insegura.`,
+    operation: `Una operación profesional debe prepararse antes de comenzar. Se revisan las instrucciones, los recursos disponibles, el entorno y la secuencia de trabajo. Durante la ejecución se controla el resultado y se corrigen desviaciones sin improvisar procedimientos inseguros.`,
+    maintenance: `El mantenimiento y la mejora continua requieren revisar los resultados, conservar la documentación y comunicar anomalías. Las comprobaciones periódicas permiten detectar problemas antes de que afecten a la calidad, la seguridad o la continuidad del trabajo.`,
+    practice: `Los ejercicios del curso reproducen situaciones habituales del puesto de trabajo para que el alumno pueda aplicar los conceptos estudiados, identificar errores y elegir una actuación profesional adecuada.`
+  };
+
+  const modules = [
+    { name:"Introducción y fundamentos", body:p.context, topics:[
+      `Qué es ${title} y para qué se utiliza en el ámbito profesional.`,
+      `Conceptos, vocabulario y principios que permiten interpretar correctamente las instrucciones de trabajo.`,
+      `Funciones y responsabilidades habituales de la persona que desarrolla esta actividad.`,
+      `Documentación, herramientas y recursos que conviene conocer antes de comenzar.`
+    ]},
+    { name:"Preparación y organización del trabajo", body:`Antes de iniciar una tarea de ${title}, es necesario preparar el puesto y comprobar que las condiciones permiten trabajar correctamente. Una buena preparación reduce errores y evita improvisaciones. El alumno aprende a interpretar instrucciones, organizar recursos, revisar el entorno y establecer una secuencia lógica de trabajo.`, topics:[
+      `Comprobaciones iniciales y preparación del puesto de trabajo.`,
+      `Selección y utilización adecuada de herramientas, equipos o recursos.`,
+      `Organización de la tarea, orden de operaciones y control del tiempo.`,
+      `Identificación de condiciones anómalas y comunicación antes de continuar.`
+    ]},
+    { name:"Operaciones y procedimientos", body:p.operation, topics:[
+      `Procedimiento básico paso a paso para realizar las operaciones habituales.`,
+      `Controles que deben realizarse durante la ejecución y criterios para detener una tarea.`,
+      `Errores frecuentes, sus consecuencias y formas de evitarlos.`,
+      `Comprobación final del resultado y registro de la actividad cuando corresponda.`
+    ]},
+    { name:"Seguridad y prevención", body:p.safety, topics:[
+      `Identificación de los principales peligros relacionados con el puesto.`,
+      `Medidas preventivas que deben aplicarse antes y durante el trabajo.`,
+      `Uso correcto de protecciones colectivas y equipos de protección individual cuando proceda.`,
+      `Actuación ante incidentes, emergencias y condiciones inseguras.`
+    ]},
+    { name:"Mantenimiento, calidad y buenas prácticas", body:p.maintenance, topics:[
+      `Inspecciones y comprobaciones periódicas relacionadas con la actividad.`,
+      `Detección y comunicación de defectos, averías o desviaciones.`,
+      `Buenas prácticas para mantener calidad, orden, limpieza y trazabilidad.`,
+      `Importancia de seguir las instrucciones del fabricante, empresa o procedimiento aplicable.`
+    ]},
+    { name:"Casos prácticos y preparación del test", body:`En la parte final se aplican los conocimientos a situaciones parecidas a las que pueden aparecer en un puesto de trabajo. El objetivo no es memorizar una lista de palabras, sino aprender a interpretar una situación, detectar el riesgo o problema, escoger una actuación adecuada y comprobar el resultado. El alumno debe repasar los conceptos anteriores antes de realizar el test gratuito.`, topics:[
+      p.practice,
+      `Caso práctico 1: preparar una tarea y detectar qué comprobaciones deben realizarse antes de comenzar.`,
+      `Caso práctico 2: identificar una actuación incorrecta y explicar qué medida preventiva o procedimiento debería aplicarse.`,
+      `Repaso final de conceptos, procedimientos, seguridad y buenas prácticas antes del test.`
+    ]}
   ];
 
-  const plan = guides[course.category] ?? generic;
-  return plan.map((m, i) => ({
+  return modules.map((m, i) => ({
     id: String(i + 1),
     title: `Módulo ${i + 1}: ${m.name}`,
     lesson: {
-      title: `${m.name} — ${course.title}`,
-      intro: `Contenido formativo original de Sindicato de Operarios para comprender y aplicar ${m.name.toLowerCase()} en el ámbito de ${course.category.toLowerCase()}.`,
-      points: m.topics.map((topic) => `${topic.charAt(0).toUpperCase() + topic.slice(1)} aplicados a ${course.title.toLowerCase()}.`)
+      title: `${m.name} — ${title}`,
+      intro: m.body,
+      points: m.topics
     }
   }));
 }
