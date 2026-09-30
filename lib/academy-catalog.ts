@@ -204,139 +204,194 @@ export function getAllTemario(course: Course): Module[] {
   const title = course.title.replace(/^Curso de /i, "").replace(/^Curso /i, "");
   const category = course.category;
 
-  const profiles: Record<string, {
-    context: string;
-    safety: string;
+  type Profile = {
+    fundamentals: string;
+    preparation: string;
     operation: string;
+    safety: string;
     maintenance: string;
-    practice: string;
-  }> = {
+    practical: string;
+    tools: string;
+  };
+
+  const profiles: Record<string, Profile> = {
     "Manutención y Carretillas": {
-      context: "La manutención mecánica permite mover, elevar y colocar materiales de forma controlada. En este curso se estudian las características del equipo, su capacidad, los órganos de mando y las condiciones que deben comprobarse antes de iniciar una tarea.",
-      safety: "Los principales peligros están relacionados con vuelcos, caída de cargas, atropellos, golpes y atrapamientos. La prevención exige respetar la capacidad del equipo, mantener una velocidad adecuada, separar las zonas de paso y utilizar los sistemas de protección previstos.",
-      operation: "La operación segura comienza con una inspección visual y funcional. El operador debe comprobar ruedas, horquillas o implementos, frenos, dirección, alarmas y ausencia de fugas. La carga debe colocarse estable y el desplazamiento realizarse con buena visibilidad y control del entorno.",
-      maintenance: "Las revisiones de usuario permiten detectar defectos antes de que provoquen un incidente. Las anomalías deben comunicarse y el equipo no debe utilizarse cuando exista un defecto que pueda comprometer la seguridad.",
-      practice: "Los ejercicios deben plantear situaciones reales: pasillos estrechos, cargas descentradas, rampas, cruces con peatones, estanterías y operaciones de carga y descarga."
+      fundamentals: "El alumno debe comprender el tipo de equipo, su función, capacidad nominal, centro de gravedad, estabilidad, mandos, dispositivos de seguridad y limitaciones indicadas por el fabricante. La formación debe relacionar cada concepto con las tareas reales que realizará el operador.",
+      preparation: "Antes de utilizar el equipo se comprueba el estado general, ruedas, horquillas o implementos, mástil, dirección, frenos, alarmas, luces, fugas y sistemas de retención. También se revisan el suelo, pasillos, pendientes, peatones, estanterías, puertas y cualquier obstáculo del recorrido.",
+      operation: "La operación comprende recogida de la carga, elevación, transporte, aproximación, depósito y retirada, realizando movimientos suaves y manteniendo la carga estable. El operador debe adaptar velocidad, altura y recorrido a la carga, al equipo y al entorno.",
+      safety: "Los riesgos esenciales son vuelco, caída o desplazamiento de cargas, atropello, golpes y atrapamientos. Nunca se deben anular protecciones, transportar personas en posiciones no previstas ni trabajar con un equipo que presente una deficiencia de seguridad.",
+      maintenance: "El operador realiza las comprobaciones previstas para el usuario y comunica inmediatamente defectos, daños o comportamientos anómalos. Las reparaciones y operaciones reservadas a personal competente no deben improvisarse.",
+      practical: "Los casos prácticos deben incluir pasillos estrechos, cargas descentradas, rampas, cruces con peatones, estanterías, carga y descarga y pérdida de visibilidad.",
+      tools: "Manual del fabricante, placa de características, checklist de inspección, señalización del centro de trabajo y procedimientos internos."
     },
     "Maquinaria y Movimiento de Tierras": {
-      context: "La maquinaria de movimiento de tierras trabaja con grandes masas, inercias y esfuerzos. El operador debe conocer las características del equipo, el terreno, los límites de estabilidad y la zona de influencia de la máquina.",
-      safety: "Los riesgos más importantes incluyen vuelco, atropello, atrapamiento, caída de materiales y contacto con instalaciones. La prevención requiere delimitar la zona, controlar pendientes y mantener comunicación con las personas próximas.",
-      operation: "Antes de trabajar se revisan mandos, frenos, neumáticos u orugas, implementos, alarmas y posibles fugas. Durante la operación se realizan movimientos progresivos, evitando maniobras bruscas y respetando las limitaciones indicadas por el fabricante.",
-      maintenance: "El mantenimiento de usuario comprende comprobaciones, limpieza, niveles cuando corresponda y comunicación de averías. Las intervenciones que requieran desmontaje o reparación deben quedar reservadas al personal autorizado.",
-      practice: "Los casos prácticos deben simular excavación, carga, descarga, circulación, trabajo en pendientes y coordinación con otros equipos."
+      fundamentals: "El alumno debe conocer la función de la máquina, sus órganos de mando, implementos, dimensiones, masas, estabilidad y limitaciones de trabajo. Debe comprender cómo influyen el terreno, la pendiente y la carga en la estabilidad.",
+      preparation: "Antes de arrancar se revisan accesos, niveles cuando corresponda, frenos, dirección, neumáticos u orugas, implementos, alarmas, protecciones y posibles fugas. El área de trabajo debe quedar delimitada y coordinada con peatones y otras máquinas.",
+      operation: "Las maniobras se ejecutan progresivamente, evitando giros o cambios bruscos y manteniendo controlada la zona de influencia. La excavación, carga, descarga y circulación se realizan según el procedimiento y las instrucciones del fabricante.",
+      safety: "Se controlan especialmente vuelcos, atropellos, atrapamientos, caída de materiales, zanjas, taludes e instalaciones enterradas o aéreas. Nunca se debe trabajar fuera de los límites de estabilidad o con personas dentro de zonas peligrosas.",
+      maintenance: "Las inspecciones de usuario permiten detectar anomalías antes de trabajar. El mantenimiento que implique desmontaje, reparación o intervención técnica debe realizarlo personal autorizado y competente.",
+      practical: "Los ejercicios deben plantear circulación, pendientes, excavación, carga, descarga, trabajo junto a otras máquinas y aparición de personas en la zona de peligro.",
+      tools: "Manual de instrucciones, checklist, señalización de obra, planos o croquis del área y procedimiento de trabajo."
     },
     "Elevación y Plataformas": {
-      context: "Las plataformas elevadoras están diseñadas para posicionar personas en altura. Su utilización exige conocer el tipo de plataforma, los mandos, la estabilidad, la capacidad nominal y los dispositivos de seguridad.",
-      safety: "El riesgo principal es la caída de personas, junto con vuelco, atrapamiento, colisión y contacto con obstáculos o instalaciones. El operador debe evaluar el terreno y el entorno antes de elevar la plataforma.",
-      operation: "Antes de usarla se comprueban controles, parada de emergencia, estructura, ruedas, estabilizadores cuando existan, sistemas de descenso de emergencia y señalización. La plataforma debe utilizarse dentro de los límites establecidos por el fabricante.",
-      maintenance: "El usuario realiza las comprobaciones previstas y comunica cualquier anomalía. Nunca deben anularse dispositivos de seguridad ni utilizarse el equipo de una forma distinta a la prevista.",
-      practice: "Los ejercicios incluyen posicionamiento, obstáculos superiores, desplazamiento, trabajo cerca de bordes y actuación ante una emergencia."
+      fundamentals: "El alumno debe distinguir los tipos de plataforma, conocer sus componentes, mandos, capacidades, limitaciones, estabilización y dispositivos de seguridad. También debe comprender que trabajar en altura exige controlar simultáneamente máquina, terreno y entorno.",
+      preparation: "Antes de elevar se inspeccionan estructura, barandillas, accesos, ruedas, estabilizadores cuando existan, mandos, parada de emergencia, alarmas y sistemas de descenso. Se comprueban terreno, desniveles, obstáculos, líneas eléctricas y condiciones meteorológicas.",
+      operation: "La plataforma se posiciona de forma estable y los movimientos se realizan de manera progresiva. Se respetan la carga máxima, el número de ocupantes, la altura y alcance permitidos y las instrucciones específicas del fabricante.",
+      safety: "Los riesgos incluyen caída de personas, vuelco, atrapamiento, colisión y contacto con obstáculos o instalaciones eléctricas. No se deben sobrecargar plataformas, utilizar como grúa ni anular dispositivos de seguridad.",
+      maintenance: "El usuario realiza las comprobaciones previstas y deja constancia de las anomalías según el procedimiento del centro. Las reparaciones y ajustes reservados a mantenimiento deben quedar fuera de la intervención del operador.",
+      practical: "Los ejercicios deben incluir posicionamiento, desplazamiento, obstáculos superiores, proximidad a bordes, viento o condiciones adversas y utilización del descenso de emergencia.",
+      tools: "Manual del fabricante, marcado y documentación del equipo, checklist, señalización del área y procedimiento de rescate."
     },
     "Grúas y Equipos de Elevación": {
-      context: "Las operaciones de elevación requieren conocer la grúa, los accesorios de amarre y las características de la carga. Antes de cada maniobra se debe planificar el recorrido y mantener controlada la zona de influencia.",
-      safety: "Una carga suspendida puede caer, balancearse o golpear obstáculos. La prevención se basa en seleccionar accesorios adecuados, respetar capacidades, evitar personas bajo la carga y utilizar señales o comunicaciones claras.",
-      operation: "La maniobra comienza con la identificación de peso, centro de gravedad y puntos de amarre. Se realiza una elevación de comprobación y después se desplaza la carga suavemente, evitando tirones y movimientos innecesarios.",
-      maintenance: "Los accesorios y equipos deben inspeccionarse y retirarse de servicio cuando presenten daños o dudas sobre su integridad. Las anomalías deben quedar comunicadas y registradas.",
-      practice: "Los casos prácticos trabajan selección de accesorios, amarre, elevación de prueba, desplazamiento y colocación de cargas."
+      fundamentals: "El alumno debe conocer la grúa, sus movimientos, capacidades, limitadores, mandos y accesorios. También debe comprender peso, centro de gravedad, puntos de amarre y consecuencias de una carga mal equilibrada.",
+      preparation: "Antes de cada maniobra se inspeccionan equipo y accesorios, se identifica la carga y se planifica recorrido, zona de exclusión y comunicación. Las eslingas y accesorios deben ser adecuados para la carga y estar en condiciones de uso.",
+      operation: "La maniobra comienza con una elevación de comprobación y continúa con movimientos suaves, evitando tirones y balanceos. Cuando interviene un señalista, las señales deben ser claras y acordadas y el operador debe detenerse si pierde la comunicación.",
+      safety: "Nunca debe permanecer personal bajo una carga suspendida ni realizarse una maniobra que exceda la capacidad del equipo o accesorio. Deben controlarse balanceo, obstáculos, viento cuando sea relevante y acceso de personas a la zona peligrosa.",
+      maintenance: "Los equipos y accesorios se someten a las comprobaciones establecidas. Eslingas, ganchos o elementos dañados, deformados o con dudas sobre su integridad deben retirarse del servicio y comunicarse.",
+      practical: "Los casos deben trabajar selección de accesorios, eslingado, elevación de prueba, traslado, colocación, señales, balanceo y actuación ante una incidencia.",
+      tools: "Manual de operación, tablas de carga, inspecciones de accesorios, señalización de maniobra y código de señales."
     },
     "Logística y Almacén": {
-      context: "La logística de almacén coordina la recepción, ubicación, preparación y expedición de mercancías. Una organización correcta reduce desplazamientos, errores y riesgos y facilita la trazabilidad.",
-      safety: "Los riesgos habituales incluyen caídas, golpes, atrapamientos, sobreesfuerzos y caída de objetos. Las medidas preventivas incluyen orden, señalización, circulación separada, uso correcto de equipos y manipulación adecuada.",
-      operation: "La mercancía debe recibirse, identificarse y comprobarse antes de su ubicación. En la preparación de pedidos se verifica referencia, cantidad y estado del producto y se mantiene una secuencia de trabajo que reduzca errores.",
-      maintenance: "El control de existencias exige registrar entradas y salidas, revisar ubicaciones y realizar inventarios. Los equipos y estanterías deben mantenerse en condiciones adecuadas y cualquier daño debe comunicarse.",
-      practice: "Los ejercicios plantean recepción de mercancías, ubicación, picking, inventario, preparación de expediciones y resolución de incidencias."
+      fundamentals: "El alumno debe comprender el flujo de mercancías desde recepción hasta expedición, los sistemas de ubicación, identificación, inventario y trazabilidad. También debe conocer las responsabilidades asociadas a cada etapa.",
+      preparation: "La preparación incluye comprobar referencias, cantidades, estado de la mercancía, ubicación, equipos disponibles y orden de trabajo. El puesto debe mantenerse despejado y las rutas de circulación claramente identificadas.",
+      operation: "Las operaciones se realizan siguiendo una secuencia controlada: recibir, verificar, registrar, ubicar, preparar, comprobar y expedir. La trazabilidad permite localizar errores y corregirlos antes de que la mercancía salga.",
+      safety: "Deben prevenirse caídas de objetos, golpes, atrapamientos, sobreesfuerzos y conflictos entre peatones y equipos móviles. Las cargas deben manipularse respetando límites, ayudas mecánicas y procedimientos del almacén.",
+      maintenance: "El control de stock requiere registros fiables, inventarios y revisión de ubicaciones. Estanterías, equipos y zonas de trabajo deben conservarse en condiciones adecuadas y cualquier daño debe comunicarse.",
+      practical: "Los ejercicios incluyen recepción, ubicación, picking, inventario, preparación de expediciones y resolución de diferencias entre stock físico y documental.",
+      tools: "Etiquetas, órdenes de trabajo, sistemas de gestión de almacén, documentación de mercancía y equipos de manutención."
     },
     "Prevención de Riesgos Laborales": {
-      context: "La prevención parte de identificar los peligros existentes en el puesto y valorar cómo pueden afectar a las personas. La formación debe ayudar a reconocer riesgos antes de iniciar una tarea y a aplicar medidas preventivas eficaces.",
-      safety: "Las medidas deben priorizar la eliminación o reducción del riesgo y las protecciones colectivas antes de recurrir al EPI. También son esenciales los procedimientos de trabajo, la señalización, la información y la comunicación de condiciones inseguras.",
-      operation: "Una tarea segura se prepara revisando el entorno, los equipos, las instrucciones y las condiciones personales necesarias. Durante el trabajo se controla que las condiciones previstas se mantienen y se detiene la actividad cuando aparece un riesgo no controlado.",
-      maintenance: "La prevención necesita seguimiento: inspecciones, comunicación de incidentes, revisión de procedimientos y actualización de medidas. La detección temprana de desviaciones evita que pequeñas anomalías se conviertan en accidentes.",
-      practice: "Los casos prácticos presentan puestos de trabajo y piden identificar peligros, valorar situaciones y elegir medidas preventivas razonables."
+      fundamentals: "El alumno debe aprender a identificar peligros, valorar riesgos y relacionarlos con medidas preventivas. La prevención debe integrarse en la planificación de la tarea y no limitarse a actuar después de un incidente.",
+      preparation: "Antes de trabajar se revisan instrucciones, equipos, entorno, condiciones personales y medidas preventivas previstas. Cuando las condiciones cambian, se debe reevaluar la situación antes de continuar.",
+      operation: "Las tareas se ejecutan siguiendo procedimientos seguros y controlando que las medidas previstas se mantienen. Si aparece un riesgo no controlado, la actuación correcta es detenerse y comunicarlo.",
+      safety: "La prevención prioriza eliminar o reducir el riesgo y utilizar protecciones colectivas antes que depender exclusivamente del EPI. También son esenciales señalización, formación, información y coordinación.",
+      maintenance: "La mejora preventiva requiere inspecciones, investigación de incidentes, revisión de procedimientos y actualización de medidas. Las condiciones inseguras deben quedar comunicadas para evitar su repetición.",
+      practical: "Los casos plantean puestos reales para identificar peligros, valorar situaciones, escoger medidas preventivas y decidir cuándo detener una tarea.",
+      tools: "Evaluación de riesgos, procedimientos de trabajo, señalización, fichas de seguridad y equipos de protección cuando proceda."
     },
     "Informática y Competencias Digitales": {
-      context: "Las competencias digitales permiten utilizar ordenadores, teléfonos, aplicaciones y servicios de Internet para realizar tareas profesionales. El aprendizaje parte de la organización de archivos y continúa con herramientas de productividad y comunicación.",
-      safety: "La seguridad digital requiere contraseñas robustas, autenticación adicional cuando esté disponible, actualizaciones y precaución ante enlaces y archivos inesperados. La información personal y profesional debe tratarse con cuidado.",
-      operation: "Una tarea digital eficiente se prepara definiendo el objetivo, seleccionando la herramienta y organizando la información. Documentos, hojas de cálculo y presentaciones deben mantenerse estructurados y fáciles de revisar.",
-      maintenance: "El mantenimiento digital incluye actualizaciones, copias de seguridad, limpieza de archivos innecesarios y revisión de permisos. También conviene comprobar periódicamente la configuración de privacidad.",
-      practice: "Los ejercicios simulan tareas de oficina, gestión de archivos, correo electrónico, navegación, creación de documentos y resolución de incidencias comunes."
+      fundamentals: "El alumno debe conocer el funcionamiento básico de dispositivos, archivos, aplicaciones, navegación, correo y herramientas de productividad. La finalidad es realizar tareas digitales de forma ordenada, segura y verificable.",
+      preparation: "Antes de una tarea se define el objetivo, se localizan los archivos necesarios y se selecciona la herramienta adecuada. Conviene utilizar nombres y carpetas coherentes para poder recuperar la información.",
+      operation: "La ejecución debe seguir una secuencia clara y comprobar el resultado antes de cerrar o compartir un documento. Los errores deben identificarse y corregirse sin perder información original.",
+      safety: "Se aplican contraseñas robustas, autenticación adicional, actualizaciones y precaución ante enlaces o archivos inesperados. La información personal y profesional debe protegerse.",
+      maintenance: "El mantenimiento digital incluye actualizaciones, copias de seguridad, limpieza y revisión de permisos. También se debe comprobar periódicamente la configuración de privacidad.",
+      practical: "Los ejercicios incluyen organizar archivos, redactar documentos, gestionar correo, navegar de forma segura y resolver incidencias habituales.",
+      tools: "Ordenador o dispositivo móvil, sistema operativo, navegador, correo, herramientas ofimáticas y almacenamiento seguro."
     },
     "Inteligencia Artificial": {
-      context: "La inteligencia artificial generativa puede ayudar a redactar, resumir, analizar información, crear ideas y automatizar determinadas tareas. Su utilidad depende de formular instrucciones claras y comprobar siempre los resultados.",
-      safety: "No se deben introducir datos confidenciales sin conocer las condiciones del servicio. Las respuestas pueden contener errores o información inventada, por lo que una salida generada por IA no debe aceptarse automáticamente como correcta.",
-      operation: "Un buen uso comienza definiendo objetivo, contexto, formato y restricciones. Después se revisa la respuesta, se corrigen instrucciones y se repite el proceso hasta obtener un resultado útil y verificable.",
-      maintenance: "El trabajo con IA requiere conservar versiones útiles de instrucciones, revisar cambios de las herramientas y establecer criterios de comprobación. En tareas profesionales conviene documentar cuándo y cómo se utilizó la herramienta.",
-      practice: "Los casos prácticos incluyen redactar un procedimiento, resumir información, transformar un texto, generar una lista de tareas y detectar errores en una respuesta de IA."
+      fundamentals: "El alumno debe comprender qué puede y qué no puede hacer una herramienta de IA generativa, cómo interpretar sus respuestas y por qué una respuesta aparentemente correcta puede contener errores.",
+      preparation: "Antes de utilizar IA se define el objetivo, contexto, formato y restricciones. No se deben introducir datos confidenciales sin conocer las condiciones de tratamiento del servicio.",
+      operation: "Una instrucción eficaz proporciona contexto suficiente y solicita una salida concreta. Después se revisa el resultado, se detectan errores y se reformula la petición cuando sea necesario.",
+      safety: "Debe comprobarse la exactitud de la información, evitar datos sensibles y revisar posibles sesgos, errores o contenido inventado. La IA debe ser una herramienta de apoyo y no sustituir las comprobaciones profesionales necesarias.",
+      maintenance: "Se deben conservar instrucciones útiles, revisar cambios de las herramientas y documentar los procesos importantes. Las respuestas utilizadas profesionalmente deben poder ser verificadas.",
+      practical: "Los ejercicios incluyen redactar, resumir, transformar información, analizar datos y detectar errores en respuestas generadas.",
+      tools: "Herramientas de IA, documentos de trabajo, fuentes verificables y sistemas de almacenamiento."
     },
     "Programación y Desarrollo": {
-      context: "Programar consiste en transformar un problema en instrucciones que un sistema pueda ejecutar. Para ello se utilizan variables, condiciones, bucles, funciones y estructuras de datos.",
-      safety: "El desarrollo seguro implica validar entradas, proteger credenciales y evitar exponer información sensible. También es importante revisar dependencias y comprobar el comportamiento antes de publicar una aplicación.",
-      operation: "El proceso comienza definiendo el problema y dividiéndolo en partes pequeñas. Se escribe código, se ejecutan pruebas, se observan errores y se corrige de forma iterativa.",
-      maintenance: "Un programa necesita documentación, control de versiones y revisiones. Los cambios deben realizarse de forma ordenada para poder identificar qué se modificó y recuperar una versión anterior si fuera necesario.",
-      practice: "Los ejercicios plantean pequeños problemas de lógica, páginas web sencillas, validación de datos y depuración de errores."
+      fundamentals: "El alumno aprende a transformar un problema en datos, reglas y pasos ejecutables. Se trabajan variables, condiciones, bucles, funciones, estructuras de datos y organización del código.",
+      preparation: "Antes de programar se define el objetivo, entradas, salidas y casos límite. Dividir el problema en partes pequeñas facilita escribir y comprobar el código.",
+      operation: "El desarrollo consiste en escribir, ejecutar, probar, observar errores y corregir. Cada cambio debe comprobarse para evitar introducir nuevos problemas.",
+      safety: "El código debe validar entradas, proteger credenciales y evitar exponer datos sensibles. También se revisan dependencias y permisos antes de publicar.",
+      maintenance: "La documentación, las pruebas y el control de versiones permiten mantener el proyecto. Los cambios deben ser trazables para poder corregir o recuperar versiones.",
+      practical: "Los ejercicios incluyen lógica, formularios, validación, pequeñas páginas web y depuración de errores.",
+      tools: "Editor de código, navegador, terminal cuando proceda, control de versiones y herramientas de prueba."
     },
     "Ciberseguridad": {
-      context: "La ciberseguridad busca proteger dispositivos, cuentas, redes y datos frente a accesos no autorizados, fraude, pérdida de información y otros incidentes.",
-      safety: "Las amenazas más comunes incluyen phishing, contraseñas comprometidas, malware y engaños mediante ingeniería social. La prevención combina hábitos seguros, actualizaciones, copias de seguridad y controles de acceso.",
-      operation: "Ante un mensaje sospechoso se debe verificar el remitente, evitar abrir enlaces o archivos dudosos y utilizar canales oficiales. Si se produce un incidente, conviene aislar el equipo afectado y comunicarlo siguiendo el procedimiento establecido.",
-      maintenance: "La seguridad debe mantenerse en el tiempo mediante actualizaciones, revisión de permisos, copias de seguridad y comprobaciones periódicas. Las cuentas que ya no se utilizan deben cerrarse o deshabilitarse.",
-      practice: "Los ejercicios presentan correos sospechosos, páginas falsas, dispositivos perdidos y contraseñas débiles para practicar decisiones seguras."
+      fundamentals: "El alumno debe comprender amenazas como phishing, malware, robo de credenciales, ingeniería social y pérdida de dispositivos. También debe conocer los principios de confidencialidad, integridad y disponibilidad.",
+      preparation: "La preparación consiste en proteger cuentas, activar medidas de autenticación, actualizar dispositivos y conocer los procedimientos de reporte. Los accesos deben asignarse según necesidad.",
+      operation: "Ante un mensaje o actividad sospechosa se verifica el origen y se evita actuar impulsivamente. Ante un incidente se sigue el procedimiento establecido, preservando evidencias y comunicando el problema.",
+      safety: "Se deben utilizar contraseñas robustas, autenticación multifactor, actualizaciones, copias de seguridad y precaución con enlaces y archivos. Los permisos deben limitarse a lo necesario.",
+      maintenance: "La seguridad requiere revisión periódica de cuentas, permisos, actualizaciones y copias de seguridad. Las cuentas que ya no se utilizan deben deshabilitarse.",
+      practical: "Los ejercicios presentan correos sospechosos, páginas falsas, contraseñas débiles, dispositivos perdidos e incidentes de acceso.",
+      tools: "Gestor de contraseñas, autenticación multifactor, copias de seguridad, antivirus y herramientas de administración autorizadas."
     }
   };
 
   const p = profiles[category] ?? {
-    context: `El curso de ${title} introduce los conocimientos necesarios para comprender el sector de ${category}. Se explican los conceptos fundamentales, las herramientas habituales y la forma de organizar el trabajo antes de realizar una tarea profesional.`,
-    safety: `La seguridad forma parte de todas las operaciones de ${category}. El alumno aprende a reconocer los peligros más habituales, aplicar medidas preventivas, utilizar correctamente los medios de protección cuando sean necesarios y comunicar cualquier condición insegura.`,
-    operation: `Una operación profesional debe prepararse antes de comenzar. Se revisan las instrucciones, los recursos disponibles, el entorno y la secuencia de trabajo. Durante la ejecución se controla el resultado y se corrigen desviaciones sin improvisar procedimientos inseguros.`,
-    maintenance: `El mantenimiento y la mejora continua requieren revisar los resultados, conservar la documentación y comunicar anomalías. Las comprobaciones periódicas permiten detectar problemas antes de que afecten a la calidad, la seguridad o la continuidad del trabajo.`,
-    practice: `Los ejercicios del curso reproducen situaciones habituales del puesto de trabajo para que el alumno pueda aplicar los conceptos estudiados, identificar errores y elegir una actuación profesional adecuada.`
+    fundamentals: \`El curso de \${title} desarrolla los conocimientos fundamentales necesarios para comprender esta actividad profesional dentro del sector de \${category}. El alumno aprende el vocabulario, los principios de funcionamiento, las responsabilidades del puesto y la documentación que debe consultar antes de trabajar.\`,
+    preparation: \`La preparación de una tarea de \${title} comienza revisando instrucciones, recursos, puesto, entorno y condiciones de trabajo. Organizar previamente la actividad permite reducir errores, evitar improvisaciones y detectar situaciones que deben comunicarse antes de continuar.\`,
+    operation: \`Las operaciones de \${title} deben realizarse siguiendo una secuencia lógica y las instrucciones aplicables. Durante el trabajo se comprueba el resultado, se controlan las desviaciones y se detiene la actividad cuando las condiciones dejan de ser seguras o adecuadas.\`,
+    safety: \`La seguridad en \${category} exige identificar los peligros propios de la tarea, aplicar medidas preventivas y utilizar correctamente las protecciones previstas. El alumno debe aprender a reconocer una condición insegura y comunicarla antes de que provoque daños.\`,
+    maintenance: \`La calidad y continuidad del trabajo requieren inspecciones, orden, limpieza, documentación y comunicación de anomalías. Las operaciones técnicas que correspondan a personal especializado no deben improvisarse por el operador o trabajador que realiza la tarea habitual.\`,
+    practical: \`Los casos prácticos reproducen situaciones habituales de \${title}: preparación del puesto, ejecución de una tarea, detección de un error, aplicación de una medida preventiva y comprobación final del resultado.\`,
+    tools: \`El alumno debe familiarizarse con el manual, procedimientos, herramientas, equipos y documentación que se utilicen en el puesto concreto de \${title}. Cuando exista una instrucción específica del fabricante o de la empresa, esta debe prevalecer sobre una explicación genérica.\`
   };
 
-  const modules = [
-    { name:"Introducción y fundamentos", body:p.context, topics:[
-      `Qué es ${title} y para qué se utiliza en el ámbito profesional.`,
-      `Conceptos, vocabulario y principios que permiten interpretar correctamente las instrucciones de trabajo.`,
-      `Funciones y responsabilidades habituales de la persona que desarrolla esta actividad.`,
-      `Documentación, herramientas y recursos que conviene conocer antes de comenzar.`
-    ]},
-    { name:"Preparación y organización del trabajo", body:`Antes de iniciar una tarea de ${title}, es necesario preparar el puesto y comprobar que las condiciones permiten trabajar correctamente. Una buena preparación reduce errores y evita improvisaciones. El alumno aprende a interpretar instrucciones, organizar recursos, revisar el entorno y establecer una secuencia lógica de trabajo.`, topics:[
-      `Comprobaciones iniciales y preparación del puesto de trabajo.`,
-      `Selección y utilización adecuada de herramientas, equipos o recursos.`,
-      `Organización de la tarea, orden de operaciones y control del tiempo.`,
-      `Identificación de condiciones anómalas y comunicación antes de continuar.`
-    ]},
-    { name:"Operaciones y procedimientos", body:p.operation, topics:[
-      `Procedimiento básico paso a paso para realizar las operaciones habituales.`,
-      `Controles que deben realizarse durante la ejecución y criterios para detener una tarea.`,
-      `Errores frecuentes, sus consecuencias y formas de evitarlos.`,
-      `Comprobación final del resultado y registro de la actividad cuando corresponda.`
-    ]},
-    { name:"Seguridad y prevención", body:p.safety, topics:[
-      `Identificación de los principales peligros relacionados con el puesto.`,
-      `Medidas preventivas que deben aplicarse antes y durante el trabajo.`,
-      `Uso correcto de protecciones colectivas y equipos de protección individual cuando proceda.`,
-      `Actuación ante incidentes, emergencias y condiciones inseguras.`
-    ]},
-    { name:"Mantenimiento, calidad y buenas prácticas", body:p.maintenance, topics:[
-      `Inspecciones y comprobaciones periódicas relacionadas con la actividad.`,
-      `Detección y comunicación de defectos, averías o desviaciones.`,
-      `Buenas prácticas para mantener calidad, orden, limpieza y trazabilidad.`,
-      `Importancia de seguir las instrucciones del fabricante, empresa o procedimiento aplicable.`
-    ]},
-    { name:"Casos prácticos y preparación del test", body:`En la parte final se aplican los conocimientos a situaciones parecidas a las que pueden aparecer en un puesto de trabajo. El objetivo no es memorizar una lista de palabras, sino aprender a interpretar una situación, detectar el riesgo o problema, escoger una actuación adecuada y comprobar el resultado. El alumno debe repasar los conceptos anteriores antes de realizar el test gratuito.`, topics:[
-      p.practice,
-      `Caso práctico 1: preparar una tarea y detectar qué comprobaciones deben realizarse antes de comenzar.`,
-      `Caso práctico 2: identificar una actuación incorrecta y explicar qué medida preventiva o procedimiento debería aplicarse.`,
-      `Repaso final de conceptos, procedimientos, seguridad y buenas prácticas antes del test.`
-    ]}
+  const moduleData = [
+    {
+      name: "Fundamentos y conocimiento del equipo o actividad",
+      intro: p.fundamentals,
+      sections: [
+        [\`1.1 Qué es \${title}\`, \`El primer paso es entender qué trabajo realiza \${title}, cuál es su finalidad y qué límites tiene. El alumno debe relacionar la teoría con situaciones reales y saber explicar por qué cada elemento o procedimiento es necesario.\`, [\`Finalidad y aplicaciones profesionales de \${title}.\`, \`Conceptos y vocabulario que aparecen en manuales e instrucciones.\`, \`Responsabilidades del trabajador y límites de actuación.\`]],
+        [\`1.2 Componentes, herramientas y elementos de trabajo\`, \`Se estudian los elementos que intervienen directamente en la actividad y la función de cada uno. Conocerlos permite detectar anomalías, interpretar instrucciones y evitar usos para los que un equipo o herramienta no está diseñado.\`, [p.tools, \`Identificación de elementos de mando, control o apoyo cuando existan.\`, \`Relación entre cada elemento y la operación que permite realizar.\`]],
+        [\`1.3 Capacidades, limitaciones y documentación\`, \`La información del fabricante, procedimiento de empresa o documentación técnica establece condiciones de utilización que deben respetarse. El alumno aprende a localizar la información relevante antes de realizar una operación.\`, [\`Capacidad, límites de uso y condiciones de trabajo.\`, \`Manual de instrucciones, señalización y documentación aplicable.\`, \`Situaciones en las que debe consultarse al responsable o personal competente.\`]],
+        [\`1.4 Responsabilidades profesionales\`, \`Una persona formada no solo debe saber ejecutar una tarea: también debe reconocer cuándo no puede realizarla de forma segura. La responsabilidad incluye respetar procedimientos, comunicar anomalías y no improvisar reparaciones o maniobras.\`, [\`Autorización y formación específica cuando sean exigibles.\`, \`Comunicación de defectos y condiciones inseguras.\`, \`Prohibición de anular dispositivos o realizar usos no previstos.\`]]
+      ]
+    },
+    {
+      name: "Preparación y organización del trabajo",
+      intro: p.preparation,
+      sections: [
+        [\`2.1 Comprobaciones antes de comenzar\`, \`Antes de iniciar el trabajo se comprueba que el equipo, herramientas, puesto y entorno se encuentran en condiciones adecuadas. Una revisión inicial permite detectar problemas cuando todavía pueden corregirse sin exponer a personas o materiales.\`, [\`Revisión visual y funcional según el procedimiento aplicable.\`, \`Comprobación del entorno y de posibles obstáculos o interferencias.\`, \`Identificación y comunicación de anomalías.\`]],
+        [\`2.2 Preparación del puesto\`, \`El puesto debe organizarse para que las operaciones puedan realizarse sin movimientos innecesarios ni interferencias. La señalización, el orden y la disponibilidad de recursos forman parte de la preparación profesional.\`, [\`Delimitación de zonas de trabajo cuando sea necesaria.\`, \`Orden y limpieza antes de comenzar.\`, \`Separación de personas, materiales y equipos cuando proceda.\`]],
+        [\`2.3 Planificación de la tarea\`, \`Una tarea segura se divide en pasos y se anticipan los puntos en los que puede aparecer un problema. El trabajador debe conocer qué hacer, qué comprobar y en qué circunstancias debe detenerse.\`, [\`Secuencia lógica de operaciones.\`, \`Identificación de puntos críticos y condiciones de parada.\`, \`Coordinación con otros trabajadores cuando sea necesaria.\`]],
+        [\`2.4 Preparación ante condiciones anómalas\`, \`Si el equipo, entorno o documentación no coincide con las condiciones previstas, no debe improvisarse. La situación debe quedar identificada y comunicada antes de continuar.\`, [\`Qué hacer ante una anomalía o información incompleta.\`, \`Cuándo detener una operación.\`, \`Comunicación al responsable correspondiente.\`]]
+      ]
+    },
+    {
+      name: "Operaciones y procedimientos de trabajo",
+      intro: p.operation,
+      sections: [
+        [\`3.1 Procedimiento normal de trabajo\`, \`El alumno aprende la secuencia habitual de la actividad, desde el inicio hasta la comprobación final. Cada paso tiene una finalidad y debe ejecutarse respetando las limitaciones del equipo y del puesto.\`, [\`Inicio ordenado de la operación.\`, \`Ejecución progresiva y controlada.\`, \`Comprobación del resultado antes de finalizar.\`]],
+        [\`3.2 Control durante la operación\`, \`Durante el trabajo deben observarse continuamente el equipo, el entorno y el resultado. Si cambia una condición relevante, la operación debe adaptarse o detenerse siguiendo el procedimiento establecido.\`, [\`Vigilancia del entorno y de las personas próximas.\`, \`Control de parámetros o señales relevantes.\`, \`Detención ante una condición no controlada.\`]],
+        [\`3.3 Errores frecuentes y corrección\`, \`Los errores se analizan para comprender su causa y evitar que se repitan. La corrección debe realizarse de forma segura, sin ocultar la incidencia ni continuar una operación que haya perdido sus condiciones de seguridad.\`, [\`Errores de preparación, ejecución y comprobación.\`, \`Consecuencias sobre seguridad, calidad y materiales.\`, \`Comunicación y corrección según el procedimiento.\`]],
+        [\`3.4 Finalización de la operación\`, \`Terminar una tarea correctamente implica dejar el equipo o puesto en condiciones seguras, conservar la documentación necesaria y comunicar las incidencias. La última comprobación forma parte del trabajo, no es un paso opcional.\`, [\`Parada y aseguramiento del equipo cuando corresponda.\`, \`Orden y limpieza del puesto.\`, \`Registro o comunicación de resultados e incidencias.\`]]
+      ]
+    },
+    {
+      name: "Seguridad, riesgos y prevención",
+      intro: p.safety,
+      sections: [
+        [\`4.1 Identificación de peligros\`, \`El alumno debe ser capaz de reconocer los peligros antes de comenzar una tarea. Identificar el riesgo con antelación permite aplicar medidas preventivas antes de que ocurra un accidente.\`, [\`Peligros mecánicos, físicos, eléctricos, químicos u organizativos según el curso.\`, \`Personas, equipos y materiales potencialmente afectados.\`, \`Condiciones que aumentan la probabilidad o gravedad del daño.\`]],
+        [\`4.2 Medidas preventivas\`, \`Las medidas preventivas deben actuar sobre el origen del riesgo siempre que sea posible y complementarse con protecciones colectivas, procedimientos y equipos de protección cuando proceda. El alumno aprende a distinguir una medida preventiva de una reacción posterior al accidente.\`, [\`Eliminación o reducción del riesgo.\`, \`Protecciones colectivas y señalización.\`, \`Uso correcto de EPI cuando sean necesarios.\`]],
+        [\`4.3 Actuación ante incidentes y emergencias\`, \`Ante un incidente se debe mantener la seguridad de las personas, detener la operación cuando sea necesario y seguir el procedimiento de emergencia. No se deben realizar actuaciones para las que el trabajador no esté formado.\`, [\`Parada segura y aviso.\`, \`Protección de la zona y de las personas expuestas.\`, \`Comunicación y actuación conforme al plan de emergencia.\`]],
+        [\`4.4 Conductas prohibidas y límites\`, \`Conocer lo que no debe hacerse es tan importante como conocer el procedimiento correcto. El alumno debe reconocer usos indebidos, improvisaciones y anulaciones de protecciones que puedan generar un riesgo grave.\`, [\`No utilizar equipos fuera de sus condiciones previstas.\`, \`No anular dispositivos de seguridad.\`, \`No continuar cuando exista un riesgo no controlado.\`]]
+      ]
+    },
+    {
+      name: "Mantenimiento, calidad y buenas prácticas",
+      intro: p.maintenance,
+      sections: [
+        [\`5.1 Inspección y conservación\`, \`Las comprobaciones periódicas permiten detectar desgaste, daños y desviaciones antes de que afecten a la operación. El alcance de la intervención del usuario debe distinguirse del mantenimiento reservado a personal competente.\`, [\`Inspecciones previstas para el usuario.\`, \`Limpieza, orden y conservación.\`, \`Comunicación de defectos.\`]],
+        [\`5.2 Calidad del trabajo\`, \`Una operación profesional debe producir el resultado previsto sin comprometer la seguridad. La calidad se comprueba mediante criterios objetivos, registros y revisión del resultado.\`, [\`Criterios de aceptación del trabajo.\`, \`Comprobación de errores o desviaciones.\`, \`Trazabilidad y registro cuando proceda.\`]],
+        [\`5.3 Comunicación de averías e incidencias\`, \`Una anomalía debe comunicarse con información suficiente para que pueda evaluarse y corregirse. Ocultar un defecto o continuar utilizando un equipo inseguro puede aumentar el riesgo.\`, [\`Descripción clara de la anomalía.\`, \`Identificación del equipo o zona afectada.\`, \`Retirada de servicio cuando el procedimiento lo indique.\`]],
+        [\`5.4 Buenas prácticas profesionales\`, \`El comportamiento profesional combina seguridad, orden, respeto por los procedimientos y comunicación. Las buenas prácticas deben mantenerse incluso cuando la tarea sea rutinaria o exista presión por terminar rápidamente.\`, [\`Orden y limpieza.\`, \`Uso responsable de equipos y recursos.\`, \`Respeto de instrucciones, límites y coordinación.\`]]
+      ]
+    },
+    {
+      name: "Casos prácticos, evaluación y preparación profesional",
+      intro: p.practical,
+      sections: [
+        [\`6.1 Caso práctico: preparación de una tarea\`, \`Se plantea una situación de trabajo y el alumno debe identificar qué necesita conocer antes de empezar. El objetivo es demostrar que sabe convertir la teoría en una secuencia segura de actuación.\`, [\`Identificar equipo, tarea, entorno y riesgos.\`, \`Realizar las comprobaciones previas.\`, \`Decidir si existen condiciones para comenzar.\`]],
+        [\`6.2 Caso práctico: incidencia durante el trabajo\`, \`La situación cambia durante la operación y el alumno debe decidir cómo actuar. Se valora que priorice la seguridad, detenga la actividad cuando corresponda y comunique correctamente la incidencia.\`, [\`Reconocer la nueva condición de riesgo.\`, \`Adoptar una parada o actuación segura.\`, \`Comunicar la incidencia por el canal establecido.\`]],
+        [\`6.3 Caso práctico: actuación incorrecta\`, \`Se presenta una maniobra o procedimiento incorrecto y el alumno debe explicar qué parte falla y cómo debería realizarse. Esta actividad ayuda a preparar preguntas de razonamiento, no solo de memoria.\`, [\`Detectar el error.\`, \`Explicar la consecuencia posible.\`, \`Proponer la actuación conforme al procedimiento.\`]],
+        [\`6.4 Repaso final y preparación del test\`, \`Antes del test gratuito, el alumno debe repasar fundamentos, preparación, operaciones, riesgos, mantenimiento y casos prácticos. Aprobar una prueba teórica demuestra conocimientos evaluados, pero no sustituye por sí solo la formación práctica o autorización que pueda exigir el puesto o la normativa aplicable.\`, [\`Repaso de conceptos y procedimientos.\`, \`Revisión de riesgos y medidas preventivas.\`, \`Realización del test y análisis de los errores.\`]]
+      ]
+    }
   ];
 
-  return modules.map((m, i) => ({
+  return moduleData.map((m, i) => ({
     id: String(i + 1),
-    title: `Módulo ${i + 1}: ${m.name}`,
+    title: \`Módulo \${i + 1}: \${m.name}\`,
     lesson: {
-      title: `${m.name} — ${title}`,
-      intro: m.body,
-      points: m.topics
+      title: \`\${m.name} — \${title}\`,
+      intro: m.intro,
+      points: m.sections.map((section) => section[0] as string),
+      sections: m.sections.map((section) => ({
+        heading: section[0] as string,
+        text: section[1] as string,
+        bullets: section[2] as string[]
+      }))
     }
   }));
 }
