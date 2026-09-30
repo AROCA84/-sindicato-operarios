@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     if (!key.startsWith("sb_secret_")) headers.Authorization = `Bearer ${key}`;
 
     const response = await fetch(
-      `${url.replace(/\/$/, "")}/rest/v1/afiliados?select=numero_afiliado,nombre,apellidos,email,activo&numero_afiliado=eq.${encodeURIComponent(numero)}&email=eq.${encodeURIComponent(email)}&activo=eq.true&limit=1`,
+      `${url.replace(/\/$/, "")}/rest/v1/afiliados?select=numero_afiliado,nombre,apellidos,email,activo&nombre=ilike.${encodeURIComponent(nombre)}&email=eq.${encodeURIComponent(email)}&activo=eq.true&limit=1`,
       { headers, cache: "no-store" }
     );
 
