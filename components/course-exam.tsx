@@ -33,13 +33,32 @@ export function CourseExam({ course }: { course: Course }) {
       try {
         const email = window.localStorage.getItem("sdo-afiliado-email") || "";
         const numero = window.localStorage.getItem("sdo-numero-afiliado") || "";
-        const response = await fetch("/api/tests/submit", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, numero_afiliado: numero, curso_id: course.id, respuestas: answers }),
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "No se pudo guardar el resultado.");
+        const controller = new AbortController();
+        const timeout = window.setTimeout(() => controller.abort(), 15000);
+        let response: Response;
+        try {
+          response = await fetch("/api/tests/submit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, numero_afiliado: numero, curso_id: course.id, respuestas: answers }),
+            signal: controller.signal,
+          });
+        } catch (error) {
+          if (error instanceof DOMException && error.name === "AbortError") {
+            throw new Error("La comprobación del resultado está tardando demasiado. Comprueba la conexión y vuelve a intentarlo.");
+          }
+          throw error;
+        } finally {
+          window.clearTimeout(timeout);
+        }
+        const raw = await response.text();
+        let data: { error?: string; intento_id?: string; puntuacion?: number; total?: number; aprobado?: boolean } = {};
+        try {
+          data = JSON.parse(raw);
+        } catch {
+          throw new Error(`El servidor devolvió una respuesta no válida (HTTP ${response.status}).`);
+        }
+        if (!response.ok) throw new Error(data.error || `No se pudo guardar el resultado (HTTP ${response.status}).`);
         setAttemptId(data.intento_id);
         if (data.aprobado) window.localStorage.setItem("sdo-progreso-" + course.id, "100");
         else window.localStorage.setItem("sdo-progreso-" + course.id, String(Math.min(99, Math.round((data.puntuacion / data.total) * 100))));
