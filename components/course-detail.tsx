@@ -51,7 +51,19 @@ export function CourseDetail({ course, modules }: CourseDetailProps) {
           <p className="mt-3 text-white/60">
             Consulta aquí todo el contenido antes de realizar el test final. También puedes descargar el temario para estudiarlo cuando quieras.
           </p>
-          <div className="mt-5"><TemarioDownload course={course} modules={modules} /></div>
+          <div className="mt-5">
+            {affiliated ? (
+              <TemarioDownload course={course} modules={modules} />
+            ) : (
+              <Link
+                href={`/afiliarse?returnTo=${encodeURIComponent(`/cursos/${course.id}`)}`}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-safety px-6 py-3 text-sm font-black uppercase tracking-wide text-navy shadow-lg transition-colors hover:bg-safety-dark"
+              >
+                Afíliate gratis y accede a la formación gratuita
+                <UserPlus className="h-5 w-5" />
+              </Link>
+            )}
+          </div>
           <div className="mt-8 space-y-6">
             {modules.map((module, moduleIndex) => (
               <article key={module.id} className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
@@ -90,7 +102,7 @@ export function CourseDetail({ course, modules }: CourseDetailProps) {
           <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-white/60">
             {affiliated
               ? "Ya estás afiliado. Puedes estudiar el temario y realizar el test final gratis cuando estés preparado."
-              : "Completa tus datos una sola vez. La afiliación es gratuita y, al terminar, podrás continuar con este curso sin salir de aquí."}
+              : "Completa tus datos una sola vez. La afiliación es gratuita y, al terminar, tendrás acceso a la formación gratuita, al temario y al test de este curso."}
           </p>
 
           {!affiliated && (
@@ -98,7 +110,7 @@ export function CourseDetail({ course, modules }: CourseDetailProps) {
               href={`/afiliarse?returnTo=${encodeURIComponent(`/cursos/${course.id}`)}`}
               className="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-safety px-8 py-4 text-base font-black uppercase tracking-wide text-navy shadow-lg transition-colors hover:bg-safety-dark"
             >
-              Afíliate gratis para comenzar
+              Afíliate gratis y accede a la formación gratuita
               <UserPlus className="h-5 w-5" />
             </Link>
           )}
