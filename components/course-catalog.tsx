@@ -128,23 +128,23 @@ export function CourseCatalog() {
                     type="button"
                     onClick={() => toggleCategory(category)}
                     aria-expanded={isOpen}
-                    className="flex w-full items-center gap-4 px-5 py-5 text-left transition-colors hover:bg-slate-50"
+                    className="group flex w-full items-center gap-5 px-5 py-6 text-left transition-all duration-200 hover:bg-slate-50 sm:px-7 sm:py-7"
                   >
-                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-safety-dark" aria-hidden="true">
-                      <IndustrialIcon name={categoryIcons[category]} />
+                    <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border-2 border-slate-200 bg-gradient-to-br from-white to-slate-100 text-safety-dark shadow-sm transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:shadow-md sm:h-20 sm:w-20" aria-hidden="true">
+                      <IndustrialIcon name={categoryIcons[category]} large />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-base font-black uppercase tracking-tight text-navy sm:text-lg">
+                      <span className="block text-lg font-black uppercase tracking-[0.02em] text-navy sm:text-xl">
                         {category}
                       </span>
-                      <span className="mt-1 block text-sm text-slate-500">
+                      <span className="mt-1.5 block text-sm font-medium text-slate-500 sm:text-base">
                         {categoryCourses.length > 0
                           ? `${categoryCourses.length} ${categoryCourses.length === 1 ? "curso" : "cursos"}`
                           : "Nuevas formaciones próximamente"}
                       </span>
                     </span>
                     <span
-                      className={`text-2xl font-light text-safety transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`}
+                      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200 text-3xl font-light leading-none text-safety transition-all duration-200 group-hover:border-safety/50 group-hover:bg-safety/10 ${isOpen ? "rotate-90 bg-safety/10" : ""}`}
                       aria-hidden="true"
                     >
                       ›
@@ -232,23 +232,33 @@ function CourseRow({ course }: { course: (typeof courses)[number] }) {
   );
 }
 
-function IndustrialIcon({ name }: { name: CategoryIconName }) {
-  const common = { width: 24, height: 24, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+function IndustrialIcon({ name, large = false }: { name: CategoryIconName; large?: boolean }) {
+  const size = large ? 42 : 24;
+  const common = {
+    width: size,
+    height: size,
+    viewBox: "0 0 48 48",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.6,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+  };
   switch (name) {
     case "forklift":
-      return <svg {...common}><path d="M5 17V7h5l3 6h6v4H5Z" /><path d="M10 7v6M13 13l-2-6M4 20h3M17 20h3" /><circle cx="6.5" cy="18.5" r="1.5" /><circle cx="18.5" cy="18.5" r="1.5" /></svg>;
+      return <svg {...common}><path d="M8 34V18h13l7 12h12v8H8Z" /><path d="M21 18v12M27 30l-6-12M35 16v14M39 16h4M35 16v-5" /><path d="M12 38v4M36 38v4M7 42h8M33 42h8" /><circle cx="12" cy="37" r="4" /><circle cx="36" cy="37" r="4" /></svg>;
     case "platform":
-      return <svg {...common}><path d="M5 18h14M7 18V8h10v10M9 8V5h6v3M4 21h16" /><path d="M10 12h4M12 9v7" /></svg>;
+      return <svg {...common}><path d="M9 39h30M12 39V15h24v24M16 15V9h16v6M20 23h8M24 19v17M15 30h18" /><path d="M7 43h34" /></svg>;
     case "crane":
-      return <svg {...common}><path d="M5 19V5h2v14M6 5h13M12 5v3M19 5v5h-7M12 8v7M10 15h4M17 10v6M15 19h4" /><path d="M4 19h4" /></svg>;
+      return <svg {...common}><path d="M10 40V9h3v31M11.5 9h28M19 13h20M19 13l-7 9M31 9v11M39 9v8M31 20h8v5M35 25v10M31 35h8" /><path d="M7 40h10M28 40h14" /></svg>;
     case "excavator":
-      return <svg {...common}><path d="M4 17h11l3-5-3-2h-4l-2-5H6v8H4Z" /><path d="M9 5h3M6 20h3M16 20h3M4 17l-1 3M13 10l3-3 3 2" /><circle cx="7" cy="18.5" r="1.5" /><circle cx="17" cy="18.5" r="1.5" /></svg>;
+      return <svg {...common}><path d="M7 33h24l7-9-6-4H21l-4-10H11v17H7Z" /><path d="M17 10h7M21 20l9-9 8 4M36 24l5 4-4 5M10 39h8M31 39h8" /><circle cx="14" cy="35" r="4" /><circle cx="34" cy="35" r="4" /></svg>;
     case "warehouse":
-      return <svg {...common}><path d="M3 20V9l9-5 9 5v11H3Z" /><path d="M7 20v-6h4v6M15 20v-6h2v6M7 10h10M5 12h2M15 12h2" /></svg>;
+      return <svg {...common}><path d="M6 40V14L24 5l18 9v26H6Z" /><path d="M13 40V24h9v16M29 40V24h6v16M13 18h22M10 21h5M29 21h6" /><path d="M6 44h36" /></svg>;
     case "safety":
-      return <svg {...common}><path d="M12 3 20 6v6c0 5-3.2 7.9-8 9-4.8-1.1-8-4-8-9V6l8-3Z" /><path d="m8.5 12 2.2 2.2 4.8-5" /></svg>;
+      return <svg {...common}><path d="M24 5 39 11v10c0 10-6 17-15 21C15 38 9 31 9 21V11l15-6Z" /><path d="m16 24 5 5 11-12" /><path d="M18 10h12" /></svg>;
     default:
-      return <svg {...common}><path d="M12 3 20 6v6c0 5-3.2 7.9-8 9-4.8-1.1-8-4-8-9V6l8-3Z" /></svg>;
+      return <svg {...common}><path d="M24 5 39 11v10c0 10-6 17-15 21C15 38 9 31 9 21V11l15-6Z" /></svg>;
   }
 }
 
