@@ -33,10 +33,10 @@ export function TemarioDownload({ course, modules }: { course: Course; modules: 
           <div class="section-block">
             <h4>${escapeHtml(section.heading)}</h4>
             <p>${escapeHtml(section.text)}</p>
-            ${section.bullets?.length ? \`<ul>${section.bullets.map((bullet) => \`<li>${escapeHtml(bullet)}</li>\`).join("")}</ul>\` : ""}
+            ${section.bullets?.length ? `<ul>${section.bullets.map((bullet) => `<li>${escapeHtml(bullet)}</li>`).join("")}</ul>` : ""}
           </div>
         `).join("") : `
-          <ul>${module.lesson.points.map((point) => \`<li>${escapeHtml(point)}</li>\`).join("")}</ul>
+          <ul>${module.lesson.points.map((point) => `<li>${escapeHtml(point)}</li>`).join("")}</ul>
         `}
         <div class="study-note">
           <strong>Objetivo de estudio</strong>
