@@ -8,7 +8,7 @@ const slides = [
     image: "/hero/hero-1.png",
     tag: "Formación gratuita",
     title: "Aprende. Haz el test. Consigue tu certificado.",
-    text: "Afíliate gratis al Sindicato de Operarios, estudia desde el móvil y realiza tus tests sin pagar. Solo pagas 4,99 € al final si quieres obtener el certificado.",
+    text: "Afíliate gratis al Sindicato de Operarios, estudia desde el móvil y realiza tus tests gratuitos.",
   },
   {
     image: "/hero/hero-2.png",
@@ -60,7 +60,7 @@ export function Hero() {
                 <Link href="/cursos" className="rounded-xl border border-white/30 px-7 py-4 text-center text-sm font-black uppercase tracking-wide text-white hover:bg-white/10">Ver formación</Link>
               </div>
               <div className="mt-7 grid max-w-2xl grid-cols-2 gap-3 text-xs font-bold text-white/85 sm:grid-cols-4">
-                <span>✓ Afiliación gratis</span><span>✓ Formación gratis</span><span>✓ Test gratis</span><span>✓ Certificado 4,99 €</span>
+                <span>✓ Afiliación gratis</span><span>✓ Formación gratis</span><span>✓ Test gratis</span><span>✓ Certificado tras aprobar</span>
               </div>
             </div>
           </div>
