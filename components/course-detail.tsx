@@ -131,7 +131,7 @@ export function CourseDetail({ course, modules }: CourseDetailProps) {
                                 ))}
                               </ul>
                             </div>
-                          ) : null}
+                          ) : null}}
                         </div>
                       ) : null
                     </div>
