@@ -128,16 +128,16 @@ export function CourseCatalog() {
                     type="button"
                     onClick={() => toggleCategory(category)}
                     aria-expanded={isOpen}
-                    className="group flex w-full items-center gap-5 px-5 py-6 text-left transition-all duration-200 hover:bg-slate-50 sm:px-7 sm:py-7"
+                    className="group flex w-full items-center gap-6 px-5 py-7 text-left transition-all duration-200 hover:bg-slate-50 sm:gap-7 sm:px-8 sm:py-8"
                   >
-                    <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border-2 border-slate-200 bg-gradient-to-br from-white to-slate-100 text-safety-dark shadow-sm transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:shadow-md sm:h-20 sm:w-20" aria-hidden="true">
+                    <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl border-2 border-slate-200 bg-white shadow-md transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:shadow-lg sm:h-24 sm:w-24" aria-hidden="true">
                       <IndustrialIcon name={categoryIcons[category]} large />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-lg font-black uppercase tracking-[0.02em] text-navy sm:text-xl">
+                      <span className="block text-xl font-black uppercase tracking-[0.025em] text-navy sm:text-2xl">
                         {category}
                       </span>
-                      <span className="mt-1.5 block text-sm font-medium text-slate-500 sm:text-base">
+                      <span className="mt-2 block text-sm font-semibold text-slate-500 sm:text-base">
                         {categoryCourses.length > 0
                           ? `${categoryCourses.length} ${categoryCourses.length === 1 ? "curso" : "cursos"}`
                           : "Nuevas formaciones próximamente"}
@@ -233,32 +233,36 @@ function CourseRow({ course }: { course: (typeof courses)[number] }) {
 }
 
 function IndustrialIcon({ name, large = false }: { name: CategoryIconName; large?: boolean }) {
-  const size = large ? 42 : 24;
+  const size = large ? 60 : 30;
   const common = {
     width: size,
     height: size,
-    viewBox: "0 0 48 48",
+    viewBox: "0 0 64 64",
     fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 1.6,
     strokeLinecap: "round" as const,
     strokeLinejoin: "round" as const,
   };
+  const dark = "#243447";
+  const orange = "#F59E0B";
+  const yellow = "#FACC15";
+  const blue = "#2563EB";
+  const steel = "#94A3B8";
+  const green = "#16A34A";
   switch (name) {
     case "forklift":
-      return <svg {...common}><path d="M8 34V18h13l7 12h12v8H8Z" /><path d="M21 18v12M27 30l-6-12M35 16v14M39 16h4M35 16v-5" /><path d="M12 38v4M36 38v4M7 42h8M33 42h8" /><circle cx="12" cy="37" r="4" /><circle cx="36" cy="37" r="4" /></svg>;
+      return <svg {...common}><path fill="#E5E7EB" stroke={dark} strokeWidth="2" d="M9 43V23h18l9 15h16v9H9Z" /><path fill={orange} stroke={dark} strokeWidth="2" d="M27 23v15h9l-9-15Z" /><path fill={yellow} stroke={dark} strokeWidth="2" d="M9 23h18v15H9z" /><path stroke={dark} strokeWidth="2" d="M48 16v22M53 16h-5M53 12h-9M20 48v6M45 48v6M14 57h12M39 57h12" /><circle fill={dark} stroke={dark} strokeWidth="2" cx="18" cy="47" r="5" /><circle fill={steel} stroke={dark} strokeWidth="2" cx="45" cy="47" r="5" /></svg>;
     case "platform":
-      return <svg {...common}><path d="M9 39h30M12 39V15h24v24M16 15V9h16v6M20 23h8M24 19v17M15 30h18" /><path d="M7 43h34" /></svg>;
+      return <svg {...common}><path fill="#E2E8F0" stroke={dark} strokeWidth="2" d="M12 49h40M16 49V22h32v27" /><path fill={orange} stroke={dark} strokeWidth="2" d="M20 22V14h24v8H20Z" /><path fill={yellow} stroke={dark} strokeWidth="2" d="M22 30h20v8H22z" /><path stroke={dark} strokeWidth="2" d="M28 38v11M36 38v11M8 55h48" /></svg>;
     case "crane":
-      return <svg {...common}><path d="M10 40V9h3v31M11.5 9h28M19 13h20M19 13l-7 9M31 9v11M39 9v8M31 20h8v5M35 25v10M31 35h8" /><path d="M7 40h10M28 40h14" /></svg>;
+      return <svg {...common}><path stroke={dark} strokeWidth="3" d="M14 53V11h4v42M16 11h37M24 17h29M39 11v20M53 11v12M39 31h14" /><path fill={orange} stroke={dark} strokeWidth="2" d="M43 31h10v7H43z" /><path fill={yellow} stroke={dark} strokeWidth="2" d="M45 38h6v9h-6z" /><path stroke={dark} strokeWidth="2" d="M8 53h18M34 53h24" /></svg>;
     case "excavator":
-      return <svg {...common}><path d="M7 33h24l7-9-6-4H21l-4-10H11v17H7Z" /><path d="M17 10h7M21 20l9-9 8 4M36 24l5 4-4 5M10 39h8M31 39h8" /><circle cx="14" cy="35" r="4" /><circle cx="34" cy="35" r="4" /></svg>;
+      return <svg {...common}><path fill="#E5E7EB" stroke={dark} strokeWidth="2" d="M8 43h30l9-11-8-6H28l-5-13H14v23H8z" /><path fill={orange} stroke={dark} strokeWidth="2" d="M23 13h9l-4 13h-9z" /><path fill={yellow} stroke={dark} strokeWidth="2" d="m37 26 9-10 10 5-8 10z" /><path stroke={dark} strokeWidth="2" d="M14 49h12M38 49h12" /><circle fill={dark} stroke={dark} strokeWidth="2" cx="17" cy="44" r="6" /><circle fill={steel} stroke={dark} strokeWidth="2" cx="43" cy="44" r="6" /></svg>;
     case "warehouse":
-      return <svg {...common}><path d="M6 40V14L24 5l18 9v26H6Z" /><path d="M13 40V24h9v16M29 40V24h6v16M13 18h22M10 21h5M29 21h6" /><path d="M6 44h36" /></svg>;
+      return <svg {...common}><path fill="#E2E8F0" stroke={dark} strokeWidth="2" d="M7 51V19L32 7l25 12v32H7Z" /><path fill={orange} stroke={dark} strokeWidth="2" d="M7 19 32 7v9L7 28z" /><path fill={yellow} stroke={dark} strokeWidth="2" d="M15 51V31h12v20M36 51V31h10v20" /><path stroke={dark} strokeWidth="2" d="M15 25h31M4 56h56" /></svg>;
     case "safety":
-      return <svg {...common}><path d="M24 5 39 11v10c0 10-6 17-15 21C15 38 9 31 9 21V11l15-6Z" /><path d="m16 24 5 5 11-12" /><path d="M18 10h12" /></svg>;
+      return <svg {...common}><path fill="#E2E8F0" stroke={dark} strokeWidth="2" d="M32 6 54 15v14c0 14-9 24-22 29C19 53 10 43 10 29V15L32 6Z" /><path fill={green} stroke={dark} strokeWidth="2" d="m19 31 8 8 18-19-5-4-13 14-4-4z" /><path fill={yellow} stroke={dark} strokeWidth="2" d="M25 12h14v5H25z" /></svg>;
     default:
-      return <svg {...common}><path d="M24 5 39 11v10c0 10-6 17-15 21C15 38 9 31 9 21V11l15-6Z" /></svg>;
+      return <svg {...common}><path fill="#E2E8F0" stroke={dark} strokeWidth="2" d="M32 6 54 15v14c0 14-9 24-22 29C19 53 10 43 10 29V15L32 6Z" /></svg>;
   }
 }
 
