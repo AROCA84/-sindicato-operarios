@@ -4,15 +4,17 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { courses, categories, type Category } from "@/lib/courses";
 
-const categoryIcons: Record<Category, string> = {
-  "Manutención y Carretillas": "🚜",
-  "Elevación y Plataformas": "🏢",
-  "Grúas y Equipos de Elevación": "⚙️",
-  "Maquinaria y Movimiento de Tierras": "🚧",
-  "Logística y Almacén": "📦",
-  "Prevención de Riesgos Laborales": "🦺",
-  "Manipulación y Seguridad": "🛡️",
+const categoryIcons: Record<Category, CategoryIconName> = {
+  "Manutención y Carretillas": "forklift",
+  "Elevación y Plataformas": "platform",
+  "Grúas y Equipos de Elevación": "crane",
+  "Maquinaria y Movimiento de Tierras": "excavator",
+  "Logística y Almacén": "warehouse",
+  "Prevención de Riesgos Laborales": "safety",
+  "Manipulación y Seguridad": "shield",
 };
+
+type CategoryIconName = "forklift" | "platform" | "crane" | "excavator" | "warehouse" | "safety" | "shield";
 
 const categoryDescriptions: Record<Category, string> = {
   "Manutención y Carretillas": "Carretillas, transpaletas y equipos de manutención.",
@@ -128,7 +130,9 @@ export function CourseCatalog() {
                     aria-expanded={isOpen}
                     className="flex w-full items-center gap-4 px-5 py-5 text-left transition-colors hover:bg-slate-50"
                   >
-                    <span className="text-2xl" aria-hidden="true">{categoryIcons[category]}</span>
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-safety-dark" aria-hidden="true">
+                      <IndustrialIcon name={categoryIcons[category]} />
+                    </span>
                     <span className="min-w-0 flex-1">
                       <span className="block text-base font-black uppercase tracking-tight text-navy sm:text-lg">
                         {category}
@@ -170,7 +174,7 @@ export function CourseCatalog() {
             })}
 
             <div className="mt-6 rounded-xl border-2 border-safety bg-navy p-5 text-white">
-              <p className="text-lg font-black">🔜 Próximamente</p>
+              <p className="flex items-center gap-2 text-lg font-black"><span className="flex h-8 w-8 items-center justify-center rounded-md border border-safety/40 bg-safety/10 text-safety"><IndustrialIcon name="safety" /></span> Próximamente</p>
               <p className="mt-1 text-sm text-white/70">
                 Seguimos ampliando el catálogo con nuevas formaciones y especialidades profesionales.
               </p>
@@ -226,6 +230,26 @@ function CourseRow({ course }: { course: (typeof courses)[number] }) {
       </Link>
     </article>
   );
+}
+
+function IndustrialIcon({ name }: { name: CategoryIconName }) {
+  const common = { width: 24, height: 24, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  switch (name) {
+    case "forklift":
+      return <svg {...common}><path d="M5 17V7h5l3 6h6v4H5Z" /><path d="M10 7v6M13 13l-2-6M4 20h3M17 20h3" /><circle cx="6.5" cy="18.5" r="1.5" /><circle cx="18.5" cy="18.5" r="1.5" /></svg>;
+    case "platform":
+      return <svg {...common}><path d="M5 18h14M7 18V8h10v10M9 8V5h6v3M4 21h16" /><path d="M10 12h4M12 9v7" /></svg>;
+    case "crane":
+      return <svg {...common}><path d="M5 19V5h2v14M6 5h13M12 5v3M19 5v5h-7M12 8v7M10 15h4M17 10v6M15 19h4" /><path d="M4 19h4" /></svg>;
+    case "excavator":
+      return <svg {...common}><path d="M4 17h11l3-5-3-2h-4l-2-5H6v8H4Z" /><path d="M9 5h3M6 20h3M16 20h3M4 17l-1 3M13 10l3-3 3 2" /><circle cx="7" cy="18.5" r="1.5" /><circle cx="17" cy="18.5" r="1.5" /></svg>;
+    case "warehouse":
+      return <svg {...common}><path d="M3 20V9l9-5 9 5v11H3Z" /><path d="M7 20v-6h4v6M15 20v-6h2v6M7 10h10M5 12h2M15 12h2" /></svg>;
+    case "safety":
+      return <svg {...common}><path d="M12 3 20 6v6c0 5-3.2 7.9-8 9-4.8-1.1-8-4-8-9V6l8-3Z" /><path d="m8.5 12 2.2 2.2 4.8-5" /></svg>;
+    default:
+      return <svg {...common}><path d="M12 3 20 6v6c0 5-3.2 7.9-8 9-4.8-1.1-8-4-8-9V6l8-3Z" /></svg>;
+  }
 }
 
 function SearchIcon() {
