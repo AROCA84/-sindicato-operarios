@@ -22,14 +22,15 @@ function dbHeaders(key: string) {
  * the incoming URL-encoded parameter order and verify the exact payload
  * supplied by myPOS with the merchant's myPOS API public RSA key.
  */
-function verifyMyPosSignature(form: FormData, publicKey: string) {
-  const signatureValue = String(form.get("Signature") || "").trim();
+function verifyMyPosSignature(rawBody: string, publicKey: string) {
+  const params = new URLSearchParams(rawBody);
+  const signatureValue = (params.get("Signature") || "").trim();
   if (!signatureValue) return false;
 
   const values: string[] = [];
-  for (const [key, value] of form.entries()) {
+  for (const [key, value] of params.entries()) {
     if (key === "Signature") continue;
-    values.push(String(value));
+    values.push(value);
   }
 
   try {
@@ -77,7 +78,8 @@ async function updateCertificate(url: string, key: string, id: string, paid: boo
 
 export async function POST(request: Request) {
   try {
-    const form = await request.formData();
+    const rawBody = await request.text();
+    const form = new URLSearchParams(rawBody);
     const method = String(form.get("IPCmethod") || "").trim();
     const orderId = String(form.get("OrderID") || "").trim();
     const amount = String(form.get("Amount") || "").trim();
@@ -97,7 +99,7 @@ export async function POST(request: Request) {
       return new NextResponse("Server not configured", { status: 503 });
     }
 
-    if (!verifyMyPosSignature(form, publicKey)) {
+    if (!verifyMyPosSignature(rawBody, publicKey)) {
       return new NextResponse("Invalid signature", { status: 400 });
     }
 
