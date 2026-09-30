@@ -64,29 +64,49 @@ export function CourseDetail({ course, modules }: CourseDetailProps) {
               </Link>
             )}
           </div>
-          <div className="mt-8 space-y-6">
-            {modules.map((module, moduleIndex) => (
-              <article key={module.id} className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
-                <div className="border-b border-white/10 bg-white/[0.03] p-5">
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-safety font-black text-navy">{moduleIndex + 1}</div>
-                    <div><h3 className="text-lg font-black uppercase">{module.title}</h3></div>
-                  </div>
-                </div>
-                <div className="p-5">
-                  <h4 className="font-bold text-white">{module.lesson.title}</h4>
-                  <p className="mt-2 text-sm leading-relaxed text-white/60">{module.lesson.intro}</p>
-                  <div className="mt-5 space-y-3">
-                    {module.lesson.points.map((point, pointIndex) => (
-                      <div key={`${module.id}-point-${pointIndex}`} className="flex items-start gap-3">
-                        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-safety" />
-                        <p className="text-sm leading-relaxed text-white/70">{point}</p>
+          <div className="mt-8">
+            <div className="mb-5 rounded-xl border border-safety/20 bg-safety/5 p-5">
+              <p className="text-sm font-black uppercase tracking-wider text-safety">Aula online</p>
+              <h3 className="mt-1 text-xl font-black">Estudia el curso directamente en la web</h3>
+              <p className="mt-2 text-sm leading-relaxed text-white/60">
+                No necesitas descargar nada para estudiar. Una vez afiliado, podrás leer cada tema aquí mismo, consultar las imágenes de referencia y avanzar hasta el test final.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              {modules.map((module, moduleIndex) => (
+                <article key={module.id} className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]">
+                  <div className="grid gap-0 sm:grid-cols-[220px_1fr]">
+                    <div className="relative min-h-[160px] overflow-hidden bg-slate-800">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={course.image || "/placeholder.svg"}
+                        alt={`Imagen de referencia: ${module.title}`}
+                        className="absolute inset-0 h-full w-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-navy/90 via-navy/20 to-transparent" />
+                      <span className="absolute bottom-4 left-4 flex h-10 w-10 items-center justify-center rounded-lg bg-safety font-black text-navy">
+                        {moduleIndex + 1}
+                      </span>
+                    </div>
+                    <div className="p-5 sm:p-6">
+                      <p className="text-xs font-black uppercase tracking-wider text-safety">Tema {moduleIndex + 1}</p>
+                      <h3 className="mt-1 text-xl font-black uppercase">{module.title}</h3>
+                      <h4 className="mt-4 font-bold text-white">{module.lesson.title}</h4>
+                      <p className="mt-2 text-sm leading-relaxed text-white/60">{module.lesson.intro}</p>
+                      <div className="mt-5 space-y-3">
+                        {module.lesson.points.map((point, pointIndex) => (
+                          <div key={`${module.id}-point-${pointIndex}`} className="flex items-start gap-3">
+                            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-safety" />
+                            <p className="text-sm leading-relaxed text-white/70">{point}</p>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    </div>
                   </div>
-                </div>
-              </article>
-            ))}
+                </article>
+              ))}
+            </div>
           </div>
         </div>
       </section>
