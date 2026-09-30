@@ -5,28 +5,28 @@ import Link from "next/link";
 
 const slides = [
   {
-    image: "/hero/proteccion-legal.jpg",
+    image: "/hero/hero-1.png",
     tag: "Protección legal y personal",
     title: "Defensa y apoyo cuando más lo necesitas.",
-    text: "Defensa jurídica ante despidos, sanciones o conflictos laborales. Representación y acompañamiento en reuniones laborales y respaldo de la caja de resistencia en situaciones específicas, como huelgas prolongadas.",
+    points: ["Asesoramiento legal ante despidos, sanciones y conflictos laborales.", "Representación y acompañamiento en reuniones laborales.", "Respaldo de la caja de resistencia en situaciones específicas."],
   },
   {
-    image: "/hero/mejoras-laborales.jpg",
+    image: "/hero/hero-2.png",
     tag: "Mejoras económicas y laborales",
     title: "Defendemos mejores condiciones laborales.",
-    text: "Negociación colectiva, mejores condiciones salariales, regulación de horas extras y turnos especiales, mejores condiciones de vacaciones y negociación de medidas para el futuro laboral y la jubilación.",
+    points: ["Negociación colectiva y mejores condiciones salariales.", "Regulación de horas extras y turnos especiales.", "Mejores condiciones de vacaciones y medidas para el futuro laboral."],
   },
   {
-    image: "/hero/ventajas-sindicato.jpg",
+    image: "/hero/hero-3.png",
     tag: "Ventajas de pertenecer al Sindicato",
     title: "Más apoyo. Más oportunidades.",
-    text: "Afiliación gratuita y de por vida, formación desde 0 €, acceso a beneficios y servicios para afiliados y apoyo y representación en el ámbito laboral.",
+    points: ["Afiliación gratuita y de por vida.", "Formación profesional desde 0 €.", "Beneficios, servicios, apoyo y representación laboral."],
   },
   {
-    image: "/hero/formacion-gratuita.jpg",
+    image: "/hero/hero-1.png",
     tag: "Formación gratuita",
     title: "Estudia y haz tus tests gratis.",
-    text: "Accede a cursos y temarios, estudia a tu ritmo y realiza los tests sin pagar. Solo pagas al final si, después de aprobar, quieres obtener tu certificado.",
+    points: ["Cursos y temarios para estudiar a tu ritmo.", "Tests y resultados completamente gratuitos.", "Solo pagas al final si, después de aprobar, quieres el certificado."],
   },
 ];
 
@@ -67,9 +67,14 @@ export function Hero() {
                       <h1 className="mt-5 text-balance text-3xl font-black leading-[1.05] text-white sm:text-5xl lg:text-6xl">
                         {slide.title}
                       </h1>
-                      <p className="mt-4 max-w-2xl text-pretty text-sm leading-6 text-white/80 sm:text-lg sm:leading-7">
-                        {slide.text}
-                      </p>
+                      <ul className="mt-5 max-w-2xl space-y-2.5 text-sm leading-6 text-white/90 sm:text-base sm:leading-7">
+                        {slide.points.map((point) => (
+                          <li key={point} className="flex items-start gap-3">
+                            <span aria-hidden="true" className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-safety" />
+                            <span>{point}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   ) : null,
                 )}
