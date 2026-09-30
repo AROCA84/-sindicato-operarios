@@ -75,20 +75,27 @@ export function Hero() {
                 )}
               </div>
 
-              <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link
                   href="/afiliarse"
-                  className="group inline-flex min-h-14 items-center justify-center gap-4 rounded-sm border-2 border-safety bg-safety px-7 py-4 text-center text-sm font-black uppercase tracking-[0.12em] text-navy shadow-[0_10px_30px_rgba(0,0,0,0.28)] transition-all duration-200 hover:-translate-y-1 hover:bg-safety-dark hover:shadow-[0_16px_36px_rgba(0,0,0,0.34)] focus:outline-none focus:ring-2 focus:ring-safety focus:ring-offset-2 focus:ring-offset-navy sm:min-w-[205px]"
+                  className="group relative inline-flex min-h-[58px] items-center justify-between overflow-hidden rounded-md bg-safety px-6 py-3 text-left text-sm font-black uppercase tracking-[0.1em] text-navy shadow-[0_8px_0_rgba(0,0,0,0.22),0_18px_35px_rgba(0,0,0,0.25)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_9px_0_rgba(0,0,0,0.22),0_22px_40px_rgba(0,0,0,0.3)] active:translate-y-1 active:shadow-[0_3px_0_rgba(0,0,0,0.22)] focus:outline-none focus:ring-2 focus:ring-safety focus:ring-offset-2 focus:ring-offset-navy sm:w-[235px]"
                 >
-                  <span>Afiliarme gratis</span>
-                  <span aria-hidden="true" className="text-xl leading-none transition-transform duration-200 group-hover:translate-x-1">→</span>
+                  <span className="flex flex-col">
+                    <span className="text-[10px] font-bold tracking-[0.2em] opacity-70">SINDICATO DE OPERARIOS</span>
+                    <span className="mt-0.5 text-sm">Afiliarme gratis</span>
+                  </span>
+                  <span aria-hidden="true" className="ml-4 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy text-lg font-black text-safety transition-transform duration-200 group-hover:translate-x-1">→</span>
                 </Link>
+
                 <Link
                   href="/cursos"
-                  className="group inline-flex min-h-14 items-center justify-center gap-4 rounded-sm border-2 border-white/55 bg-navy/35 px-7 py-4 text-center text-sm font-black uppercase tracking-[0.12em] text-white backdrop-blur-md transition-all duration-200 hover:-translate-y-1 hover:border-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-navy sm:min-w-[205px]"
+                  className="group inline-flex min-h-[58px] items-center justify-between rounded-md border border-white/30 bg-white/[0.07] px-6 py-3 text-left text-sm font-black uppercase tracking-[0.1em] text-white shadow-[0_12px_30px_rgba(0,0,0,0.2)] backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-white/70 hover:bg-white/[0.14] active:translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-white/60 focus:ring-offset-2 focus:ring-offset-navy sm:w-[235px]"
                 >
-                  <span>Ver formación</span>
-                  <span aria-hidden="true" className="text-xl leading-none transition-transform duration-200 group-hover:translate-x-1">→</span>
+                  <span className="flex flex-col">
+                    <span className="text-[10px] font-bold tracking-[0.2em] text-white/50">FORMACIÓN PROFESIONAL</span>
+                    <span className="mt-0.5 text-sm">Ver formación</span>
+                  </span>
+                  <span aria-hidden="true" className="ml-4 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/40 text-lg font-black text-white transition-transform duration-200 group-hover:translate-x-1">→</span>
                 </Link>
               </div>
             </div>
