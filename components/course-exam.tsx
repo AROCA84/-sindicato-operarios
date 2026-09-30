@@ -10,6 +10,9 @@ export function CourseExam({ course }: { course: Course }) {
   const [answers, setAnswers] = useState<number[]>(() => Array(questions.length).fill(-1));
   const [phase, setPhase] = useState<Phase>("quiz");
   const [affiliated, setAffiliated] = useState<boolean | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [attemptId, setAttemptId] = useState("");
+  const [submitError, setSubmitError] = useState("");
   const total = questions.length;
   const selected = answers[current];
   const isLast = current === total - 1;
@@ -23,11 +26,29 @@ export function CourseExam({ course }: { course: Course }) {
   function select(optionIndex: number) {
     setAnswers((prev) => { const next = [...prev]; next[current] = optionIndex; return next; });
   }
-  function next() {
+  async function next() {
     if (isLast) {
-      if (score >= PASS_MARK) window.localStorage.setItem("sdo-progreso-" + course.id, "100");
-      else window.localStorage.setItem("sdo-progreso-" + course.id, String(Math.min(99, Math.round((score / total) * 100))));
-      setPhase("result");
+      setSubmitting(true);
+      setSubmitError("");
+      try {
+        const email = window.localStorage.getItem("sdo-afiliado-email") || "";
+        const numero = window.localStorage.getItem("sdo-numero-afiliado") || "";
+        const response = await fetch("/api/tests/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, numero_afiliado: numero, curso_id: course.id, respuestas: answers }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "No se pudo guardar el resultado.");
+        setAttemptId(data.intento_id);
+        if (data.aprobado) window.localStorage.setItem("sdo-progreso-" + course.id, "100");
+        else window.localStorage.setItem("sdo-progreso-" + course.id, String(Math.min(99, Math.round((data.puntuacion / data.total) * 100))));
+        setPhase("result");
+      } catch (error) {
+        setSubmitError(error instanceof Error ? error.message : "No se pudo guardar el resultado.");
+      } finally {
+        setSubmitting(false);
+      }
       return;
     }
     setCurrent((c) => c + 1);
@@ -79,16 +100,16 @@ export function CourseExam({ course }: { course: Course }) {
         <h1 className="mt-4 text-balance text-2xl font-black leading-tight sm:text-3xl">Test Final · <span className="text-safety">{course.title.replace(/^Curso de /, "")}</span></h1>
         {phase === "quiz" && <div className="mt-6"><div className="flex items-center justify-between text-sm font-semibold text-slate-300"><span>Pregunta {current + 1} de {total}</span><span>{Math.round(((current + 1) / total) * 100)}%</span></div><div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/15"><div className="h-full rounded-full bg-safety transition-all duration-300" style={{ width: `${((current + 1) / total) * 100}%` }} /></div></div>}
       </div></header>
-      <div className="mx-auto max-w-3xl px-6 py-10 sm:py-14">{phase === "quiz" ? <QuizCard question={questions[current]} selected={selected} onSelect={select} onNext={next} isLast={isLast} /> : <ResultCard passed={passed} score={score} total={total} course={course} onRetry={retry} />}</div>
+      <div className="mx-auto max-w-3xl px-6 py-10 sm:py-14">{phase === "quiz" ? <QuizCard question={questions[current]} selected={selected} onSelect={select} onNext={next} isLast={isLast} submitting={submitting} submitError={submitError} /> : <ResultCard passed={passed} score={score} total={total} course={course} onRetry={retry} />}</div>
     </main>
   );
 }
-function QuizCard({ question, selected, onSelect, onNext, isLast }: { question: ExamQuestion; selected: number; onSelect: (i: number) => void; onNext: () => void; isLast: boolean }) {
+function QuizCard({ question, selected, onSelect, onNext, isLast, submitting, submitError }: { question: ExamQuestion; selected: number; onSelect: (i: number) => void; onNext: () => void; isLast: boolean; submitting: boolean; submitError: string }) {
   const letters = ["A", "B", "C", "D"];
-  return <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 sm:p-8"><h2 className="text-balance text-xl font-black leading-snug text-navy sm:text-2xl">{question.q}</h2><div className="mt-6 grid gap-3">{question.options.map((option, i) => { const active = selected === i; return <button key={option} type="button" onClick={() => onSelect(i)} aria-pressed={active} className={`flex items-center gap-4 rounded-xl border-2 px-4 py-4 text-left transition-all ${active ? "border-safety bg-safety/10 shadow-sm" : "border-slate-200 bg-white hover:border-navy/40 hover:bg-slate-50"}`}><span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-black ${active ? "bg-safety text-navy" : "bg-slate-100 text-slate-500"}`}>{letters[i]}</span><span className={`text-sm font-semibold leading-snug sm:text-base ${active ? "text-navy" : "text-slate-700"}`}>{option}</span></button>; })}</div><div className="mt-8 flex items-center justify-between border-t border-slate-200 pt-6"><p className="text-xs font-medium text-slate-400">Selecciona una respuesta para continuar</p><button type="button" onClick={onNext} disabled={selected === -1} className="inline-flex items-center gap-2 rounded-lg bg-navy px-6 py-3 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-navy-light disabled:cursor-not-allowed disabled:opacity-40">{isLast ? "Finalizar Test" : "Siguiente Pregunta"}<ArrowIcon /></button></div></div>;
+  return <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 sm:p-8"><h2 className="text-balance text-xl font-black leading-snug text-navy sm:text-2xl">{question.q}</h2><div className="mt-6 grid gap-3">{question.options.map((option, i) => { const active = selected === i; return <button key={option} type="button" onClick={() => onSelect(i)} aria-pressed={active} className={`flex items-center gap-4 rounded-xl border-2 px-4 py-4 text-left transition-all ${active ? "border-safety bg-safety/10 shadow-sm" : "border-slate-200 bg-white hover:border-navy/40 hover:bg-slate-50"}`}><span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-black ${active ? "bg-safety text-navy" : "bg-slate-100 text-slate-500"}`}>{letters[i]}</span><span className={`text-sm font-semibold leading-snug sm:text-base ${active ? "text-navy" : "text-slate-700"}`}>{option}</span></button>; })}</div><div className="mt-8 flex items-center justify-between border-t border-slate-200 pt-6"><p className="text-xs font-medium text-slate-400">Selecciona una respuesta para continuar</p><button type="button" onClick={onNext} disabled={selected === -1} className="inline-flex items-center gap-2 rounded-lg bg-navy px-6 py-3 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-navy-light disabled:cursor-not-allowed disabled:opacity-40">{submitting ? "Guardando resultado…" : isLast ? "Finalizar Test" : "Siguiente Pregunta"}<ArrowIcon /></button></div></div>;
 }
 function ResultCard({ passed, score, total, course, onRetry }: { passed: boolean; score: number; total: number; course: Course; onRetry: () => void }) {
-  return <div className="overflow-hidden rounded-2xl bg-white shadow-lg ring-1 ring-slate-200"><div className={`px-6 py-10 text-center sm:px-10 ${passed ? "bg-navy" : "bg-slate-800"}`}><div className={`mx-auto flex h-20 w-20 items-center justify-center rounded-full ${passed ? "bg-safety text-navy" : "bg-white/10 text-white"}`}>{passed ? <TrophyIcon /> : <RetryIcon />}</div><h2 className="mt-6 text-3xl font-black text-white sm:text-4xl">{passed ? "¡APROBADO!" : "Casi lo tienes"}</h2><p className="mt-3 text-pretty text-slate-300">{passed ? "Has superado el test final. ¡Enhorabuena!" : `Necesitas al menos ${PASS_MARK} aciertos para aprobar. Repasa el temario y vuelve a intentarlo, es gratis.`}</p><div className="mx-auto mt-6 inline-flex items-baseline gap-2 rounded-xl bg-white/10 px-6 py-3"><span className="text-4xl font-black text-safety">{score}</span><span className="text-lg font-bold text-white/70">/ {total}</span><span className="ml-2 text-sm font-semibold text-white/70">aciertos</span></div></div><div className="p-6 sm:p-10">{passed ? <div className="flex flex-col gap-4"><a href={`/certificado/${course.id}?score=${score}&total=${total}`} className="inline-flex items-center justify-center gap-2 rounded-lg bg-safety px-8 py-4 text-base font-black uppercase tracking-wide text-navy shadow-lg transition-colors hover:bg-safety-dark">Ver resultado y obtener certificado<ArrowIcon /></a><p className="text-center text-sm leading-relaxed text-slate-500">El estudio y el test son gratuitos. El certificado tiene un coste de 4,99 € y solo se solicita después de aprobar.</p><Link href={`/cursos/${course.id}`} className="text-center text-sm font-semibold text-slate-500 transition-colors hover:text-navy">Volver al temario del curso</Link></div> : <div className="flex flex-col gap-4"><button type="button" onClick={onRetry} className="inline-flex items-center justify-center gap-2 rounded-lg bg-navy px-8 py-4 text-base font-black uppercase tracking-wide text-white shadow-lg transition-colors hover:bg-navy-light"><RetryIcon />Repetir Test Gratis</button><Link href={`/cursos/${course.id}`} className="text-center text-sm font-semibold text-slate-500 transition-colors hover:text-navy">Repasar el temario antes de reintentar</Link></div>}</div></div>;
+  return <div className="overflow-hidden rounded-2xl bg-white shadow-lg ring-1 ring-slate-200"><div className={`px-6 py-10 text-center sm:px-10 ${passed ? "bg-navy" : "bg-slate-800"}`}><div className={`mx-auto flex h-20 w-20 items-center justify-center rounded-full ${passed ? "bg-safety text-navy" : "bg-white/10 text-white"}`}>{passed ? <TrophyIcon /> : <RetryIcon />}</div><h2 className="mt-6 text-3xl font-black text-white sm:text-4xl">{passed ? "¡APROBADO!" : "Casi lo tienes"}</h2><p className="mt-3 text-pretty text-slate-300">{passed ? "Has superado el test final. ¡Enhorabuena!" : `Necesitas al menos ${PASS_MARK} aciertos para aprobar. Repasa el temario y vuelve a intentarlo, es gratis.`}</p><div className="mx-auto mt-6 inline-flex items-baseline gap-2 rounded-xl bg-white/10 px-6 py-3"><span className="text-4xl font-black text-safety">{score}</span><span className="text-lg font-bold text-white/70">/ {total}</span><span className="ml-2 text-sm font-semibold text-white/70">aciertos</span></div></div><div className="p-6 sm:p-10">{passed ? <div className="flex flex-col gap-4"><a href={`/certificado/${course.id}?score=${score}&total=${total}&intento=${encodeURIComponent(attemptId)}` } className="inline-flex items-center justify-center gap-2 rounded-lg bg-safety px-8 py-4 text-base font-black uppercase tracking-wide text-navy shadow-lg transition-colors hover:bg-safety-dark">Ver resultado y obtener certificado<ArrowIcon /></a><p className="text-center text-sm leading-relaxed text-slate-500">El estudio y el test son gratuitos. El certificado tiene un coste de 4,99 € y solo se solicita después de aprobar.</p><Link href={`/cursos/${course.id}`} className="text-center text-sm font-semibold text-slate-500 transition-colors hover:text-navy">Volver al temario del curso</Link></div> : <div className="flex flex-col gap-4"><button type="button" onClick={onRetry} className="inline-flex items-center justify-center gap-2 rounded-lg bg-navy px-8 py-4 text-base font-black uppercase tracking-wide text-white shadow-lg transition-colors hover:bg-navy-light"><RetryIcon />Repetir Test Gratis</button><Link href={`/cursos/${course.id}`} className="text-center text-sm font-semibold text-slate-500 transition-colors hover:text-navy">Repasar el temario antes de reintentar</Link></div>}</div></div>;
 }
 function ArrowIcon() { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>; }
 function BackIcon() { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>; }
