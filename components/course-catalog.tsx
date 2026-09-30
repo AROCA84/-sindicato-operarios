@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { courses, categories, type Category } from "@/lib/courses";
+import { allCourses, type Course } from "@/lib/academy-catalog";
 
 const categoryIcons: Record<string, CategoryIconName> = {
   "Manutención y Carretillas": "forklift",
@@ -96,17 +96,6 @@ const trainingGroups: TrainingGroup[] = [
   },
 ];
 
-const categoryDescriptions: Record<string, string> = {
-  "Manutención y Carretillas": "Carretillas, transpaletas y equipos de manutención.",
-  "Elevación y Plataformas": "PEMP y trabajos seguros en altura.",
-  "Grúas y Equipos de Elevación": "Puente grúa, camión pluma y accesorios de elevación.",
-  "Maquinaria y Movimiento de Tierras": "Dúmper, retropala, telescópica y maquinaria de obra.",
-  "Logística y Almacén": "Organización, stock, pedidos y operaciones de almacén.",
-  "Prevención de Riesgos Laborales": "Formación preventiva aplicada al trabajo.",
-  "Manipulación y Seguridad": "Cargas, ergonomía, EPI y seguridad del operario.",
-};
-
-
 export function CourseCatalog() {
   const [query, setQuery] = useState("");
   const [openGroup, setOpenGroup] = useState<string | null>(null);
@@ -121,7 +110,7 @@ export function CourseCatalog() {
 
   const searchResults = useMemo(() => {
     if (!normalizedQuery) return [];
-    return courses.filter(
+    return allCourses.filter(
       (course) =>
         course.title.toLowerCase().includes(normalizedQuery) ||
         course.description.toLowerCase().includes(normalizedQuery) ||
@@ -169,7 +158,7 @@ export function CourseCatalog() {
 
           <div className="mt-3 flex items-center justify-center gap-2 text-sm text-slate-600">
             <span aria-hidden="true">●</span>
-            <span>{courses.length} cursos disponibles</span>
+            <span>{allCourses.length} cursos disponibles</span>
             <span>·</span>
             <span>Formación gratuita</span>
           </div>
@@ -234,7 +223,7 @@ export function CourseCatalog() {
                     <div className="space-y-2 border-t border-slate-100 bg-slate-50/70 p-3 sm:p-4">
                       {group.categories.map((category) => {
                         const isOpen = openCategory === category;
-                        const categoryCourses = courses.filter((course) => course.category === category);
+                        const categoryCourses = allCourses.filter((course) => course.category === category);
                         const knownCategory = category in categoryIcons;
                         return (
                           <div key={category} className="overflow-hidden rounded-lg bg-white ring-1 ring-slate-200">
@@ -303,7 +292,7 @@ export function CourseCatalog() {
   );
 }
 
-function CourseRow({ course }: { course: (typeof courses)[number] }) {
+function CourseRow({ course }: { course: Course }) {
   return (
     <article className="flex items-center gap-3 rounded-xl bg-white p-3 shadow-sm ring-1 ring-slate-200 sm:p-4">
       <div className="hidden h-16 w-20 shrink-0 overflow-hidden rounded-lg sm:block">
