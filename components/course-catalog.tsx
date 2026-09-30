@@ -286,6 +286,7 @@ export function CourseCatalog() {
               </p>
             </div>
           </div>
+        )}
 
         {!affiliated && (
           <div className="mt-8 text-center">
