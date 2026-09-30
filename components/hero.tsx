@@ -75,21 +75,22 @@ export function Hero() {
                 )}
               </div>
 
-              <div className="mt-5 flex flex-col gap-2.5 sm:flex-row">
+              <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                 <Link
                   href="/afiliarse"
-                  className="group inline-flex items-center justify-center gap-3 rounded-md border border-safety bg-safety px-6 py-3.5 text-center text-sm font-black uppercase tracking-[0.08em] text-navy shadow-[0_8px_24px_rgba(0,0,0,0.22)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-safety-dark hover:shadow-[0_12px_28px_rgba(0,0,0,0.28)] focus:outline-none focus:ring-2 focus:ring-safety focus:ring-offset-2 focus:ring-offset-navy"
+                  className="group inline-flex min-h-14 items-center justify-center gap-4 rounded-sm border-2 border-safety bg-safety px-7 py-4 text-center text-sm font-black uppercase tracking-[0.12em] text-navy shadow-[0_10px_30px_rgba(0,0,0,0.28)] transition-all duration-200 hover:-translate-y-1 hover:bg-safety-dark hover:shadow-[0_16px_36px_rgba(0,0,0,0.34)] focus:outline-none focus:ring-2 focus:ring-safety focus:ring-offset-2 focus:ring-offset-navy sm:min-w-[205px]"
                 >
-                  Afiliarme gratis
+                  <span>Afiliarme gratis</span>
+                  <span aria-hidden="true" className="text-xl leading-none transition-transform duration-200 group-hover:translate-x-1">→</span>
                 </Link>
                 <Link
                   href="/cursos"
-                  className="group inline-flex items-center justify-center gap-3 rounded-md border border-white/35 bg-white/5 px-7 py-4 text-center text-sm font-black uppercase tracking-[0.08em] text-white backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-white/60 hover:bg-white/12 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-navy"
+                  className="group inline-flex min-h-14 items-center justify-center gap-4 rounded-sm border-2 border-white/55 bg-navy/35 px-7 py-4 text-center text-sm font-black uppercase tracking-[0.12em] text-white backdrop-blur-md transition-all duration-200 hover:-translate-y-1 hover:border-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-navy sm:min-w-[205px]"
                 >
-                  Ver formación
+                  <span>Ver formación</span>
+                  <span aria-hidden="true" className="text-xl leading-none transition-transform duration-200 group-hover:translate-x-1">→</span>
                 </Link>
               </div>
-            </div>
           </div>
         </div>
 
