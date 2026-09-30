@@ -26,20 +26,18 @@ function verifyMyPosSignature(form: FormData, publicKey: string) {
   const signatureValue = String(form.get("Signature") || "").trim();
   if (!signatureValue) return false;
 
-  const pairs: string[] = [];
+  const values: string[] = [];
   for (const [key, value] of form.entries()) {
     if (key === "Signature") continue;
-    pairs.push(`${key}=${String(value)}`);
+    values.push(String(value));
   }
 
   try {
+    const concatenated = Buffer.from(Buffer.from(values.join("-"), "utf8").toString("base64"), "utf8");
     return crypto.verify(
       "RSA-SHA256",
-      Buffer.from(pairs.join("&"), "utf8"),
-      {
-        key: publicKey,
-        padding: crypto.constants.RSA_PKCS1_PADDING,
-      },
+      concatenated,
+      { key: publicKey, padding: crypto.constants.RSA_PKCS1_PADDING },
       Buffer.from(signatureValue, "base64"),
     );
   } catch (error) {
