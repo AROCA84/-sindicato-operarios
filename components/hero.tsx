@@ -78,13 +78,13 @@ export function Hero() {
               <div className="mt-5 flex flex-col gap-2.5 sm:flex-row">
                 <Link
                   href="/afiliarse"
-                  className="rounded-xl bg-safety px-6 py-3.5 text-center text-sm font-black uppercase tracking-wide text-navy shadow-lg hover:bg-safety-dark"
+                  className="group inline-flex items-center justify-center gap-3 rounded-md border border-safety bg-safety px-6 py-3.5 text-center text-sm font-black uppercase tracking-[0.08em] text-navy shadow-[0_8px_24px_rgba(0,0,0,0.22)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-safety-dark hover:shadow-[0_12px_28px_rgba(0,0,0,0.28)] focus:outline-none focus:ring-2 focus:ring-safety focus:ring-offset-2 focus:ring-offset-navy"
                 >
                   Afiliarme gratis
                 </Link>
                 <Link
                   href="/cursos"
-                  className="rounded-xl border border-white/30 px-7 py-4 text-center text-sm font-black uppercase tracking-wide text-white hover:bg-white/10"
+                  className="group inline-flex items-center justify-center gap-3 rounded-md border border-white/35 bg-white/5 px-7 py-4 text-center text-sm font-black uppercase tracking-[0.08em] text-white backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-white/60 hover:bg-white/12 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-navy"
                 >
                   Ver formación
                 </Link>
