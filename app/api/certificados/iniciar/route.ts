@@ -32,6 +32,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Datos del certificado no válidos." }, { status: 400 });
     }
 
+    // El certificado solo puede iniciarse tras superar el test con el 70 %.
+    // El servidor no debe confiar únicamente en el bloqueo visual del navegador.
+    const requiredCorrect = Math.ceil(total * 0.70);
+    if (total !== 20 || puntuacion < requiredCorrect) {
+      return NextResponse.json(
+        { error: "El certificado solo está disponible después de aprobar el test con al menos el 70 %." },
+        { status: 403 },
+      );
+    }
+
     const { url, key } = supabaseConfig();
     if (!url || !key) return NextResponse.json({ error: "La base de datos no está configurada." }, { status: 503 });
     const h = headers(key);
