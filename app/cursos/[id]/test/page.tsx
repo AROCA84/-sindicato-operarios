@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { courses, getCourse } from "@/lib/courses";
+import { allCourses } from "@/lib/academy-catalog";
 import { CourseExam } from "@/components/course-exam";
 
 export function generateStaticParams() {
-  return courses.map((c) => ({ id: c.id }));
+  return allCourses.map((c) => ({ id: c.id }));
 }
 
 export async function generateMetadata({
@@ -13,7 +13,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const course = getCourse(id);
+  const course = allCourses.find((item) => item.id === id);
   if (!course) return { title: "Examen no encontrado" };
   return {
     title: `Examen Gratis · ${course.title} | Sindicato de Operarios`,
