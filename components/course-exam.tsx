@@ -59,6 +59,9 @@ export function CourseExam({ course }: { course: Course }) {
           throw new Error(`El servidor devolvió una respuesta no válida (HTTP ${response.status}).`);
         }
         if (!response.ok) throw new Error(data.error || `No se pudo guardar el resultado (HTTP ${response.status}).`);
+        if (!data.intento_id || typeof data.puntuacion !== "number" || typeof data.total !== "number" || typeof data.aprobado !== "boolean") {
+          throw new Error("El servidor no devolvió un resultado de test válido.");
+        }
         setAttemptId(data.intento_id);
         if (data.aprobado) window.localStorage.setItem("sdo-progreso-" + course.id, "100");
         else window.localStorage.setItem("sdo-progreso-" + course.id, String(Math.min(99, Math.round((data.puntuacion / data.total) * 100))));
