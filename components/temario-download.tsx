@@ -63,7 +63,7 @@ export function TemarioDownload({ course, modules }: { course: Course; modules: 
   .contents { page-break-after: always; }
   .contents h2 { font-size: 22px; border-bottom: 2px solid #ddd; padding-bottom: 8px; }
   .contents li { margin: 10px 0; font-size: 13px; }
-  .module { page-break-before: always; min-height: 240mm; }
+  .module { page-break-before: always; }
   .module:first-of-type { page-break-before: auto; }
   .module-number { display: inline-block; padding: 6px 10px; background: #f5b400; color: #172033; font-size: 11px; font-weight: 800; letter-spacing: 1px; border-radius: 4px; }
   .module h2 { font-size: 22px; line-height: 1.25; margin: 14px 0 8px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
@@ -71,7 +71,7 @@ export function TemarioDownload({ course, modules }: { course: Course; modules: 
   .module h4 { font-size: 13px; margin: 24px 0 8px; text-transform: uppercase; letter-spacing: .5px; }
   .intro { font-size: 13px; color: #555; }
   .module ul { padding-left: 22px; }
-  .module li { font-size: 12.5px; margin: 9px 0; }
+  .module li { font-size: 12.5px; margin: 7px 0; }\n  .section-block { margin-top: 22px; }\n  .section-block h4 { margin: 0 0 6px; font-size: 13px; }\n  .section-block p { font-size: 12.5px; margin: 0 0 7px; }\n  .references { margin-top: 24px; padding: 12px 14px; background: #f5f6f7; border: 1px solid #ddd; font-size: 10px; }\n  .references p { margin: 5px 0; }
   .study-note { margin-top: 28px; padding: 14px 16px; background: #f5f6f7; border-left: 4px solid #f5b400; font-size: 11px; }
   .study-note p { margin: 5px 0 0; }
   .footer { margin-top: 30px; padding-top: 10px; border-top: 1px solid #ddd; color: #777; font-size: 9px; }
