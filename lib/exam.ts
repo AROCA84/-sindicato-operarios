@@ -8,7 +8,7 @@ export type ExamQuestion = {
   answer: number;
 };
 
-export const PASS_MARK = 15;
+export const PASS_MARK = 14;
 export const TOTAL_QUESTIONS = 20;
 
 /** General PRL / safety questions applicable to every course. */
