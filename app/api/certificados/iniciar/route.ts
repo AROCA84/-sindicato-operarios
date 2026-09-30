@@ -83,7 +83,7 @@ export async function POST(request: Request) {
       email: members[0].email,
       estado_pago: "pendiente",
       estado_emision: "pendiente",
-      payment_url: process.env.MYPOS_PAYMENT_URL || "https://mypos.com/@sindicato499/4.99",
+      payment_url: `/api/certificados/pago?codigo=${encodeURIComponent(code)}`,
     });
   } catch (error) {
     console.error("Certificate start error:", error);
