@@ -16,6 +16,22 @@ export default async function CertificatePage({ params, searchParams }: Certific
 
   const scoreNumber = Number(score ?? 0);
   const totalNumber = Number(total ?? 20);
+  const passed = totalNumber === 20 && scoreNumber >= 14;
+
+  if (!passed) {
+    return (
+      <main className="min-h-screen bg-slate-950 text-white">
+        <div className="mx-auto flex min-h-screen max-w-2xl flex-col justify-center px-5 py-10">
+          <section className="rounded-3xl border border-slate-700 bg-slate-900 p-8 text-center shadow-2xl">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-800 text-2xl">!</div>
+            <h1 className="mt-5 text-2xl font-black">Certificado no disponible todavía</h1>
+            <p className="mt-3 text-slate-300">Debes superar el test con al menos <strong className="text-white">14 de 20 respuestas correctas (70 %)</strong> antes de solicitar el certificado.</p>
+            <Link href={`/cursos/${course.id}/test`} className="mt-6 inline-flex rounded-xl bg-safety px-6 py-3 text-sm font-black uppercase tracking-wide text-navy">Ir al test</Link>
+          </section>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
