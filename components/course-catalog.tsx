@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { courses, categories, type Category } from "@/lib/courses";
 
-const categoryIcons: Record<Category, CategoryIconName> = {
+const categoryIcons: Record<string, CategoryIconName> = {
   "Manutención y Carretillas": "forklift",
   "Elevación y Plataformas": "platform",
   "Grúas y Equipos de Elevación": "crane",
@@ -16,7 +16,87 @@ const categoryIcons: Record<Category, CategoryIconName> = {
 
 type CategoryIconName = "forklift" | "platform" | "crane" | "excavator" | "warehouse" | "safety" | "shield";
 
-const categoryDescriptions: Record<Category, string> = {
+type TrainingGroup = {
+  title: string;
+  description: string;
+  icon: CategoryIconName;
+  categories: string[];
+};
+
+const trainingGroups: TrainingGroup[] = [
+  {
+    title: "Industria y Maquinaria",
+    description: "Maquinaria, manutención, elevación, construcción y fabricación industrial.",
+    icon: "forklift",
+    categories: [
+      "Manutención y Carretillas", "Maquinaria y Movimiento de Tierras", "Elevación y Plataformas",
+      "Grúas y Equipos de Elevación", "Construcción y Obra Civil", "Mecánica", "Mantenimiento Industrial",
+      "Soldadura y Fabricación Mecánica", "Madera, Mueble y Carpintería", "Textil y Confección",
+      "Artes Gráficas", "Vidrio y Cerámica", "Industrias Extractivas",
+    ],
+  },
+  {
+    title: "Logística y Transporte",
+    description: "Almacén, distribución, transporte, carga y operaciones logísticas.",
+    icon: "warehouse",
+    categories: [
+      "Logística y Almacén", "Transporte", "Automoción",
+    ],
+  },
+  {
+    title: "Prevención y Seguridad",
+    description: "Prevención de riesgos, emergencias, protección y seguridad profesional.",
+    icon: "safety",
+    categories: [
+      "Prevención de Riesgos Laborales", "Manipulación y Seguridad", "Emergencias y Seguridad", "Seguridad Privada y Protección",
+    ],
+  },
+  {
+    title: "Mantenimiento y Tecnología",
+    description: "Electricidad, electrónica, automatización, robótica y tecnología industrial.",
+    icon: "crane",
+    categories: [
+      "Electricidad y Electrónica", "Automatización, Robótica e Industria 4.0", "Energía y Renovables",
+      "Climatización y Refrigeración", "Química e Industria",
+    ],
+  },
+  {
+    title: "Informática e Inteligencia Artificial",
+    description: "Competencias digitales, programación, IA, automatización y ciberseguridad.",
+    icon: "platform",
+    categories: [
+      "Informática y Competencias Digitales", "Inteligencia Artificial", "Programación y Desarrollo", "Ciberseguridad",
+    ],
+  },
+  {
+    title: "Empresa, Administración y Empleo",
+    description: "Empresa, administración, ventas, marketing y desarrollo profesional.",
+    icon: "shield",
+    categories: [
+      "Administración y Gestión", "Comercio y Ventas", "Marketing Digital", "Diseño y Contenidos Digitales",
+      "Gestión y Dirección", "Habilidades Profesionales", "Empleo y Carrera Profesional", "Idiomas",
+    ],
+  },
+  {
+    title: "Servicios y Atención",
+    description: "Hostelería, sanidad, servicios sociales y atención a personas.",
+    icon: "safety",
+    categories: [
+      "Hostelería y Turismo", "Sanidad y Cuidados", "Servicios Sociales", "Limpieza y Servicios",
+      "Actividades Físicas y Deportivas", "Imagen Personal",
+    ],
+  },
+  {
+    title: "Energía, Medio Ambiente y Sectores Profesionales",
+    description: "Sostenibilidad, medio ambiente, agricultura, forestal y sectores especializados.",
+    icon: "excavator",
+    categories: [
+      "Medio Ambiente", "Agricultura y Medio Rural", "Jardinería y Forestal", "Marítimo-Pesquera",
+    ],
+  },
+];
+
+const categoryDescriptions: Record<string, string> = {
   "Manutención y Carretillas": "Carretillas, transpaletas y equipos de manutención.",
   "Elevación y Plataformas": "PEMP y trabajos seguros en altura.",
   "Grúas y Equipos de Elevación": "Puente grúa, camión pluma y accesorios de elevación.",
@@ -26,9 +106,11 @@ const categoryDescriptions: Record<Category, string> = {
   "Manipulación y Seguridad": "Cargas, ergonomía, EPI y seguridad del operario.",
 };
 
+
 export function CourseCatalog() {
   const [query, setQuery] = useState("");
-  const [openCategory, setOpenCategory] = useState<Category | null>(null);
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
+  const [openCategory, setOpenCategory] = useState<string | null>(null);
   const [affiliated, setAffiliated] = useState(false);
 
   useEffect(() => {
@@ -47,7 +129,11 @@ export function CourseCatalog() {
     );
   }, [normalizedQuery]);
 
-  const toggleCategory = (category: Category) => {
+  const toggleGroup = (group: string) => {
+    setOpenGroup((current) => (current === group ? null : group));
+  };
+
+  const toggleCategory = (category: string) => {
     setOpenCategory((current) => (current === category ? null : category));
   };
 
@@ -62,7 +148,7 @@ export function CourseCatalog() {
             Cursos de formación
           </h2>
           <p className="mt-4 text-slate-600">
-            Estudia gratis, realiza el test gratis y, si apruebas, podrás continuar con el proceso para obtener tu certificado.
+            Estudia y realiza el test gratis. Si apruebas, podrás continuar con el proceso para obtener tu certificado.
           </p>
         </div>
 
@@ -115,58 +201,78 @@ export function CourseCatalog() {
             )}
           </div>
         ) : (
-          <div className="mt-8 space-y-3">
+          <div className="mt-8 space-y-4">
             <h3 className="mb-4 text-2xl font-black text-navy">Categorías de formación</h3>
+            <p className="mb-5 text-sm text-slate-600">
+              Elige un área y despliega sus especialidades. Dentro de cada categoría iremos incorporando todos los cursos y sus tests.
+            </p>
 
-            {categories.map((category) => {
-              const isOpen = openCategory === category;
-              const categoryCourses = courses.filter((course) => course.category === category);
-
+            {trainingGroups.map((group) => {
+              const isGroupOpen = openGroup === group.title;
               return (
-                <div key={category} className="overflow-hidden rounded-xl bg-white ring-1 ring-slate-200">
+                <div key={group.title} className="overflow-hidden rounded-xl bg-white ring-1 ring-slate-200 shadow-sm">
                   <button
                     type="button"
-                    onClick={() => toggleCategory(category)}
-                    aria-expanded={isOpen}
-                    className="group flex w-full items-center gap-6 px-5 py-7 text-left transition-all duration-200 hover:bg-slate-50 sm:gap-7 sm:px-8 sm:py-8"
+                    onClick={() => toggleGroup(group.title)}
+                    aria-expanded={isGroupOpen}
+                    className="group flex w-full items-center gap-5 px-5 py-6 text-left transition-all duration-200 hover:bg-slate-50 sm:gap-7 sm:px-8 sm:py-7"
                   >
-                    <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl border-2 border-slate-200 bg-white shadow-md transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:shadow-lg sm:h-24 sm:w-24" aria-hidden="true">
-                      <IndustrialIcon name={categoryIcons[category]} large />
+                    <span className="flex h-18 w-18 shrink-0 items-center justify-center rounded-xl border-2 border-slate-200 bg-white shadow-md sm:h-22 sm:w-22" aria-hidden="true">
+                      <IndustrialIcon name={group.icon} large />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-xl font-black uppercase tracking-[0.025em] text-navy sm:text-2xl">
-                        {category}
-                      </span>
-                      <span className="mt-2 block text-sm font-semibold text-slate-500 sm:text-base">
-                        {categoryCourses.length > 0
-                          ? `${categoryCourses.length} ${categoryCourses.length === 1 ? "curso" : "cursos"}`
-                          : "Nuevas formaciones próximamente"}
+                      <span className="block text-lg font-black uppercase tracking-[0.02em] text-navy sm:text-2xl">{group.title}</span>
+                      <span className="mt-1.5 block text-sm text-slate-500 sm:text-base">{group.description}</span>
+                      <span className="mt-2 block text-xs font-black uppercase tracking-wider text-safety-dark">
+                        {group.categories.length} categorías
                       </span>
                     </span>
-                    <span
-                      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200 text-3xl font-light leading-none text-safety transition-all duration-200 group-hover:border-safety/50 group-hover:bg-safety/10 ${isOpen ? "rotate-90 bg-safety/10" : ""}`}
-                      aria-hidden="true"
-                    >
-                      ›
-                    </span>
+                    <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200 text-3xl font-light leading-none text-safety transition-all duration-200 group-hover:border-safety/50 group-hover:bg-safety/10 ${isGroupOpen ? "rotate-90 bg-safety/10" : ""}`} aria-hidden="true">›</span>
                   </button>
 
-                  {isOpen && (
-                    <div className="border-t border-slate-100 bg-slate-50/70 p-3 sm:p-4">
-                      {categoryCourses.length > 0 ? (
-                        <div className="space-y-3">
-                          {categoryCourses.map((course) => (
-                            <CourseRow key={course.id} course={course} />
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="rounded-lg border border-dashed border-safety/50 bg-white p-5 text-center">
-                          <p className="font-bold text-navy">Próximamente</p>
-                          <p className="mt-1 text-sm text-slate-500">
-                            Estamos preparando nuevas formaciones para esta categoría.
-                          </p>
-                        </div>
-                      )}
+                  {isGroupOpen && (
+                    <div className="space-y-2 border-t border-slate-100 bg-slate-50/70 p-3 sm:p-4">
+                      {group.categories.map((category) => {
+                        const isOpen = openCategory === category;
+                        const categoryCourses = courses.filter((course) => course.category === category);
+                        const knownCategory = category in categoryIcons;
+                        return (
+                          <div key={category} className="overflow-hidden rounded-lg bg-white ring-1 ring-slate-200">
+                            <button
+                              type="button"
+                              onClick={() => toggleCategory(category)}
+                              aria-expanded={isOpen}
+                              className="flex w-full items-center gap-4 px-4 py-4 text-left transition-colors hover:bg-slate-50 sm:px-5"
+                            >
+                              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white" aria-hidden="true">
+                                <IndustrialIcon name={knownCategory ? categoryIcons[category] : group.icon} />
+                              </span>
+                              <span className="min-w-0 flex-1">
+                                <span className="block text-sm font-black uppercase text-navy sm:text-base">{category}</span>
+                                <span className="mt-1 block text-xs text-slate-500">
+                                  {categoryCourses.length > 0 ? `${categoryCourses.length} ${categoryCourses.length === 1 ? "curso" : "cursos"} disponibles` : "Nuevas formaciones próximamente"}
+                                </span>
+                              </span>
+                              <span className={`text-2xl font-light text-safety transition-transform ${isOpen ? "rotate-90" : ""}`} aria-hidden="true">›</span>
+                            </button>
+
+                            {isOpen && (
+                              <div className="border-t border-slate-100 bg-slate-50/70 p-3">
+                                {categoryCourses.length > 0 ? (
+                                  <div className="space-y-3">
+                                    {categoryCourses.map((course) => <CourseRow key={course.id} course={course} />)}
+                                  </div>
+                                ) : (
+                                  <div className="rounded-lg border border-dashed border-safety/50 bg-white p-5 text-center">
+                                    <p className="font-bold text-navy">Próximamente</p>
+                                    <p className="mt-1 text-sm text-slate-500">Estamos preparando cursos y tests para esta categoría.</p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -176,11 +282,10 @@ export function CourseCatalog() {
             <div className="mt-6 rounded-xl border-2 border-safety bg-navy p-5 text-white">
               <p className="flex items-center gap-2 text-lg font-black"><span className="flex h-8 w-8 items-center justify-center rounded-md border border-safety/40 bg-safety/10 text-safety"><IndustrialIcon name="safety" /></span> Próximamente</p>
               <p className="mt-1 text-sm text-white/70">
-                Seguimos ampliando el catálogo con nuevas formaciones y especialidades profesionales.
+                Seguimos ampliando el catálogo con nuevas formaciones, especialidades profesionales y tests.
               </p>
             </div>
           </div>
-        )}
 
         {!affiliated && (
           <div className="mt-8 text-center">
@@ -217,7 +322,7 @@ function CourseRow({ course }: { course: (typeof courses)[number] }) {
         </h4>
         <p className="mt-1 hidden text-xs text-slate-500 sm:block">{course.description}</p>
         <span className="mt-2 inline-flex rounded-full bg-safety/20 px-2.5 py-1 text-[11px] font-black uppercase tracking-wide text-navy">
-          Estudiar gratis
+          Formación gratuita
         </span>
       </div>
 
