@@ -3,7 +3,8 @@ export type Category = "Manutención y Carretillas" | "Elevación y Plataformas"
 export type Course = { id: string; title: string; description: string; category: Category; image: string };
 export const categories: Category[] = ["Manutención y Carretillas", "Elevación y Plataformas", "Grúas y Equipos de Elevación", "Maquinaria y Movimiento de Tierras", "Logística y Almacén", "Prevención de Riesgos Laborales", "Manipulación y Seguridad"];
 
-export type LessonSection = { heading: string; text: string; bullets?: string[] };\nexport type Lesson = { title: string; intro: string; points: string[]; sections?: LessonSection[]; references?: string[] };
+export type LessonSection = { heading: string; text: string; bullets?: string[] };
+export type Lesson = { title: string; intro: string; points: string[]; sections?: LessonSection[]; references?: string[] };
 export type Module = { id: string; title: string; lesson: Lesson };
 
 const M = (id: string, title: string, lesson: string, intro: string, points: string[]): Module => ({ id, title, lesson: { title: lesson, intro, points } });
