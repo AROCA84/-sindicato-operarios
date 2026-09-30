@@ -17,7 +17,7 @@ const steps = [
   {
     number: "04",
     title: "Certificado de aptitud",
-    text: "Si apruebas, puedes obtener tu certificado APTO por 4,99 €.",
+    text: "Si apruebas, podrás continuar con el proceso para obtener tu certificado APTO.",
   },
 ];
 
@@ -63,7 +63,7 @@ export function UnionBenefits() {
 
         <div className="mx-auto mt-5 max-w-4xl rounded-xl border border-safety/30 bg-safety/10 px-4 py-3 text-center">
           <p className="text-sm font-black text-white sm:text-base">
-            ESTUDIAR Y HACER EL TEST ES GRATIS. SOLO PAGAS AL FINAL SI QUIERES OBTENER TU CERTIFICADO.
+            ESTUDIAR Y HACER EL TEST ES GRATIS. EL CERTIFICADO SE GESTIONA DESPUÉS DE APROBAR.
           </p>
         </div>
 
