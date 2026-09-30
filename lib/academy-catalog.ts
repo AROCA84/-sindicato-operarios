@@ -200,10 +200,211 @@ export function getAcademyCourse(id: string) { return allCourses.find((course) =
 export function getAllTemario(course: Course): Module[] {
   const existing = getTemario(course);
   if (existing.length) return existing;
-  return [
-    { id: "1", title: "Módulo 1: Introducción", lesson: { title: `Fundamentos de ${course.category}`, intro: `Conceptos esenciales para comenzar la formación en ${course.category}.`, points: ["Conceptos y terminología básica.", "Equipos, herramientas o procesos habituales.", "Funciones y responsabilidades del profesional.", "Documentación e instrucciones de trabajo."] } },
-    { id: "2", title: "Módulo 2: Operaciones", lesson: { title: `Operaciones profesionales en ${course.category}`, intro: "Procedimientos básicos y buenas prácticas aplicables al sector.", points: ["Preparación del puesto de trabajo.", "Secuencia segura de las operaciones.", "Control de calidad y comprobaciones.", "Errores frecuentes y cómo evitarlos."] } },
-    { id: "3", title: "Módulo 3: Seguridad y PRL", lesson: { title: `Prevención de riesgos en ${course.category}`, intro: "Identificación de riesgos y medidas preventivas.", points: ["Riesgos principales del puesto.", "Medidas preventivas y EPI cuando proceda.", "Orden, limpieza y señalización.", "Actuación ante incidencias y emergencias."] } },
-    { id: "4", title: "Módulo 4: Repaso final", lesson: { title: "Casos prácticos y preparación del test", intro: "Repaso de los conocimientos esenciales antes de realizar la evaluación.", points: ["Situaciones prácticas habituales.", "Comprobación de procedimientos.", "Repaso de seguridad y buenas prácticas.", "Preparación para el test final."] } }
+
+  const guides: Record<string, {name: string; topics: string[]}[]> = {
+    "Manutención y Carretillas": [
+      {name:"Fundamentos y equipos",topics:["tipos de equipos y aplicaciones","componentes y mandos","capacidades y limitaciones","responsabilidades del operador"]},
+      {name:"Preparación del trabajo",topics:["inspección previa","estado del entorno","señalización y circulación","planificación de la tarea"]},
+      {name:"Operación segura",topics:["arranque y parada","desplazamiento y maniobras","manipulación de cargas","apilado y desapilado"]},
+      {name:"Riesgos y prevención",topics:["vuelco y estabilidad","atrapamientos y golpes","caídas de cargas","EPI y medidas preventivas"]},
+      {name:"Mantenimiento básico",topics:["revisiones diarias","baterías y repostaje cuando proceda","detección de anomalías","comunicación de averías"]},
+      {name:"Casos prácticos y test",topics:["situaciones habituales","errores frecuentes","actuación ante incidencias","repaso final"]},
+    ],
+    "Maquinaria y Movimiento de Tierras": [
+      {name:"Equipo y funcionamiento",topics:["tipos de maquinaria","componentes principales","mandos y sistemas de seguridad","capacidades y limitaciones"]},
+      {name:"Preparación de la tarea",topics:["inspección previa","terreno y estabilidad","zona de trabajo","señalización"]},
+      {name:"Operación segura",topics:["maniobras","carga y descarga","desplazamientos","trabajo en pendientes"]},
+      {name:"Riesgos y PRL",topics:["vuelcos","atropellos y atrapamientos","proyección de materiales","EPI y prevención"]},
+      {name:"Mantenimiento",topics:["revisiones","niveles y componentes","anomalías","puesta fuera de servicio"]},
+      {name:"Casos prácticos y test",topics:["situaciones reales","decisiones seguras","errores frecuentes","repaso final"]},
+    ],
+    "Elevación y Plataformas": [
+      {name:"Tipos y componentes",topics:["clasificación de equipos","componentes","mandos","dispositivos de seguridad"]},
+      {name:"Entorno y preparación",topics:["evaluación del terreno","estabilidad y nivelación","obstáculos","líneas eléctricas y entorno"]},
+      {name:"Operación",topics:["ascenso y descenso","traslación","posicionamiento","límites de carga y condiciones ambientales"]},
+      {name:"Trabajo en altura",topics:["caídas","sistemas anticaídas cuando proceda","atrapamientos","rescate y emergencias"]},
+      {name:"Inspección y mantenimiento",topics:["checklist","revisiones","averías","fin de jornada"]},
+      {name:"Casos prácticos y test",topics:["escenarios de trabajo","identificación de riesgos","medidas preventivas","repaso final"]},
+    ],
+    "Grúas y Equipos de Elevación": [
+      {name:"Equipos y accesorios",topics:["tipos de grúas y polipastos","componentes","eslingas y accesorios","capacidades y limitaciones"]},
+      {name:"Planificación de la maniobra",topics:["peso y centro de gravedad","recorrido de la carga","zona de exclusión","señalización y comunicación"]},
+      {name:"Izado y desplazamiento",topics:["amarre","elevación","traslación","descarga y colocación"]},
+      {name:"Riesgos y prevención",topics:["caída de cargas","balanceo","sobrecargas","EPI y medidas preventivas"]},
+      {name:"Inspección y mantenimiento",topics:["comprobaciones","estado de accesorios","anomalías","puesta fuera de servicio"]},
+      {name:"Casos prácticos y test",topics:["selección de accesorios","maniobras seguras","errores frecuentes","repaso final"]},
+    ],
+    "Construcción y Obra Civil": [
+      {name:"Fundamentos de obra",topics:["fases de una obra","equipos y materiales","organización del puesto","documentación básica"]},
+      {name:"Herramientas y maquinaria",topics:["uso previsto","comprobaciones","orden del área","mantenimiento básico"]},
+      {name:"Procedimientos de trabajo",topics:["preparación","ejecución","control de calidad","finalización"]},
+      {name:"PRL en obra",topics:["caídas","golpes y atrapamientos","riesgos eléctricos","EPI y señalización"]},
+      {name:"Emergencias y buenas prácticas",topics:["incidentes","evacuación","comunicación","orden y limpieza"]},
+      {name:"Casos prácticos y test",topics:["situaciones de obra","identificación de riesgos","decisiones preventivas","repaso final"]},
+    ],
+    "Mecánica": [
+      {name:"Fundamentos mecánicos",topics:["magnitudes básicas","componentes","herramientas","principios de funcionamiento"]},
+      {name:"Desmontaje y montaje",topics:["preparación","secuencia de trabajo","pares y ajustes","verificación"]},
+      {name:"Diagnóstico de averías",topics:["síntomas","mediciones","causas","comprobación de reparación"]},
+      {name:"Mantenimiento preventivo",topics:["lubricación","desgaste","inspecciones","registros"]},
+      {name:"Seguridad en taller",topics:["atrapamientos","proyecciones","productos","EPI y orden"]},
+      {name:"Casos prácticos y test",topics:["diagnóstico","procedimientos","errores frecuentes","repaso final"]},
+    ],
+    "Mantenimiento Industrial": [
+      {name:"Fundamentos del mantenimiento",topics:["preventivo y correctivo","activos","documentación","planificación"]},
+      {name:"Inspección y diagnóstico",topics:["inspecciones","mediciones","síntomas","análisis de averías"]},
+      {name:"Intervenciones",topics:["secuencias de trabajo","reparación","verificación","puesta en servicio"]},
+      {name:"Seguridad y consignación",topics:["energías peligrosas","bloqueo y señalización","EPI","permisos de trabajo"]},
+      {name:"Gestión del mantenimiento",topics:["órdenes de trabajo","repuestos","indicadores","registro de intervenciones"]},
+      {name:"Casos prácticos y test",topics:["averías","priorización","decisiones seguras","repaso final"]},
+    ],
+    "Soldadura y Fabricación Mecánica": [
+      {name:"Procesos y equipos",topics:["MIG/MAG","TIG y electrodo","equipos","materiales"]},
+      {name:"Preparación y parámetros",topics:["preparación de piezas","consumibles","parámetros","posición de trabajo"]},
+      {name:"Ejecución y calidad",topics:["cordones","defectos","inspección visual","acabados"]},
+      {name:"Seguridad",topics:["humos","radiación","incendio","EPI y ventilación"]},
+      {name:"Fabricación y montaje",topics:["medición","corte","unión","verificación dimensional"]},
+      {name:"Casos prácticos y test",topics:["selección del proceso","defectos","medidas preventivas","repaso final"]},
+    ],
+    "Logística y Almacén": [
+      {name:"Organización del almacén",topics:["zonas","flujos","ubicaciones","documentación"]},
+      {name:"Recepción y expedición",topics:["recepción","comprobación","preparación","expedición"]},
+      {name:"Stock y picking",topics:["inventario","rotación","picking","trazabilidad"]},
+      {name:"Equipos y manipulación",topics:["equipos de manutención","cargas","estanterías","seguridad"]},
+      {name:"PRL y buenas prácticas",topics:["caídas","golpes","ergonomía","orden y limpieza"]},
+      {name:"Casos prácticos y test",topics:["flujo de pedidos","incidencias","decisiones operativas","repaso final"]},
+    ],
+    "Transporte": [
+      {name:"Fundamentos del transporte",topics:["tipos de transporte","operaciones","roles","documentación"]},
+      {name:"Planificación",topics:["rutas","cargas","tiempos","costes básicos"]},
+      {name:"Carga y descarga",topics:["distribución de cargas","sujeción","comprobaciones","entrega"]},
+      {name:"Seguridad vial y laboral",topics:["riesgos","fatiga","maniobras","emergencias"]},
+      {name:"Documentación e incidencias",topics:["albaranes","trazabilidad","incidencias","comunicación"]},
+      {name:"Casos prácticos y test",topics:["planificación","carga segura","resolución de incidencias","repaso final"]},
+    ],
+    "Automoción": [
+      {name:"Sistemas del vehículo",topics:["motor","transmisión","frenos","dirección y suspensión"]},
+      {name:"Electricidad y electrónica",topics:["batería","circuitos","sensores","diagnóstico"]},
+      {name:"Mantenimiento preventivo",topics:["niveles","neumáticos","frenos","revisiones"]},
+      {name:"Diagnóstico",topics:["síntomas","mediciones","herramientas","verificación"]},
+      {name:"Seguridad en taller",topics:["elevación del vehículo","productos","herramientas","EPI"]},
+      {name:"Casos prácticos y test",topics:["averías","mantenimiento","diagnóstico","repaso final"]},
+    ],
+    "Prevención de Riesgos Laborales": [
+      {name:"Principios de PRL",topics:["conceptos básicos","derechos y obligaciones","organización preventiva","evaluación de riesgos"]},
+      {name:"Riesgos del puesto",topics:["seguridad","higiene","ergonomía","factores organizativos"]},
+      {name:"Medidas preventivas",topics:["protecciones colectivas","EPI","procedimientos","señalización"]},
+      {name:"Emergencias",topics:["accidentes","evacuación","primeras actuaciones","comunicación"]},
+      {name:"Equipos de trabajo",topics:["uso seguro","comprobaciones","mantenimiento","prohibiciones"]},
+      {name:"Casos prácticos y test",topics:["identificación de riesgos","medidas preventivas","situaciones reales","repaso final"]},
+    ],
+    "Manipulación y Seguridad": [
+      {name:"Principios de manipulación",topics:["tipos de cargas","posturas","técnicas","planificación"]},
+      {name:"Ergonomía",topics:["sobreesfuerzos","movimientos repetitivos","organización","pausas"]},
+      {name:"Equipos y ayudas",topics:["medios auxiliares","carros","elevación","comprobaciones"]},
+      {name:"Riesgos y EPI",topics:["golpes","atrapamientos","caídas","protección"]},
+      {name:"Buenas prácticas",topics:["orden","señalización","comunicación","actuación ante incidencias"]},
+      {name:"Casos prácticos y test",topics:["manipulación","ergonomía","prevención","repaso final"]},
+    ],
+    "Emergencias y Seguridad": [
+      {name:"Plan de emergencia",topics:["tipos de emergencia","organización","alarmas","responsabilidades"]},
+      {name:"Evacuación",topics:["rutas","puntos de reunión","señalización","ayuda a personas"]},
+      {name:"Primeras actuaciones",topics:["protección del lugar","aviso","valoración inicial","coordinación"]},
+      {name:"Incendios",topics:["clases de fuego","medios de extinción","uso seguro","evacuación"]},
+      {name:"Comunicación y prevención",topics:["avisos","simulacros","registro","mejora continua"]},
+      {name:"Casos prácticos y test",topics:["escenarios","decisiones","errores frecuentes","repaso final"]},
+    ],
+    "Electricidad y Electrónica": [
+      {name:"Fundamentos eléctricos",topics:["tensión","corriente","resistencia","potencia"]},
+      {name:"Circuitos y componentes",topics:["componentes","esquemas","medición","protecciones"]},
+      {name:"Instalación y diagnóstico",topics:["montaje","comprobaciones","averías","mantenimiento"]},
+      {name:"Seguridad eléctrica",topics:["contacto eléctrico","consignación","protecciones","EPI"]},
+      {name:"Automatismos básicos",topics:["sensores","actuadores","relés","control"]},
+      {name:"Casos prácticos y test",topics:["interpretación de esquemas","mediciones","diagnóstico","repaso final"]},
+    ],
+    "Automatización, Robótica e Industria 4.0": [
+      {name:"Fundamentos de automatización",topics:["automatismos","sensores","actuadores","control"]},
+      {name:"PLC y control",topics:["entradas y salidas","lógica","secuencias","diagnóstico"]},
+      {name:"Robótica industrial",topics:["tipos de robots","zonas de trabajo","programación básica","seguridad"]},
+      {name:"Datos e Industria 4.0",topics:["conectividad","monitorización","datos","mantenimiento predictivo"]},
+      {name:"Seguridad y mantenimiento",topics:["paradas","bloqueo","riesgos","mantenimiento"]},
+      {name:"Casos prácticos y test",topics:["automatización","diagnóstico","seguridad","repaso final"]},
+    ],
+    "Energía y Renovables": [
+      {name:"Sistemas energéticos",topics:["fuentes de energía","consumo","eficiencia","magnitudes"]},
+      {name:"Energía solar",topics:["componentes","generación","instalaciones","mantenimiento"]},
+      {name:"Otras renovables",topics:["eólica","biomasa","geotermia","integración"]},
+      {name:"Seguridad",topics:["riesgos eléctricos","trabajos en altura","EPI","emergencias"]},
+      {name:"Eficiencia y mantenimiento",topics:["inspecciones","rendimiento","averías","registros"]},
+      {name:"Casos prácticos y test",topics:["dimensionamiento básico","mantenimiento","seguridad","repaso final"]},
+    ],
+    "Climatización y Refrigeración": [
+      {name:"Fundamentos térmicos",topics:["temperatura","presión","calor","transferencia térmica"]},
+      {name:"Equipos y circuitos",topics:["componentes","circuito frigorífico","controles","funcionamiento"]},
+      {name:"Instalación y puesta en marcha",topics:["montaje","comprobaciones","ajustes","pruebas"]},
+      {name:"Mantenimiento",topics:["limpieza","fugas","mediciones","averías"]},
+      {name:"Seguridad",topics:["electricidad","presiones","refrigerantes","EPI"]},
+      {name:"Casos prácticos y test",topics:["diagnóstico","mantenimiento","seguridad","repaso final"]},
+    ],
+    "Química e Industria": [
+      {name:"Procesos y productos",topics:["materias primas","procesos","equipos","variables"]},
+      {name:"Almacenamiento y manipulación",topics:["etiquetado","compatibilidades","trasvases","contención"]},
+      {name:"Control de proceso",topics:["medición","muestreo","calidad","registros"]},
+      {name:"Riesgos químicos",topics:["exposición","incendio","derrames","EPI"]},
+      {name:"Emergencias y residuos",topics:["actuación ante fugas","evacuación","gestión de residuos","comunicación"]},
+      {name:"Casos prácticos y test",topics:["situaciones de proceso","prevención","incidencias","repaso final"]},
+    ],
+    "Informática y Competencias Digitales": [
+      {name:"Entorno digital",topics:["hardware","sistemas","archivos","configuración básica"]},
+      {name:"Productividad",topics:["documentos","hojas de cálculo","presentaciones","gestión de archivos"]},
+      {name:"Internet y comunicación",topics:["navegación","correo","videollamadas","servicios online"]},
+      {name:"Seguridad digital",topics:["contraseñas","phishing","actualizaciones","copias de seguridad"]},
+      {name:"Buenas prácticas",topics:["organización","privacidad","accesibilidad","resolución de problemas"]},
+      {name:"Casos prácticos y test",topics:["tareas digitales","seguridad","productividad","repaso final"]},
+    ],
+    "Inteligencia Artificial": [
+      {name:"Fundamentos de IA",topics:["conceptos","modelos generativos","casos de uso","limitaciones"]},
+      {name:"Prompting y trabajo con IA",topics:["instrucciones","contexto","iteración","verificación"]},
+      {name:"Productividad",topics:["texto","resumen","análisis","automatización de tareas"]},
+      {name:"Contenido y creatividad",topics:["ideas","imágenes","presentaciones","edición asistida"]},
+      {name:"Privacidad y uso responsable",topics:["datos","sesgos","verificación","propiedad intelectual"]},
+      {name:"Casos prácticos y test",topics:["casos profesionales","prompts","verificación","repaso final"]},
+    ],
+    "Programación y Desarrollo": [
+      {name:"Fundamentos",topics:["algoritmos","variables","condicionales","bucles"]},
+      {name:"Código y estructuras",topics:["funciones","datos","errores","modularidad"]},
+      {name:"Desarrollo web",topics:["HTML","CSS","JavaScript","estructura de una página"]},
+      {name:"Pruebas y depuración",topics:["errores","pruebas","consola","mantenimiento"]},
+      {name:"Buenas prácticas",topics:["legibilidad","versionado","seguridad","documentación"]},
+      {name:"Casos prácticos y test",topics:["resolver problemas","crear una pequeña solución","depurar","repaso final"]},
+    ],
+    "Ciberseguridad": [
+      {name:"Fundamentos de seguridad",topics:["amenazas","activos","riesgos","controles"]},
+      {name:"Cuentas y dispositivos",topics:["contraseñas","MFA","actualizaciones","copias"]},
+      {name:"Internet y correo",topics:["phishing","fraude","enlaces","descargas"]},
+      {name:"Datos y privacidad",topics:["datos personales","permisos","cifrado","buenas prácticas"]},
+      {name:"Incidentes",topics:["detección","aislamiento","notificación","recuperación"]},
+      {name:"Casos prácticos y test",topics:["identificar amenazas","decisiones seguras","respuesta","repaso final"]},
+    ],
+  };
+
+  const generic = [
+    {name:"Fundamentos y conceptos",topics:["conceptos esenciales","terminología","herramientas y recursos","funciones profesionales"]},
+    {name:"Procedimientos y operaciones",topics:["preparación","procedimiento paso a paso","control de calidad","errores frecuentes"]},
+    {name:"Organización y buenas prácticas",topics:["planificación","documentación","orden y limpieza","comunicación"]},
+    {name:"Seguridad y prevención",topics:["riesgos principales","medidas preventivas","EPI cuando proceda","actuación ante incidencias"]},
+    {name:"Aplicación profesional",topics:["situaciones habituales","resolución de problemas","comprobaciones","mejora continua"]},
+    {name:"Casos prácticos y test",topics:["supuestos prácticos","identificación de riesgos","decisiones profesionales","repaso final"]},
   ];
+
+  const plan = guides[course.category] ?? generic;
+  return plan.map((m, i) => ({
+    id: String(i + 1),
+    title: `Módulo ${i + 1}: ${m.name}`,
+    lesson: {
+      title: `${m.name} — ${course.title}`,
+      intro: `Contenido formativo original de Sindicato de Operarios para comprender y aplicar ${m.name.toLowerCase()} en el ámbito de ${course.category.toLowerCase()}.`,
+      points: m.topics.map((topic) => `${topic.charAt(0).toUpperCase() + topic.slice(1)} aplicados a ${course.title.toLowerCase()}.`)
+    }
+  }));
 }
