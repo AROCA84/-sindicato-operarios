@@ -91,6 +91,7 @@ export function Hero() {
                   <span aria-hidden="true" className="text-xl leading-none transition-transform duration-200 group-hover:translate-x-1">→</span>
                 </Link>
               </div>
+            </div>
           </div>
         </div>
 
