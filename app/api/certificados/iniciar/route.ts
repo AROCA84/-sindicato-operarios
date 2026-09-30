@@ -19,32 +19,30 @@ function headers(key: string) {
 export async function POST(request: Request) {
   try {
     const body = await request.json() as {
-      email?: string; numero_afiliado?: number | string; curso_id?: string; puntuacion?: number; total?: number;
+      email?: string; numero_afiliado?: number | string; curso_id?: string; intento_id?: string;
     };
     const email = body.email?.trim().toLowerCase();
     const numero = Number(body.numero_afiliado);
     const cursoId = body.curso_id?.trim();
-    const puntuacion = Number(body.puntuacion);
-    const total = Number(body.total);
+    const intentoId = body.intento_id?.trim();
 
-    if (!email || !/^\S+@\S+\.\S+$/.test(email) || !Number.isInteger(numero) || !cursoId ||
-        !Number.isInteger(puntuacion) || !Number.isInteger(total) || total <= 0 || puntuacion < 0 || puntuacion > total) {
+    if (!email || !/^\S+@\S+\.\S+$/.test(email) || !Number.isInteger(numero) || !cursoId || !intentoId) {
       return NextResponse.json({ error: "Datos del certificado no válidos." }, { status: 400 });
-    }
-
-    // El certificado solo puede iniciarse tras superar el test con el 70 %.
-    // El servidor no debe confiar únicamente en el bloqueo visual del navegador.
-    const requiredCorrect = Math.ceil(total * 0.70);
-    if (total !== 20 || puntuacion < requiredCorrect) {
-      return NextResponse.json(
-        { error: "El certificado solo está disponible después de aprobar el test con al menos el 70 %." },
-        { status: 403 },
-      );
     }
 
     const { url, key } = supabaseConfig();
     if (!url || !key) return NextResponse.json({ error: "La base de datos no está configurada." }, { status: 503 });
     const h = headers(key);
+
+    const attemptResponse = await fetch(
+      `${url}/rest/v1/intentos_test?select=id,afiliado_id,curso_id,puntuacion,total,aprobado&id=eq.${encodeURIComponent(intentoId)}&limit=1`,
+      { headers: h, cache: "no-store" }
+    );
+    if (!attemptResponse.ok) return NextResponse.json({ error: "No se pudo comprobar el resultado del test." }, { status: 502 });
+    const attempts = await attemptResponse.json() as Array<{ id: string; afiliado_id: string; curso_id: string; puntuacion: number; total: number; aprobado: boolean }>;
+    if (!attempts.length || attempts[0].curso_id !== cursoId || attempts[0].total !== 20 || attempts[0].puntuacion < 14 || !attempts[0].aprobado) {
+      return NextResponse.json({ error: "El certificado solo está disponible después de aprobar el test con al menos el 70 %." }, { status: 403 });
+    }
 
     const memberResponse = await fetch(
       `${url}/rest/v1/afiliados?select=id,numero_afiliado,nombre,apellidos,email&numero_afiliado=eq.${numero}&email=eq.${encodeURIComponent(email)}&activo=eq.true&limit=1`,
