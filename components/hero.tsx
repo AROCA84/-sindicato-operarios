@@ -35,7 +35,7 @@ export function Hero() {
 
   return (
     <section id="inicio" className="relative isolate overflow-hidden bg-navy">
-      <div className="relative min-h-[620px] w-full sm:min-h-[650px]">
+      <div className="relative min-h-[430px] w-full sm:min-h-[520px]">
         {slides.map((slide, i) => (
           <div key={slide.image} className={`absolute inset-0 transition-opacity duration-700 ${i === current ? "opacity-100" : "opacity-0"}`} aria-hidden={i !== current}>
             <img src={slide.image} alt="" className="h-full w-full object-cover" />
@@ -44,28 +44,28 @@ export function Hero() {
           </div>
         ))}
         <div className="absolute inset-0">
-          <div className="mx-auto flex h-full max-w-7xl items-center px-5 pb-8 sm:px-6">
+          <div className="mx-auto flex h-full max-w-7xl items-center px-5 pb-5 sm:px-6">
             <div className="max-w-3xl">
               <div className="min-h-[270px]">
                 {slides.map((slide, i) => i === current ? (
                   <div key={slide.title}>
                     <span className="inline-flex rounded-full border border-safety/40 bg-safety/10 px-4 py-2 text-xs font-black uppercase tracking-widest text-safety">{slide.tag}</span>
-                    <h1 className="mt-5 text-balance text-4xl font-black leading-[1.05] text-white sm:text-5xl lg:text-6xl">{slide.title}</h1>
-                    <p className="mt-5 max-w-2xl text-pretty text-base leading-7 text-white/80 sm:text-lg">{slide.text}</p>
+                    <h1 className="mt-5 text-balance text-3xl font-black leading-[1.05] text-white sm:text-5xl lg:text-6xl">{slide.title}</h1>
+                    <p className="mt-4 max-w-2xl text-pretty text-sm leading-6 text-white/80 sm:text-lg sm:leading-7">{slide.text}</p>
                   </div>
                 ) : null)}
               </div>
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <Link href="/afiliarse" className="rounded-xl bg-safety px-7 py-4 text-center text-sm font-black uppercase tracking-wide text-navy shadow-lg hover:bg-safety-dark">Afiliarme gratis</Link>
+              <div className="mt-5 flex flex-col gap-2.5 sm:flex-row">
+                <Link href="/afiliarse" className="rounded-xl bg-safety px-6 py-3.5 text-center text-sm font-black uppercase tracking-wide text-navy shadow-lg hover:bg-safety-dark">Afiliarme gratis</Link>
                 <Link href="/cursos" className="rounded-xl border border-white/30 px-7 py-4 text-center text-sm font-black uppercase tracking-wide text-white hover:bg-white/10">Ver formación</Link>
               </div>
-              <div className="mt-7 grid max-w-2xl grid-cols-2 gap-3 text-xs font-bold text-white/85 sm:grid-cols-4">
+              <div className="mt-5 grid max-w-2xl grid-cols-2 gap-2 text-xs font-bold text-white/85 sm:grid-cols-4">
                 <span>✓ Afiliación gratis</span><span>✓ Formación gratis</span><span>✓ Test gratis</span><span>✓ Certificado tras aprobar</span>
               </div>
             </div>
           </div>
         </div>
-        <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 gap-3">
+        <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-3">
           {slides.map((slide, i) => <button key={slide.image} type="button" onClick={() => setCurrent(i)} aria-label={`Ir a la diapositiva ${i + 1}`} aria-current={i === current} className={`h-2.5 rounded-full transition-all ${i === current ? "w-8 bg-safety" : "w-2.5 bg-white/40 hover:bg-white/70"}`} />)}
         </div>
       </div>
