@@ -1,4 +1,4 @@
-export type Category = "Manutención y Carretillas" | "Elevación y Plataformas" | "Grúas y Equipos de Elevación" | "Maquinaria y Movimiento de Tierras" | "Logística y Almacén" | "Prevención de Riesgos Laborales" | "Manipulación y Seguridad";
+export type Category = string;
 
 export type Course = { id: string; title: string; description: string; category: Category; image: string };
 export const categories: Category[] = ["Manutención y Carretillas", "Elevación y Plataformas", "Grúas y Equipos de Elevación", "Maquinaria y Movimiento de Tierras", "Logística y Almacén", "Prevención de Riesgos Laborales", "Manipulación y Seguridad"];
