@@ -1,4 +1,4 @@
-import { courses as baseCourses, type Course } from "./courses";
+import { courses as baseCourses, getTemario, type Course, type Module } from "./courses";
 
 export const academyCategories = [
   "Manutención y Carretillas",
@@ -196,3 +196,14 @@ export const academyCourses: Course[] = [
 
 export const allCourses: Course[] = [...baseCourses, ...academyCourses];
 export function getAcademyCourse(id: string) { return allCourses.find((course) => course.id === id); }
+
+export function getAllTemario(course: Course): Module[] {
+  const existing = getTemario(course);
+  if (existing.length) return existing;
+  return [
+    { id: "1", title: "Módulo 1: Introducción", lesson: { title: `Fundamentos de ${course.category}`, intro: `Conceptos esenciales para comenzar la formación en ${course.category}.`, points: ["Conceptos y terminología básica.", "Equipos, herramientas o procesos habituales.", "Funciones y responsabilidades del profesional.", "Documentación e instrucciones de trabajo."] } },
+    { id: "2", title: "Módulo 2: Operaciones", lesson: { title: `Operaciones profesionales en ${course.category}`, intro: "Procedimientos básicos y buenas prácticas aplicables al sector.", points: ["Preparación del puesto de trabajo.", "Secuencia segura de las operaciones.", "Control de calidad y comprobaciones.", "Errores frecuentes y cómo evitarlos."] } },
+    { id: "3", title: "Módulo 3: Seguridad y PRL", lesson: { title: `Prevención de riesgos en ${course.category}`, intro: "Identificación de riesgos y medidas preventivas.", points: ["Riesgos principales del puesto.", "Medidas preventivas y EPI cuando proceda.", "Orden, limpieza y señalización.", "Actuación ante incidencias y emergencias."] } },
+    { id: "4", title: "Módulo 4: Repaso final", lesson: { title: "Casos prácticos y preparación del test", intro: "Repaso de los conocimientos esenciales antes de realizar la evaluación.", points: ["Situaciones prácticas habituales.", "Comprobación de procedimientos.", "Repaso de seguridad y buenas prácticas.", "Preparación para el test final."] } }
+  ];
+}
