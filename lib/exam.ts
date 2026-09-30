@@ -1,4 +1,5 @@
 import type { Course } from "./courses";
+import { getAllTemario } from "./academy-catalog";
 
 export type ExamQuestion = {
   q: string;
@@ -1127,12 +1128,33 @@ function seededShuffle<T>(items: T[], seed: number): T[] {
   return arr;
 }
 
+/** Build additional questions directly from each course's developed temario. */
+function buildTemarioQuestions(course: Course): ExamQuestion[] {
+  const modules = getAllTemario(course);
+  const pool: ExamQuestion[] = [];
+  for (const module of modules) {
+    for (const section of module.lesson.sections ?? []) {
+      const bullets = section.bullets ?? [];
+      if (bullets.length < 4) continue;
+      const correct = bullets[0];
+      const distractors = bullets.slice(1, 4);
+      pool.push({
+        q: `Según el temario de «${course.title}», ¿qué aspecto se trabaja en «${section.heading}»?`,
+        options: [correct, ...distractors] as [string, string, string, string],
+        answer: 0,
+      });
+    }
+  }
+  return pool;
+}
+
 /** Build the 20-question exam for a given course. */
 export function getExam(course: Course): ExamQuestion[] {
   const specific = specificQuestions[course.id] ?? [];
+  const temarioQuestions = buildTemarioQuestions(course);
   const seed = course.id
     .split("")
     .reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
-  const combined = [...specific, ...generalQuestions];
+  const combined = [...specific, ...temarioQuestions, ...generalQuestions];
   return seededShuffle(combined, seed).slice(0, TOTAL_QUESTIONS);
 }
