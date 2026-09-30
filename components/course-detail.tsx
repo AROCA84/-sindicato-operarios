@@ -103,34 +103,7 @@ export function CourseDetail({ course, modules }: CourseDetailProps) {
                         ))}
                       </div>
 
-                      {module.lesson.sections?.length ? (
-                        <div className="mt-8 space-y-7 border-t border-white/10 pt-7">
-                          <p className="text-xs font-black uppercase tracking-wider text-safety">Desarrollo completo del tema</p>
-                          {module.lesson.sections.map((section, sectionIndex) => (
-                            <section key={`${module.id}-section-${sectionIndex}`}>
-                              <h5 className="text-base font-black text-white">{section.heading}</h5>
-                              <p className="mt-2 text-sm leading-7 text-white/70">{section.text}</p>
-                              {section.bullets?.length ? (
-                                <ul className="mt-3 space-y-2">
-                                  {section.bullets.map((bullet, bulletIndex) => (
-                                    <li key={`${module.id}-section-${sectionIndex}-bullet-${bulletIndex}`} className="flex items-start gap-2 text-sm leading-6 text-white/60">
-                                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-safety" />
-                                      {bullet}
-                                    </li>
-                                  ))}
-                                </ul>
-                              ) : null}
-                            </section>
-                          ))}
-                          {module.lesson.references?.length ? (
-                            <div className="rounded-xl border border-safety/20 bg-safety/5 p-4">
-                              <p className="text-xs font-black uppercase tracking-wider text-safety">Referencias profesionales</p>
-                              <ul className="mt-2 space-y-2">
-                                {module.lesson.references.map((reference, referenceIndex) => (
-                                  <li key={`${module.id}-reference-${referenceIndex}`} className="text-xs leading-5 text-white/60">{reference}</li>
-                                ))}
-                              </ul>
-                            </div>
+                                           </div>
                           ) : null}}
                         </div>
                       ) : null
