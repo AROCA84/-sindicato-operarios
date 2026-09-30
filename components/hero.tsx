@@ -5,25 +5,25 @@ import Link from "next/link";
 
 const slides = [
   {
-    image: "/hero/hero-1.png",
+    image: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=1800&q=85",
     tag: "Protección legal y personal",
     title: "Defensa y apoyo cuando más lo necesitas.",
     points: ["Asesoramiento legal ante despidos, sanciones y conflictos laborales.", "Representación y acompañamiento en reuniones laborales.", "Respaldo de la caja de resistencia en situaciones específicas."],
   },
   {
-    image: "/hero/hero-2.png",
+    image: "https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?auto=format&fit=crop&w=1800&q=85",
     tag: "Mejoras económicas y laborales",
     title: "Defendemos mejores condiciones laborales.",
     points: ["Negociación colectiva y mejores condiciones salariales.", "Regulación de horas extras y turnos especiales.", "Mejores condiciones de vacaciones y medidas para el futuro laboral."],
   },
   {
-    image: "/hero/hero-3.png",
+    image: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1800&q=85",
     tag: "Ventajas de pertenecer al Sindicato",
     title: "Más apoyo. Más oportunidades.",
     points: ["Afiliación gratuita y de por vida.", "Formación profesional desde 0 €.", "Beneficios, servicios, apoyo y representación laboral."],
   },
   {
-    image: "/hero/hero-1.png",
+    image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1800&q=85",
     tag: "Formación gratuita",
     title: "Estudia y haz tus tests gratis.",
     points: ["Cursos y temarios para estudiar a tu ritmo.", "Tests y resultados completamente gratuitos.", "Solo pagas al final si, después de aprobar, quieres el certificado."],
@@ -49,7 +49,7 @@ export function Hero() {
             aria-hidden={i !== current}
           >
             <img src={slide.image} alt="" className="h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-r from-navy via-navy/90 to-navy/35" />
+            <div className="absolute inset-0 bg-gradient-to-r from-navy/90 via-navy/65 to-navy/20" />
             <div className="absolute inset-0 bg-gradient-to-t from-navy via-transparent to-transparent" />
           </div>
         ))}
