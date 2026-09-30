@@ -60,7 +60,7 @@ export function CourseCatalog() {
             Cursos de formación
           </h2>
           <p className="mt-4 text-slate-600">
-            Estudia gratis, realiza el test gratis y, si apruebas, decide si quieres obtener tu certificado por 4,99 €.
+            Estudia gratis, realiza el test gratis y, si apruebas, podrás continuar con el proceso para obtener tu certificado.
           </p>
         </div>
 
