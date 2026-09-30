@@ -54,6 +54,8 @@ export function CourseExam({ course }: { course: Course }) {
     setCurrent((c) => c + 1);
   }
   function retry() {
+    setAttemptId("");
+    setSubmitError("");
     setAnswers(Array(questions.length).fill(-1));
     setCurrent(0);
     setPhase("quiz");
