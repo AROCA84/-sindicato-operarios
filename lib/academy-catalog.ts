@@ -308,13 +308,13 @@ export function getAllTemario(course: Course): Module[] {
   };
 
   const p = profiles[category] ?? {
-    fundamentals: `El curso de \${title} desarrolla los conocimientos fundamentales necesarios para comprender esta actividad profesional dentro del sector de \${category}. El alumno aprende el vocabulario, los principios de funcionamiento, las responsabilidades del puesto y la documentación que debe consultar antes de trabajar.`,
-    preparation: `La preparación de una tarea de \${title} comienza revisando instrucciones, recursos, puesto, entorno y condiciones de trabajo. Organizar previamente la actividad permite reducir errores, evitar improvisaciones y detectar situaciones que deben comunicarse antes de continuar.`,
-    operation: `Las operaciones de \${title} deben realizarse siguiendo una secuencia lógica y las instrucciones aplicables. Durante el trabajo se comprueba el resultado, se controlan las desviaciones y se detiene la actividad cuando las condiciones dejan de ser seguras o adecuadas.`,
-    safety: `La seguridad en \${category} exige identificar los peligros propios de la tarea, aplicar medidas preventivas y utilizar correctamente las protecciones previstas. El alumno debe aprender a reconocer una condición insegura y comunicarla antes de que provoque daños.`,
+    fundamentals: `El curso de ${title} desarrolla los conocimientos fundamentales necesarios para comprender esta actividad profesional dentro del sector de ${category}. El alumno aprende el vocabulario, los principios de funcionamiento, las responsabilidades del puesto y la documentación que debe consultar antes de trabajar.`,
+    preparation: `La preparación de una tarea de ${title} comienza revisando instrucciones, recursos, puesto, entorno y condiciones de trabajo. Organizar previamente la actividad permite reducir errores, evitar improvisaciones y detectar situaciones que deben comunicarse antes de continuar.`,
+    operation: `Las operaciones de ${title} deben realizarse siguiendo una secuencia lógica y las instrucciones aplicables. Durante el trabajo se comprueba el resultado, se controlan las desviaciones y se detiene la actividad cuando las condiciones dejan de ser seguras o adecuadas.`,
+    safety: `La seguridad en ${category} exige identificar los peligros propios de la tarea, aplicar medidas preventivas y utilizar correctamente las protecciones previstas. El alumno debe aprender a reconocer una condición insegura y comunicarla antes de que provoque daños.`,
     maintenance: `La calidad y continuidad del trabajo requieren inspecciones, orden, limpieza, documentación y comunicación de anomalías. Las operaciones técnicas que correspondan a personal especializado no deben improvisarse por el operador o trabajador que realiza la tarea habitual.`,
-    practical: `Los casos prácticos reproducen situaciones habituales de \${title}: preparación del puesto, ejecución de una tarea, detección de un error, aplicación de una medida preventiva y comprobación final del resultado.`,
-    tools: `El alumno debe familiarizarse con el manual, procedimientos, herramientas, equipos y documentación que se utilicen en el puesto concreto de \${title}. Cuando exista una instrucción específica del fabricante o de la empresa, esta debe prevalecer sobre una explicación genérica.`
+    practical: `Los casos prácticos reproducen situaciones habituales de ${title}: preparación del puesto, ejecución de una tarea, detección de un error, aplicación de una medida preventiva y comprobación final del resultado.`,
+    tools: `El alumno debe familiarizarse con el manual, procedimientos, herramientas, equipos y documentación que se utilicen en el puesto concreto de ${title}. Cuando exista una instrucción específica del fabricante o de la empresa, esta debe prevalecer sobre una explicación genérica.`
   };
 
   const moduleData = [
@@ -322,7 +322,7 @@ export function getAllTemario(course: Course): Module[] {
       name: "Fundamentos y conocimiento del equipo o actividad",
       intro: p.fundamentals,
       sections: [
-        [`1.1 Qué es \${title}`, `El primer paso es entender qué trabajo realiza \${title}, cuál es su finalidad y qué límites tiene. El alumno debe relacionar la teoría con situaciones reales y saber explicar por qué cada elemento o procedimiento es necesario.`, [`Finalidad y aplicaciones profesionales de \${title}.`, `Conceptos y vocabulario que aparecen en manuales e instrucciones.`, `Responsabilidades del trabajador y límites de actuación.`]],
+        [`1.1 Qué es ${title}`, `El primer paso es entender qué trabajo realiza ${title}, cuál es su finalidad y qué límites tiene. El alumno debe relacionar la teoría con situaciones reales y saber explicar por qué cada elemento o procedimiento es necesario.`, [`Finalidad y aplicaciones profesionales de ${title}.`, `Conceptos y vocabulario que aparecen en manuales e instrucciones.`, `Responsabilidades del trabajador y límites de actuación.`]],
         [`1.2 Componentes, herramientas y elementos de trabajo`, `Se estudian los elementos que intervienen directamente en la actividad y la función de cada uno. Conocerlos permite detectar anomalías, interpretar instrucciones y evitar usos para los que un equipo o herramienta no está diseñado.`, [p.tools, `Identificación de elementos de mando, control o apoyo cuando existan.`, `Relación entre cada elemento y la operación que permite realizar.`]],
         [`1.3 Capacidades, limitaciones y documentación`, `La información del fabricante, procedimiento de empresa o documentación técnica establece condiciones de utilización que deben respetarse. El alumno aprende a localizar la información relevante antes de realizar una operación.`, [`Capacidad, límites de uso y condiciones de trabajo.`, `Manual de instrucciones, señalización y documentación aplicable.`, `Situaciones en las que debe consultarse al responsable o personal competente.`]],
         [`1.4 Responsabilidades profesionales`, `Una persona formada no solo debe saber ejecutar una tarea: también debe reconocer cuándo no puede realizarla de forma segura. La responsabilidad incluye respetar procedimientos, comunicar anomalías y no improvisar reparaciones o maniobras.`, [`Autorización y formación específica cuando sean exigibles.`, `Comunicación de defectos y condiciones inseguras.`, `Prohibición de anular dispositivos o realizar usos no previstos.`]]
@@ -382,9 +382,9 @@ export function getAllTemario(course: Course): Module[] {
 
   return moduleData.map((m, i) => ({
     id: String(i + 1),
-    title: `Módulo \${i + 1}: \${m.name}`,
+    title: `Módulo ${i + 1}: ${m.name}`,
     lesson: {
-      title: `\${m.name} — \${title}`,
+      title: `${m.name} — ${title}`,
       intro: m.intro,
       points: m.sections.map((section) => section[0] as string),
       sections: m.sections.map((section) => ({
