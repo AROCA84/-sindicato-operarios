@@ -5,12 +5,12 @@ import { CertificatePreview } from "@/components/certificate-preview";
 
 type CertificatePageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ score?: string; total?: string }>;
+  searchParams: Promise<{ score?: string; total?: string; intento?: string }>;
 };
 
 export default async function CertificatePage({ params, searchParams }: CertificatePageProps) {
   const { id } = await params;
-  const { score, total } = await searchParams;
+  const { score, total, intento } = await searchParams;
   const course = getCourse(id);
   if (!course) notFound();
 
