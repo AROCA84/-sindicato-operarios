@@ -98,6 +98,49 @@ const temarios: Record<string, Module[]> = {
         ],
         references: ["INSST · NTP 715: Carretillas elevadoras automotoras (III): mantenimiento y utilización.", "INSST · NTP 714: principales peligros y medidas preventivas."]
       }
+    },
+    {
+      id: "5",
+      title: "Módulo 5: Operación de carretilla retráctil",
+      lesson: {
+        title: "Pasillos, mástil retráctil, almacenamiento en altura y maniobras",
+        intro: "Este módulo profundiza en las particularidades de la carretilla retráctil utilizada en almacenes y centros logísticos. La operación debe adaptarse siempre al modelo concreto, a su manual y a las condiciones reales del lugar de trabajo.",
+        points: [
+          "Características de la carretilla retráctil y diferencias frente a una frontal.",
+          "Trabajo en pasillos, estanterías y zonas de almacenamiento en altura.",
+          "Desplazamiento del mástil y efectos sobre visibilidad, carga y estabilidad.",
+          "Entrada y salida de ubicaciones y maniobras con espacio reducido."
+        ],
+        sections: [
+          { heading: "5.1. Características de la retráctil", text: "La carretilla retráctil está diseñada para operaciones de almacenamiento en las que el espacio disponible puede ser reducido. El conjunto de elevación permite aproximar o retirar la carga respecto del cuerpo de la máquina según la configuración del equipo. El operador debe conocer las posiciones autorizadas del mástil y sus límites.", bullets: ["Identificar el modelo y sus capacidades.", "Consultar el diagrama de carga específico.", "No utilizar el equipo fuera de las funciones previstas."] },
+          { heading: "5.2. Trabajo en pasillos", text: "Los pasillos requieren control de velocidad, atención a cruces y separación respecto de peatones y otras máquinas. Antes de entrar en una ubicación hay que comprobar que el espacio está libre y que la carga puede introducirse sin contacto con la estantería.", bullets: ["Reducir velocidad antes de entrar en zonas estrechas.", "Comprobar la altura libre y posibles obstáculos.", "Mantener una trayectoria alineada con la ubicación.", "Detenerse si la visibilidad o el espacio no permiten una maniobra segura."] },
+          { heading: "5.3. Almacenamiento en altura", text: "La elevación en altura modifica las condiciones de estabilidad y exige respetar estrictamente la capacidad indicada por el fabricante. La carga debe estar correctamente colocada y la ubicación debe ser adecuada para sus dimensiones y peso.", bullets: ["No superar la capacidad para la altura y configuración utilizadas.", "Evitar impactos contra largueros y protecciones.", "No colocar cargas dañadas o inestables.", "Mantener las zonas inferiores despejadas durante la maniobra."] },
+          { heading: "5.4. Maniobras con visibilidad limitada", text: "Cuando la carga o la configuración del equipo limite la visión, debe aplicarse el procedimiento establecido por el centro de trabajo. Puede ser necesario circular en sentido contrario, utilizar sistemas de ayuda o contar con un señalista.", bullets: ["No avanzar a ciegas.", "Utilizar espejos, cámaras u otras ayudas cuando estén disponibles.", "Detener la maniobra ante una duda sobre la trayectoria.", "No permitir que una persona se coloque en una zona de atrapamiento."] }
+        ],
+        references: ["INSST · NTP 713-715 · criterios técnicos de utilización segura de carretillas elevadoras."]
+      }
+    },
+    {
+      id: "6",
+      title: "Módulo 6: Casos prácticos y comprobación final",
+      lesson: {
+        title: "Preparación de la jornada, secuencia de trabajo y resolución de situaciones",
+        intro: "El último módulo reúne los conocimientos anteriores en situaciones habituales de trabajo. El objetivo es que el alumno pueda reconocer una operación segura, detectar errores y justificar cuándo debe detener una maniobra.",
+        points: [
+          "Secuencia completa desde la inspección inicial hasta el estacionamiento.",
+          "Análisis de situaciones con carga, peatones, rampas y estanterías.",
+          "Reconocimiento de prácticas inseguras y decisiones preventivas.",
+          "Preparación para la evaluación teórica del curso."
+        ],
+        sections: [
+          { heading: "6.1. Antes de comenzar", text: "El operador debe conocer el equipo, comprobar su estado, revisar el entorno y confirmar que la tarea puede realizarse con los medios disponibles. La planificación evita improvisaciones durante la maniobra.", bullets: ["Identificar la máquina y consultar sus instrucciones.", "Comprobar frenos, dirección, ruedas, horquillas y dispositivos de seguridad.", "Revisar recorrido, carga, destino y presencia de peatones.", "No comenzar si existe una condición peligrosa no controlada."] },
+          { heading: "6.2. Durante la manipulación", text: "Una operación segura requiere movimientos progresivos, velocidad adecuada y vigilancia continua del entorno. La carga debe mantenerse estable y la carretilla debe utilizarse dentro de sus límites.", bullets: ["Evitar aceleraciones y frenazos bruscos.", "Mantener la carga en posición segura durante el transporte.", "Respetar señalización y rutas establecidas.", "Detenerse ante cualquier pérdida de control o visibilidad."] },
+          { heading: "6.3. Situaciones que obligan a extremar la precaución", text: "Cruces, rampas, superficies irregulares, cargas largas, zonas congestionadas y maniobras cerca de estanterías requieren medidas adicionales. El procedimiento concreto debe adaptarse al centro de trabajo y al fabricante.", bullets: ["Reducir velocidad.", "Aumentar la vigilancia del entorno.", "Utilizar señalización o ayuda cuando corresponda.", "No continuar una maniobra que no pueda controlarse con seguridad."] },
+          { heading: "6.4. Final de la jornada", text: "El trabajo termina dejando el equipo en condiciones que no generen nuevos riesgos. La carretilla debe quedar estacionada en el lugar previsto, inmovilizada y sin cargas suspendidas o elevadas.", bullets: ["Bajar las horquillas a una posición segura.", "Aplicar el freno de estacionamiento.", "Apagar y asegurar el equipo conforme al procedimiento.", "Comunicar cualquier defecto detectado durante la jornada."] },
+          { heading: "6.5. Preparación para el test", text: "La evaluación debe comprobar que el alumno comprende los principios de estabilidad, riesgos, circulación, manipulación de cargas, inspección y actuación ante incidencias. Aprobar no sustituye la formación práctica ni la autorización necesaria para operar una máquina en un puesto concreto.", bullets: ["Repasar los seis módulos.", "Comprender el motivo de cada medida preventiva.", "Distinguir entre una práctica permitida y una situación que exige detenerse.", "Aplicar siempre el manual del fabricante y las instrucciones del puesto."] }
+        ],
+        references: ["INSST · NTP 713, 714 y 715.", "Principios generales de utilización segura de equipos de trabajo y prevención de riesgos laborales."]
+      }
     }
   ],
   pemp: [
