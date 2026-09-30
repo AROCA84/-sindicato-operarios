@@ -32,6 +32,12 @@ export function CourseDetail({ course, modules }: CourseDetailProps) {
         <div className="max-w-4xl">
           <h2 className="text-2xl font-black uppercase tracking-tight sm:text-3xl">Temario</h2>
           <p className="mt-3 text-white/60">Consulta aquí todo el contenido antes de realizar el test final. También puedes descargar el temario para estudiarlo cuando quieras.</p>
+          <div className="mt-5 rounded-xl border border-amber-400/30 bg-amber-400/5 p-5">
+            <p className="text-sm font-black uppercase tracking-wider text-amber-300">Información importante</p>
+            <p className="mt-2 text-sm leading-relaxed text-white/70">
+              Esta formación online proporciona conocimientos teóricos y preventivos. En determinados equipos y puestos puede ser necesaria formación práctica, autorización de la empresa, instrucciones del fabricante u otros requisitos aplicables. Aprobar el test online no sustituye por sí solo esos requisitos.
+            </p>
+          </div>
           <div className="mt-5">
             {affiliated ? <TemarioDownload course={course} modules={modules} /> : (
               <Link href={`/afiliarse?returnTo=${encodeURIComponent(`/cursos/${course.id}`)}`} className="inline-flex items-center justify-center gap-2 rounded-lg bg-safety px-6 py-3 text-sm font-black uppercase tracking-wide text-navy shadow-lg transition-colors hover:bg-safety-dark">
