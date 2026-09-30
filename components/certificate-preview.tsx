@@ -46,7 +46,7 @@ function wrapText(text: string, maxChars: number) {
   return lines;
 }
 
-export function CertificatePreview({ courseId, courseTitle, score, total }: Props) {
+export function CertificatePreview({ courseId, courseTitle, score, total, attemptId }: Props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [showPreview, setShowPreview] = useState(false);
@@ -80,12 +80,12 @@ export function CertificatePreview({ courseId, courseTitle, score, total }: Prop
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
   async function goToPayment() {
-    if (!canPreview || !affiliationNumber) return;
+    if (!canPreview || !affiliationNumber || !attemptId) return;
     setError("");
     try {
       const response = await fetch("/api/certificados/iniciar", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, numero_afiliado: Number(affiliationNumber), curso_id: courseId, puntuacion: score, total }),
+        body: JSON.stringify({ email, numero_afiliado: Number(affiliationNumber), curso_id: courseId, intento_id: attemptId }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "No se pudo iniciar el certificado.");
