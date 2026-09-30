@@ -51,6 +51,7 @@ export async function POST(request: Request) {
     if (!memberResponse.ok) return NextResponse.json({ error: "No se pudo comprobar la afiliación." }, { status: 502 });
     const members = await memberResponse.json() as Array<{ id: string; numero_afiliado: number; nombre: string; apellidos: string; email: string }>;
     if (!members.length) return NextResponse.json({ error: "No encontramos una afiliación activa con esos datos." }, { status: 401 });
+    if (attempts[0].afiliado_id !== members[0].id) return NextResponse.json({ error: "El intento de test no pertenece a esta afiliación." }, { status: 403 });
 
     const code = `SDO-${new Date().getFullYear()}-${crypto.randomBytes(5).toString("hex").toUpperCase()}`;
     const insert = await fetch(`${url}/rest/v1/certificados`, {
