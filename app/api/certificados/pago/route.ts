@@ -32,13 +32,13 @@ export async function GET(request: Request) {
     if (!url || !key) return new NextResponse("Server not configured", { status: 503 });
 
     const db = await fetch(
-      `${url}/rest/v1/certificados?select=id,codigo,estado_pago,curso_id&codigo=eq.${encodeURIComponent(code)}&limit=1`,
+      `${url}/rest/v1/certificados?select=id,codigo,estado_pago,curso_id,afiliado_id&codigo=eq.${encodeURIComponent(code)}&limit=1`,
       { headers: headers(key), cache: "no-store" }
     );
     if (!db.ok) return new NextResponse("No se pudo consultar el certificado.", { status: 502 });
-    const rows = await db.json() as Array<{ id: string; codigo: string; estado_pago: string; curso_id: string }>;
+    const rows = await db.json() as Array<{ id: string; codigo: string; estado_pago: string; curso_id: string; afiliado_id: string }>;
     if (!rows.length) return new NextResponse("Certificado no encontrado.", { status: 404 });
-    if (rows[0].estado_pago === "pagado") return NextResponse.redirect(new URL(`/certificado/${encodeURIComponent(code)}`, request.url));
+    if (rows[0].estado_pago === "pagado") return NextResponse.redirect(new URL(`/certificado/${encodeURIComponent(rows[0].curso_id)}?pago=ok&codigo=${encodeURIComponent(rows[0].codigo)}`, request.url));
 
     const sid = process.env.MYPOS_SID?.trim();
     const wallet = process.env.MYPOS_WALLET_NUMBER?.trim();
@@ -49,6 +49,14 @@ export async function GET(request: Request) {
     if (!sid || !wallet || !privateKey) {
       return new NextResponse("Falta configurar las credenciales de Checkout de myPOS.", { status: 503 });
     }
+
+    const memberResponse = await fetch(`${url}/rest/v1/afiliados?select=nombre,apellidos,email&id=eq.${encodeURIComponent(rows[0].afiliado_id)}&limit=1`, { headers: headers(key), cache: "no-store" });
+    if (!memberResponse.ok) return new NextResponse("No se pudieron cargar los datos del titular.", { status: 502 });
+    const members = await memberResponse.json() as Array<{ nombre: string; apellidos: string; email: string }>;
+    if (!members.length) return new NextResponse("Titular no encontrado.", { status: 404 });
+    const member = members[0];
+    const firstNames = member.nombre.trim();
+    const familyName = member.apellidos.trim();
 
     const origin = new URL(request.url).origin;
     const data: Record<string, string> = {
@@ -66,8 +74,9 @@ export async function GET(request: Request) {
       CardTokenRequest: "0",
       KeyIndex: keyIndex,
       PaymentParametersRequired: "1",
-      PaymentMethod: "1",
-      Source: "Sindicato de Operarios",
+      CustomerEmail: member.email,
+      CustomerFirstNames: firstNames,
+      CustomerFamilyName: familyName,
     };
     const signature = sign(Object.values(data), privateKey);
     const fields = Object.entries({ ...data, Signature: signature }).map(([name, value]) =>
