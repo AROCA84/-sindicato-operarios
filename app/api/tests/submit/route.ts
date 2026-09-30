@@ -1,8 +1,20 @@
 import { NextResponse } from "next/server";
-import { getCourse } from "@/lib/courses";
+import { allCourses } from "@/lib/academy-catalog";
 import { getExam, PASS_MARK, TOTAL_QUESTIONS } from "@/lib/exam";
 
 export const runtime = "nodejs";
+
+const SUPABASE_TIMEOUT_MS = 10000;
+
+async function supabaseFetch(input: RequestInfo | URL, init: RequestInit) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), SUPABASE_TIMEOUT_MS);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 
 function supabaseConfig() {
   const url = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)?.replace(/\/$/, "");
@@ -30,7 +42,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Datos del test no válidos." }, { status: 400 });
     }
 
-    const course = getCourse(cursoId);
+    const course = allCourses.find((item) => item.id === cursoId);
     if (!course) return NextResponse.json({ error: "Curso no encontrado." }, { status: 404 });
 
     const questions = getExam(course);
@@ -43,7 +55,7 @@ export async function POST(request: Request) {
     if (!url || !key) return NextResponse.json({ error: "La base de datos no está configurada." }, { status: 503 });
     const h = headers(key);
 
-    const memberResponse = await fetch(
+    const memberResponse = await supabaseFetch(
       `${url}/rest/v1/afiliados?select=id,numero_afiliado,email&numero_afiliado=eq.${numero}&email=eq.${encodeURIComponent(email)}&activo=eq.true&limit=1`,
       { headers: h, cache: "no-store" }
     );
@@ -51,7 +63,7 @@ export async function POST(request: Request) {
     const members = await memberResponse.json() as Array<{ id: string; numero_afiliado: number; email: string }>;
     if (!members.length) return NextResponse.json({ error: "No encontramos una afiliación activa con esos datos." }, { status: 401 });
 
-    const insert = await fetch(`${url}/rest/v1/intentos_test`, {
+    const insert = await supabaseFetch(`${url}/rest/v1/intentos_test`, {
       method: "POST",
       headers: { ...h, Prefer: "return=representation" },
       body: JSON.stringify({ afiliado_id: members[0].id, curso_id: cursoId, puntuacion, total: TOTAL_QUESTIONS, aprobado, respuestas: answers }),
