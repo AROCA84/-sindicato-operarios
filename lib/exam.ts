@@ -1132,17 +1132,25 @@ function seededShuffle<T>(items: T[], seed: number): T[] {
 function buildTemarioQuestions(course: Course): ExamQuestion[] {
   const modules = getAllTemario(course);
   const pool: ExamQuestion[] = [];
+  const stems = [
+    (heading: string) => `En el apartado «${heading}» del curso «${course.title}», ¿qué afirmación coincide con el contenido estudiado?`,
+    (heading: string) => `Durante la formación «${course.title}», ¿cuál de estas afirmaciones corresponde al bloque «${heading}»?`,
+    (heading: string) => `Según el contenido desarrollado en «${heading}», ¿cuál es una afirmación correcta para el curso «${course.title}»?`,
+  ];
+  let index = 0;
   for (const module of modules) {
     for (const section of module.lesson.sections ?? []) {
       const bullets = section.bullets ?? [];
       if (bullets.length < 4) continue;
-      const correct = bullets[0];
-      const distractors = bullets.slice(1, 4);
+      const correctIndex = index % 4;
+      const options = bullets.slice(0, 4);
+      const rotated = [...options.slice(correctIndex), ...options.slice(0, correctIndex)] as [string, string, string, string];
       pool.push({
-        q: `Según el temario de «${course.title}», ¿qué aspecto se trabaja en «${section.heading}»?`,
-        options: [correct, ...distractors] as [string, string, string, string],
+        q: stems[index % stems.length](section.heading),
+        options: rotated,
         answer: 0,
       });
+      index += 1;
     }
   }
   return pool;
