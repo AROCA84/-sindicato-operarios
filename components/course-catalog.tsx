@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { allCourses, type Course } from "@/lib/academy-catalog";
+import { allCourses } from "@/lib/academy-catalog";
 
 const categoryIcons: Record<string, CategoryIconName> = {
   "Manutención y Carretillas": "forklift",
@@ -292,7 +292,7 @@ export function CourseCatalog() {
   );
 }
 
-function CourseRow({ course }: { course: Course }) {
+function CourseRow({ course }: { course: (typeof allCourses)[number] }) {
   return (
     <article className="flex items-center gap-3 rounded-xl bg-white p-3 shadow-sm ring-1 ring-slate-200 sm:p-4">
       <div className="hidden h-16 w-20 shrink-0 overflow-hidden rounded-lg sm:block">
