@@ -74,7 +74,7 @@ const trainingGroups: TrainingGroup[] = [
     icon: "shield",
     categories: [
       "Administración y Gestión", "Comercio y Ventas", "Marketing Digital", "Diseño y Contenidos Digitales",
-      "Gestión y Dirección", "Habilidades Profesionales", "Empleo y Carrera Profesional", "Idiomas",
+"Habilidades Profesionales", "Empleo y Carrera Profesional", "Idiomas",
     ],
   },
   {
@@ -193,7 +193,7 @@ export function CourseCatalog() {
           <div className="mt-8 space-y-4">
             <h3 className="mb-4 text-2xl font-black text-navy">Categorías de formación</h3>
             <p className="mb-5 text-sm text-slate-600">
-              Elige un área y despliega sus especialidades. Dentro de cada categoría iremos incorporando todos los cursos y sus tests.
+              Elige un área y despliega sus especialidades. Cada categoría del catálogo cuenta con cursos de estudio y test gratuitos.
             </p>
 
             {trainingGroups.map((group) => {
@@ -239,7 +239,7 @@ export function CourseCatalog() {
                               <span className="min-w-0 flex-1">
                                 <span className="block text-sm font-black uppercase text-navy sm:text-base">{category}</span>
                                 <span className="mt-1 block text-xs text-slate-500">
-                                  {categoryCourses.length > 0 ? `${categoryCourses.length} ${categoryCourses.length === 1 ? "curso" : "cursos"} disponibles` : "Nuevas formaciones próximamente"}
+                                  {categoryCourses.length > 0 ? `${categoryCourses.length} ${categoryCourses.length === 1 ? "curso" : "cursos"} disponibles` : "Formación disponible"}
                                 </span>
                               </span>
                               <span className={`text-2xl font-light text-safety transition-transform ${isOpen ? "rotate-90" : ""}`} aria-hidden="true">›</span>
@@ -253,8 +253,8 @@ export function CourseCatalog() {
                                   </div>
                                 ) : (
                                   <div className="rounded-lg border border-dashed border-safety/50 bg-white p-5 text-center">
-                                    <p className="font-bold text-navy">Próximamente</p>
-                                    <p className="mt-1 text-sm text-slate-500">Estamos preparando cursos y tests para esta categoría.</p>
+                                    <p className="font-bold text-navy">Formación disponible</p>
+                                    <p className="mt-1 text-sm text-slate-500">Esta categoría está preparada para incorporar nuevos cursos y tests.</p>
                                   </div>
                                 )}
                               </div>
@@ -271,7 +271,7 @@ export function CourseCatalog() {
             <div className="mt-6 rounded-xl border-2 border-safety bg-navy p-5 text-white">
               <p className="flex items-center gap-2 text-lg font-black"><span className="flex h-8 w-8 items-center justify-center rounded-md border border-safety/40 bg-safety/10 text-safety"><IndustrialIcon name="safety" /></span> Próximamente</p>
               <p className="mt-1 text-sm text-white/70">
-                Seguimos ampliando el catálogo con nuevas formaciones, especialidades profesionales y tests.
+                El catálogo actual reúne formación gratuita por especialidades y seguirá ampliándose con nuevos cursos y tests.
               </p>
             </div>
           </div>
