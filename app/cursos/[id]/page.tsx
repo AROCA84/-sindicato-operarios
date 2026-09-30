@@ -3,10 +3,10 @@ import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { CourseDetail } from "@/components/course-detail";
-import { courses, getCourse, getTemario } from "@/lib/courses";
+import { allCourses, getAcademyCourse } from "@/lib/academy-catalog";
 
 export function generateStaticParams() {
-  return courses.map((c) => ({ id: c.id }));
+  return allCourses.map((c) => ({ id: c.id }));
 }
 
 export async function generateMetadata({
@@ -15,7 +15,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const course = getCourse(id);
+  const course = getAcademyCourse(id);
   if (!course) return { title: "Curso no encontrado" };
   return {
     title: `${course.title} | Sindicato de Operarios`,
@@ -29,10 +29,10 @@ export default async function CoursePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const course = getCourse(id);
+  const course = getAcademyCourse(id);
   if (!course) notFound();
 
-  const modules = getTemario(course);
+  const modules = course ? (await import("@/lib/academy-catalog")).getAllTemario(course) : [];
 
   return (
     <>
