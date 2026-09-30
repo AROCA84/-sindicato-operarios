@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getCourse } from "@/lib/courses";
+import { allCourses } from "@/lib/academy-catalog";
 import { CertificatePreview } from "@/components/certificate-preview";
 
 type CertificatePageProps = {
@@ -11,7 +11,7 @@ type CertificatePageProps = {
 export default async function CertificatePage({ params, searchParams }: CertificatePageProps) {
   const { id } = await params;
   const { score, total, intento } = await searchParams;
-  const course = getCourse(id);
+  const course = allCourses.find((item) => item.id === id);
   if (!course) notFound();
 
   const scoreNumber = Number(score ?? 0);
