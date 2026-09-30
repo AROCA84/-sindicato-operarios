@@ -46,12 +46,12 @@ export function SiteHeader() {
                 </Link>
               );
             })}
-            <Link href="/afiliarse" className="rounded-lg bg-safety px-5 py-2.5 text-sm font-black uppercase tracking-wide text-navy hover:bg-safety-dark">
+            <Link href="/afiliarse" className="group inline-flex items-center gap-2 rounded-md border border-safety bg-safety px-5 py-2.5 text-sm font-black uppercase tracking-[0.06em] text-navy shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-safety-dark hover:shadow-md focus:outline-none focus:ring-2 focus:ring-safety focus:ring-offset-2 focus:ring-offset-navy-light">
               Afíliate gratis
             </Link>
           </nav>
 
-          <button type="button" onClick={() => setOpen((v) => !v)} className="flex h-11 w-11 items-center justify-center rounded-lg text-white md:hidden" aria-label={open ? "Cerrar menú" : "Abrir menú"} aria-expanded={open}>
+          <button type="button" onClick={() => setOpen((v) => !v)} className="flex h-11 w-11 items-center justify-center rounded-md border border-white/10 bg-white/5 text-white transition-colors hover:bg-white/10 hover:text-safety md:hidden" aria-label={open ? "Cerrar menú" : "Abrir menú"} aria-expanded={open}>
             {open ? <CloseIcon /> : <MenuIcon />}
           </button>
         </div>
@@ -64,7 +64,7 @@ export function SiteHeader() {
                   {item.label}
                 </Link>
               ))}
-              <Link href="/afiliarse" onClick={() => setOpen(false)} className="mt-2 rounded-lg bg-safety px-4 py-3 text-center text-sm font-black uppercase text-navy">
+              <Link href="/afiliarse" onClick={() => setOpen(false)} className="mt-2 inline-flex items-center justify-center gap-2 rounded-md border border-safety bg-safety px-4 py-3 text-center text-sm font-black uppercase tracking-[0.06em] text-navy transition-all duration-200 hover:bg-safety-dark focus:outline-none focus:ring-2 focus:ring-safety">
                 Afíliate gratis
               </Link>
             </div>
