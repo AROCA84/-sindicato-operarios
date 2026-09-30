@@ -328,7 +328,7 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
                 <div className="grid gap-4 border-t border-slate-200 pt-5 sm:grid-cols-[1fr_150px] sm:items-center">
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="rounded-xl bg-slate-50 p-3"><p className="text-[8px] font-black uppercase tracking-wider text-slate-400">Nº de afiliado</p><p className="mt-1 text-sm font-black text-[#101820]">{affiliationNumber}</p></div>
-                    <div className="rounded-xl bg-slate-50 p-3"><p className="text-[8px] font-black uppercase tracking-wider text-slate-400">Código de verificación</p><p className="mt-1 text-sm font-black text-[#101820]">{certificateCode}</p></div>
+                    <div className="rounded-xl bg-slate-50 p-3"><p className="text-[8px] font-black uppercase tracking-wider text-slate-400">Código de verificación</p><p className="mt-1 text-sm font-black text-[#101820]">{affiliationNumber}</p></div>
                     <div className="rounded-xl bg-slate-50 p-3 sm:col-span-2"><p className="text-[8px] font-black uppercase tracking-wider text-slate-400">Correo electrónico</p><p className="mt-1 break-all text-sm font-bold text-[#101820]">{email}</p></div>
                   </div>
                   <div className="mx-auto text-center">
