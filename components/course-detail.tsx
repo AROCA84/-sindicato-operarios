@@ -61,12 +61,27 @@ export function CourseDetail({ course, modules }: CourseDetailProps) {
                       <h3 className="mt-1 text-xl font-black uppercase">{module.title}</h3>
                       <h4 className="mt-4 font-bold text-white">{module.lesson.title}</h4>
                       <p className="mt-2 text-sm leading-relaxed text-white/60">{module.lesson.intro}</p>
-                      <div className="mt-5 space-y-3">
-                        {module.lesson.points.map((point, pointIndex) => (
+                      <div className="mt-6 space-y-7">
+                        {module.lesson.sections?.map((section, sectionIndex) => (
+                          <section key={`${module.id}-section-${sectionIndex}`} className="border-t border-white/10 pt-5">
+                            <h5 className="text-base font-black text-white">{section.heading}</h5>
+                            <p className="mt-3 text-sm leading-7 text-white/75">{section.text}</p>
+                            {section.bullets?.length ? (
+                              <ul className="mt-3 space-y-2 pl-5 list-disc marker:text-safety">
+                                {section.bullets.map((bullet, bulletIndex) => (
+                                  <li key={`${module.id}-section-${sectionIndex}-bullet-${bulletIndex}`} className="text-sm leading-6 text-white/65">{bullet}</li>
+                                ))}
+                              </ul>
+                            ) : null}
+                          </section>
+                        ))}
+                        {!module.lesson.sections?.length && module.lesson.points.map((point, pointIndex) => (
                           <div key={`${module.id}-point-${pointIndex}`} className="flex items-start gap-3">
                             <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-safety" />
                             <p className="text-sm leading-relaxed text-white/70">{point}</p>
                           </div>
+                        ))}
+                      </div>
                         ))}
                       </div>
                     </div>
