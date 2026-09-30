@@ -3,7 +3,108 @@ export type Category = "Manutención y Carretillas" | "Elevación y Plataformas"
 export type Course = { id: string; title: string; description: string; category: Category; image: string };
 export const categories: Category[] = ["Manutención y Carretillas", "Elevación y Plataformas", "Grúas y Equipos de Elevación", "Maquinaria y Movimiento de Tierras", "Logística y Almacén", "Prevención de Riesgos Laborales", "Manipulación y Seguridad"];
 
-export type Lesson = { title: string; intro: string; points: string[] };
+export type LessonSection = { heading: string; text: string; bullets?: string[] };\nexport type Lesson = { title: string; intro: string; points: string[]; sections?: LessonSection[]; references?: string[] };
+export type Module = { id: string; title: string; lesson: Lesson };
+
+const M = (id: string, title: string, lesson: string, intro: string, points: string[]): Module => ({ id, title, lesson: { title: lesson, intro, points } });
+
+const temarios: Record<string, Module[]> = {
+  carretillero: [
+    {
+      id: "1",
+      title: "Módulo 1: La carretilla elevadora",
+      lesson: {
+        title: "Tipos, componentes, capacidades y principios de funcionamiento",
+        intro: "Este tema introduce la carretilla elevadora como equipo de manutención y explica los elementos que el operador debe identificar antes de utilizarla. El contenido se ha elaborado a partir de referencias técnicas profesionales del INSST y se ha redactado de forma original para el aula de Sindicato de Operarios.",
+        points: [
+          "Diferencias entre carretillas frontales contrapesadas y carretillas retráctiles.",
+          "Mástil, horquillas, tablero portahorquillas, contrapeso, ruedas y puesto de conducción.",
+          "Capacidad nominal, centro de carga, altura de elevación y diagramas de carga.",
+          "Placa de características, manual del fabricante y dispositivos de seguridad."
+        ],
+        sections: [
+          { heading: "1.1. ¿Qué es una carretilla elevadora?", text: "Es un equipo móvil destinado principalmente a transportar, empujar, tirar o elevar cargas. Para trabajar con seguridad no basta con conocer los mandos: hay que relacionar el tipo de máquina, el implemento, la carga, el entorno y las condiciones de trabajo. La configuración y las limitaciones concretas siempre deben comprobarse en la documentación del fabricante.", bullets: ["La carretilla debe utilizarse para las funciones previstas.", "La carga debe ser compatible con el equipo y estar preparada para su manipulación.", "El operador debe conocer las instrucciones de utilización antes de comenzar el trabajo."] },
+          { heading: "1.2. Carretilla frontal y retráctil", text: "La frontal contrapesada utiliza un contrapeso trasero para compensar la carga situada delante del eje motriz. La retráctil está diseñada para trabajar especialmente en pasillos y almacenamiento en altura mediante el desplazamiento del mástil o del conjunto de carga. Aunque ambas son carretillas elevadoras, su comportamiento, radio de giro, visibilidad y forma de trabajo no son idénticos.", bullets: ["No se debe extrapolar el comportamiento de una máquina a otra.", "La configuración del mástil influye en estabilidad y capacidad.", "El operador debe recibir formación específica para el equipo que vaya a utilizar."] },
+          { heading: "1.3. Elementos principales", text: "Antes de trabajar hay que saber localizar los componentes que intervienen directamente en la seguridad: mástil, horquillas, tablero, cadenas, cilindros, ruedas, dirección, frenos, asiento, cinturón, protección superior, contrapeso, mandos y dispositivos de señalización. Las horquillas y sus elementos de fijación requieren especial atención porque soportan directamente la carga.", bullets: ["No utilizar horquillas dobladas, fisuradas o con desgaste peligroso.", "Los dispositivos de protección no deben anularse ni modificarse.", "Cualquier anomalía debe comunicarse y, si afecta a la seguridad, impedir el uso del equipo."] },
+          { heading: "1.4. Capacidad y centro de carga", text: "La capacidad de una carretilla no es una cifra que pueda aplicarse a cualquier situación. La carga máxima depende de la configuración del equipo, la altura y el centro de carga, entre otros factores indicados por el fabricante. A medida que cambian las condiciones de la carga también puede cambiar la capacidad admisible.", bullets: ["Consultar siempre la placa o diagrama de cargas.", "No superar la capacidad indicada para la configuración utilizada.", "Mantener la carga centrada y lo más próxima al respaldo posible cuando la operación lo permita."] },
+          { heading: "1.5. Puesto de conducción y controles", text: "El operador debe identificar antes de iniciar la marcha los mandos de dirección, freno, acelerador o control de avance, elevación, inclinación, señal acústica, iluminación y parada o dispositivos de emergencia que incorpore la máquina. El asiento y los sistemas de retención deben utilizarse conforme a las instrucciones del fabricante.", bullets: ["Realizar una comprobación funcional antes de trabajar.", "Mantener las manos y los pies dentro de la zona prevista para el operador.", "No transportar personas en lugares no diseñados para ello."] }
+        ],
+        references: ["INSST · NTP 713: Carretillas elevadoras automotoras (I): conocimientos básicos para la prevención de riesgos.", "INSST · NTP 214: Carretillas elevadoras (referencia histórica sustituida por la serie NTP 713-715)."]
+      }
+    },
+    {
+      id: "2",
+      title: "Módulo 2: Seguridad y PRL",
+      lesson: {
+        title: "Riesgos, medidas preventivas, circulación y protección",
+        intro: "La mayor parte de los accidentes con carretillas se relaciona con la interacción entre máquina, carga, operador y entorno. Este tema desarrolla las medidas preventivas que deben aplicarse antes, durante y después de cada operación.",
+        points: [
+          "Atropellos, golpes, atrapamientos, vuelcos y caída o desplazamiento de cargas.",
+          "Separación entre peatones y equipos móviles y control de zonas de visibilidad reducida.",
+          "Uso de EPI adecuados al riesgo y mantenimiento de la zona de trabajo.",
+          "Revisión previa, comunicación de defectos y prohibición de utilizar equipos inseguros."
+        ],
+        sections: [
+          { heading: "2.1. Identificación de riesgos", text: "Antes de comenzar hay que observar el recorrido, la zona de carga y descarga, los cruces, puertas, rampas, estanterías, obstáculos, desniveles y presencia de peatones. También deben considerarse las características de la mercancía y cualquier condición que pueda modificar la estabilidad o la visibilidad.", bullets: ["Atropello o golpe a peatones.", "Caída de la carga o desplazamiento de la mercancía.", "Vuelco lateral o longitudinal.", "Atrapamiento contra estructuras, estanterías o vehículos."] },
+          { heading: "2.2. Circulación segura", text: "La circulación debe adaptarse al entorno. La velocidad debe permitir detener la carretilla dentro del espacio visible y libre de obstáculos. En cruces o zonas con visibilidad limitada se deben aplicar las medidas establecidas por la organización, como señalización, espejos, reducción de velocidad o señal acústica cuando corresponda.", bullets: ["Mantener distancia de seguridad.", "Reducir la velocidad en curvas, cruces y zonas congestionadas.", "Evitar circular con la carga elevada.", "No adelantar ni maniobrar de forma que se ponga en peligro a otras personas."] },
+          { heading: "2.3. Peatones y zonas compartidas", text: "Cuando peatones y carretillas comparten espacio debe existir una organización preventiva clara. Los recorridos, pasos, zonas de carga y zonas de exclusión deben estar señalizados y mantenerse libres. El operador no debe asumir que un peatón ha visto la carretilla.", bullets: ["Extremar la precaución en puertas y salidas.", "Comprobar los ángulos muertos antes de avanzar.", "Detenerse si la trayectoria no está despejada.", "Respetar las instrucciones internas de circulación."] },
+          { heading: "2.4. EPI y comportamiento profesional", text: "Los equipos de protección dependen de los riesgos presentes en cada puesto. El calzado de seguridad, la ropa de trabajo y otros EPI deben seleccionarse conforme a la evaluación de riesgos. La ropa suelta, objetos que puedan engancharse y comportamientos como subir a la carga o utilizar el equipo de forma improvisada aumentan el riesgo.", bullets: ["Utilizar el EPI exigido para el puesto.", "Mantener el puesto de conducción ordenado.", "No realizar reparaciones para las que no se esté autorizado."] },
+          { heading: "2.5. Comprobación antes de arrancar", text: "La inspección previa permite detectar defectos antes de que se conviertan en una situación peligrosa. Deben comprobarse, según el tipo de equipo y las instrucciones del fabricante, frenos, dirección, ruedas, horquillas, mástil, cadenas, sistemas hidráulicos, señalización, cinturón y dispositivos de seguridad.", bullets: ["Si existe un defecto que compromete la seguridad, no se debe utilizar la máquina.", "Comunicar la anomalía por el procedimiento establecido.", "No anular alarmas ni dispositivos de protección."] }
+        ],
+        references: ["INSST · NTP 714: Carretillas elevadoras automotoras (II): principales peligros y medidas preventivas."]
+      }
+    },
+    {
+      id: "3",
+      title: "Módulo 3: Manejo y estabilidad",
+      lesson: {
+        title: "Carga, estabilidad, circulación, rampas y almacenamiento",
+        intro: "La estabilidad de una carretilla depende de la relación entre la máquina, la carga, el centro de gravedad, la altura y las condiciones del terreno. Este tema convierte esos principios en pautas prácticas de manejo.",
+        points: [
+          "Triángulo de estabilidad y desplazamiento del centro de gravedad.",
+          "Recogida, transporte y depósito de cargas de forma controlada.",
+          "Rampas, pendientes, giros, visibilidad y circulación marcha atrás.",
+          "Apilado y desapilado respetando capacidad, estabilidad y condiciones de la estantería."
+        ],
+        sections: [
+          { heading: "3.1. Principio de estabilidad", text: "La carretilla debe mantenerse dentro de una condición estable durante la manipulación. La posición de la carga, su peso, la altura de elevación, la inclinación del mástil, la velocidad y las fuerzas producidas durante los giros influyen en la estabilidad. Elevar una carga o realizar una maniobra brusca puede modificar significativamente el comportamiento del conjunto.", bullets: ["Mantener la carga estable y centrada.", "Evitar giros bruscos y cambios repentinos de velocidad.", "No elevar una carga más de lo necesario durante el desplazamiento."] },
+          { heading: "3.2. Recogida de la carga", text: "Antes de introducir las horquillas se debe comprobar que la carga está preparada y que la aproximación puede hacerse sin golpear personas, palets, estanterías u otros equipos. Las horquillas deben entrar de forma adecuada y la carga debe quedar suficientemente apoyada antes de iniciar el transporte.", bullets: ["Comprobar el estado del palet o soporte.", "Alinear la carretilla con la carga.", "Introducir las horquillas de forma segura y uniforme.", "Inclinar y asegurar la carga según el procedimiento y fabricante."] },
+          { heading: "3.3. Transporte", text: "Durante el desplazamiento la carga debe mantenerse en una posición segura y la trayectoria debe permanecer libre. Si la carga impide ver hacia delante, se debe aplicar el procedimiento de circulación previsto, que puede requerir desplazamiento marcha atrás u otras medidas.", bullets: ["Mantener velocidad controlada.", "Evitar transportar cargas inestables.", "Mirar en el sentido de desplazamiento y comprobar el entorno.", "Usar señal acústica o sistemas de advertencia cuando proceda."] },
+          { heading: "3.4. Rampas y pendientes", text: "Las pendientes requieren especial atención porque cambian la distribución de fuerzas y pueden afectar al equilibrio de la carretilla y la carga. La orientación correcta depende del tipo de máquina y de la situación; siempre deben seguirse las instrucciones del fabricante y el procedimiento del centro de trabajo.", bullets: ["No girar transversalmente en una pendiente salvo que el procedimiento lo contemple.", "Mantener la carga controlada.", "Comprobar el estado y resistencia de la superficie.", "No realizar maniobras improvisadas."] },
+          { heading: "3.5. Apilado y estanterías", text: "El almacenamiento exige comprobar la capacidad y el estado de la estantería, la resistencia del palet y el espacio disponible. La aproximación debe ser lenta y controlada. No se debe utilizar una estantería dañada ni colocar cargas de forma que puedan sobresalir o caer.", bullets: ["Respetar la capacidad de la ubicación.", "Alinear la carga antes de depositarla.", "Evitar impactos contra largueros y protecciones.", "Mantener las zonas de paso y emergencia despejadas."] }
+        ],
+        references: ["INSST · NTP 713, NTP 714 y NTP 715 · criterios técnicos sobre estabilidad, riesgos y utilización segura."]
+      }
+    },
+    {
+      id: "4",
+      title: "Módulo 4: Mantenimiento y emergencias",
+      lesson: {
+        title: "Inspección, mantenimiento, estacionamiento y actuación ante incidencias",
+        intro: "El mantenimiento preventivo y la actuación ordenada ante una incidencia forman parte de la seguridad del operador. Una carretilla no debe continuar trabajando cuando presenta un defecto que pueda comprometer la seguridad.",
+        points: [
+          "Inspección de frenos, dirección, ruedas, mástil, horquillas, hidráulica y señalización.",
+          "Baterías, carga, repostaje y precauciones según el tipo de energía.",
+          "Estacionamiento, descenso de horquillas, freno e inmovilización.",
+          "Actuación ante avería, caída de carga, incendio, vuelco u otra emergencia."
+        ],
+        sections: [
+          { heading: "4.1. Mantenimiento preventivo", text: "El mantenimiento debe realizarse conforme a las instrucciones del fabricante y por personal autorizado cuando se trate de operaciones que requieran cualificación. El operador puede realizar las comprobaciones previstas para su puesto, pero no debe intervenir en sistemas para los que no esté autorizado.", bullets: ["Revisar frenos y dirección.", "Comprobar ruedas y elementos de rodadura.", "Observar fugas hidráulicas y daños visibles.", "Comprobar dispositivos de señalización y seguridad."] },
+          { heading: "4.2. Baterías y repostaje", text: "La energía de la carretilla introduce riesgos específicos. Las baterías, cargadores y sistemas de repostaje deben utilizarse en las zonas previstas, con ventilación y medidas de seguridad adecuadas. El procedimiento concreto depende de si el equipo es eléctrico, diésel, GLP u otro sistema.", bullets: ["Seguir el procedimiento del fabricante.", "No fumar ni generar fuentes de ignición en zonas donde esté prohibido.", "Utilizar los EPI establecidos para la operación.", "Comunicar daños, fugas o calentamientos anómalos."] },
+          { heading: "4.3. Estacionamiento", text: "Al finalizar el trabajo se debe dejar la carretilla en una posición que no genere peligro. Las horquillas deben quedar en una posición segura, el equipo debe inmovilizarse y se debe retirar la llave o aplicar el sistema de control previsto para evitar usos no autorizados.", bullets: ["Estacionar en la zona asignada.", "No bloquear salidas, extintores ni vías de evacuación.", "Aplicar freno de estacionamiento.", "No abandonar el equipo con la carga elevada."] },
+          { heading: "4.4. Avería o defecto", text: "Cuando aparece una anomalía que pueda afectar a la seguridad, la prioridad es detener la operación y evitar que otra persona utilice el equipo. La avería debe comunicarse por el procedimiento establecido y la máquina debe quedar identificada o retirada del servicio cuando corresponda.", bullets: ["Detenerse en una zona segura.", "Bajar la carga o dejar el equipo en condición segura si es posible.", "No intentar reparaciones no autorizadas.", "Informar de forma precisa del defecto observado."] },
+          { heading: "4.5. Emergencias y vuelco", text: "Ante una emergencia se debe mantener la calma y seguir el procedimiento del centro de trabajo. En caso de vuelco, el comportamiento correcto depende del tipo de máquina y de las instrucciones del fabricante; no se debe saltar impulsivamente del equipo. La prioridad es proteger al operador y a las personas del entorno y activar la ayuda prevista.", bullets: ["Activar la emergencia y avisar cuando sea necesario.", "Mantener alejadas a las personas de la zona de peligro.", "No acercarse a una carga inestable.", "Seguir las instrucciones específicas del fabricante y del plan de emergencia."] }
+        ],
+        references: ["INSST · NTP 715: Carretillas elevadoras automotoras (III): mantenimiento y utilización.", "INSST · NTP 714: principales peligros y medidas preventivas."]
+      }
+    }
+  ],
+ort type Category = "Manutención y Carretillas" | "Elevación y Plataformas" | "Grúas y Equipos de Elevación" | "Maquinaria y Movimiento de Tierras" | "Logística y Almacén" | "Prevención de Riesgos Laborales" | "Manipulación y Seguridad";
+
+export type Course = { id: string; title: string; description: string; category: Category; image: string };
+export const categories: Category[] = ["Manutención y Carretillas", "Elevación y Plataformas", "Grúas y Equipos de Elevación", "Maquinaria y Movimiento de Tierras", "Logística y Almacén", "Prevención de Riesgos Laborales", "Manipulación y Seguridad"];
+
+export type LessonSection = { heading: string; text: string; bullets?: string[] };\nexport type Lesson = { title: string; intro: string; points: string[]; sections?: LessonSection[]; references?: string[] };
 export type Module = { id: string; title: string; lesson: Lesson };
 
 const M = (id: string, title: string, lesson: string, intro: string, points: string[]): Module => ({ id, title, lesson: { title: lesson, intro, points } });
