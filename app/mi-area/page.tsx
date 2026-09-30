@@ -10,8 +10,8 @@ type Member = { nombre: string; apellidos: string; email: string; numero_afiliad
 export default function MiAreaPage() {
   const [loaded, setLoaded] = useState(false);
   const [logged, setLogged] = useState(false);
+  const [loginNombre, setLoginNombre] = useState("");
   const [loginEmail, setLoginEmail] = useState("");
-  const [loginNumero, setLoginNumero] = useState("");
   const [loginError, setLoginError] = useState("");
   const [logging, setLogging] = useState(false);
   const [qr, setQr] = useState("");
@@ -45,7 +45,7 @@ export default function MiAreaPage() {
     setLoginError("");
     setLogging(true);
     try {
-      const response = await fetch("/api/mi-area/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: loginEmail, numero: loginNumero }) });
+      const response = await fetch("/api/mi-area/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nombre: loginNombre, email: loginEmail }) });
       const result = await response.json();
       if (!response.ok || !result.ok) throw new Error(result.error || "No se ha podido acceder.");
       const member = result.afiliado as Member;
@@ -54,8 +54,8 @@ export default function MiAreaPage() {
       localStorage.setItem("sdo-afiliado-apellidos", member.apellidos);
       localStorage.setItem("sdo-afiliado-email", member.email);
       localStorage.setItem("sdo-numero-afiliado", String(member.numero_afiliado));
+      setLoginNombre("");
       setLoginEmail("");
-      setLoginNumero("");
       loadArea();
     } catch (error) {
       setLoginError(error instanceof Error ? error.message : "No se ha podido acceder.");
@@ -71,10 +71,10 @@ export default function MiAreaPage() {
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-navy text-xl font-black text-safety">SO</div>
         <p className="mt-6 text-xs font-black uppercase tracking-[0.2em] text-safety-dark">Área del afiliado</p>
         <h1 className="mt-2 text-3xl font-black">Accede a Mi área</h1>
-        <p className="mt-3 text-sm leading-6 text-slate-600">Introduce el correo con el que te afiliaste y tu número de afiliado.</p>
+        <p className="mt-3 text-sm leading-6 text-slate-600">Introduce tu nombre y el correo con el que te afiliaste.</p>
         <form onSubmit={login} className="mt-7 space-y-4">
+          <div><label htmlFor="access-nombre" className="text-sm font-bold">Nombre</label><input id="access-nombre" required type="text" value={loginNombre} onChange={(e) => setLoginNombre(e.target.value)} autoComplete="given-name" className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-safety" placeholder="Tu nombre" /></div>
           <div><label htmlFor="access-email" className="text-sm font-bold">Correo electrónico</label><input id="access-email" required type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} autoComplete="email" className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-safety" placeholder="tu@email.com" /></div>
-          <div><label htmlFor="access-numero" className="text-sm font-bold">Número de afiliado</label><input id="access-numero" required inputMode="numeric" value={loginNumero} onChange={(e) => setLoginNumero(e.target.value.replace(/\D/g, ""))} className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-safety" placeholder="Ej. 1137" /></div>
           {loginError && <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-700">{loginError}</p>}
           <button disabled={logging} className="w-full rounded-xl bg-safety px-5 py-4 font-black disabled:opacity-60">{logging ? "Comprobando…" : "Entrar en Mi área"}</button>
         </form>
