@@ -14,6 +14,7 @@
   html { scroll-behavior: smooth; }
   body {
     background-color: #ffffff;
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
     color: var(--color-navy);
     -webkit-font-smoothing: antialiased;
   }
