@@ -79,8 +79,6 @@ export function CourseDetail({ course, modules }: CourseDetailProps) {
                           <div key={`${module.id}-point-${pointIndex}`} className="flex items-start gap-3">
                             <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-safety" />
                             <p className="text-sm leading-relaxed text-white/70">{point}</p>
-                          </div>
-                        ))}
                       </div>
                         ))}
                       </div>
