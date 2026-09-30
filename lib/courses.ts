@@ -100,23 +100,6 @@ const temarios: Record<string, Module[]> = {
       }
     }
   ],
-ort type Category = "Manutención y Carretillas" | "Elevación y Plataformas" | "Grúas y Equipos de Elevación" | "Maquinaria y Movimiento de Tierras" | "Logística y Almacén" | "Prevención de Riesgos Laborales" | "Manipulación y Seguridad";
-
-export type Course = { id: string; title: string; description: string; category: Category; image: string };
-export const categories: Category[] = ["Manutención y Carretillas", "Elevación y Plataformas", "Grúas y Equipos de Elevación", "Maquinaria y Movimiento de Tierras", "Logística y Almacén", "Prevención de Riesgos Laborales", "Manipulación y Seguridad"];
-
-export type LessonSection = { heading: string; text: string; bullets?: string[] };\nexport type Lesson = { title: string; intro: string; points: string[]; sections?: LessonSection[]; references?: string[] };
-export type Module = { id: string; title: string; lesson: Lesson };
-
-const M = (id: string, title: string, lesson: string, intro: string, points: string[]): Module => ({ id, title, lesson: { title: lesson, intro, points } });
-
-const temarios: Record<string, Module[]> = {
-  carretillero: [
-    M("1", "Módulo 1: La carretilla elevadora", "Tipos, componentes y capacidades", "Conoce las carretillas frontales y retráctiles, sus partes y la información esencial de la placa de características.", ["Carretilla frontal y retráctil: diferencias y usos.", "Mástil, horquillas, contrapeso, ruedas y sistemas de seguridad.", "Capacidad nominal, centro de carga y diagrama de cargas.", "Mandos, asiento, cinturón y documentación del equipo."]),
-    M("2", "Módulo 2: Seguridad y PRL", "Riesgos y prevención", "La operación segura empieza antes de arrancar: identifica riesgos y aplica las medidas preventivas.", ["Ley 31/1995 de PRL y obligaciones del operador.", "EPI y señalización de circulación.", "Atropellos, atrapamientos, vuelcos y caída de cargas.", "Revisión preoperacional y comunicación de averías."]),
-    M("3", "Módulo 3: Manejo y estabilidad", "Carga, circulación y maniobras", "Aprende los principios de estabilidad y las técnicas básicas para recoger, transportar y depositar cargas.", ["Triángulo de estabilidad y centro de gravedad.", "Recogida y transporte de cargas bajas y estabilizadas.", "Rampas, pendientes, giros, visibilidad y marcha atrás.", "Apilado, desapilado y trabajo en estanterías."]),
-    M("4", "Módulo 4: Mantenimiento y emergencias", "Revisión, estacionamiento y actuación ante incidencias", "Una revisión correcta y una actuación ordenada reducen el riesgo de accidentes.", ["Checklist diario: frenos, dirección, ruedas, mástil, horquillas y fugas.", "Baterías, repostaje y mantenimiento básico.", "Estacionamiento seguro y retirada de llave.", "Actuación ante vuelco, avería, caída de carga o emergencia."]),
-  ],
   pemp: [
     M("1", "Módulo 1: Tipos de PEMP", "Plataformas de tijera y brazo", "Conoce los tipos de plataformas elevadoras y sus elementos principales.", ["PEMP de tijera, articulada y telescópica.", "Cesta, mástil/brazo, estabilizadores y controles.", "Capacidad de plataforma y limitaciones del fabricante.", "Manual, marcado y señalización del equipo."]),
     M("2", "Módulo 2: Trabajo seguro en altura", "Estabilidad, terreno y EPI", "La estabilidad y la protección contra caídas son esenciales durante el trabajo en altura.", ["Inspección del terreno y obstáculos.", "Estabilizadores y condiciones de viento.", "Arnés y punto de anclaje cuando proceda.", "Distancias de seguridad y riesgos eléctricos."]),
