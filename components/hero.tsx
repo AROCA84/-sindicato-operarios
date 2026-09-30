@@ -6,27 +6,27 @@ import Link from "next/link";
 const slides = [
   {
     image: "/hero/hero-1.png",
-    tag: "Afiliación gratuita",
-    title: "Únete al Sindicato de Operarios.",
-    text: "Afiliación gratuita y de por vida para acceder a formación profesional pensada para operarios.",
+    tag: "Protección legal y personal",
+    title: "Defensa y apoyo cuando más lo necesitas.",
+    text: "Defensa jurídica ante despidos, sanciones o conflictos laborales. Representación y acompañamiento en reuniones laborales y respaldo de la caja de resistencia en situaciones específicas, como huelgas prolongadas.",
   },
   {
     image: "/hero/hero-2.png",
-    tag: "Formación profesional",
-    title: "Formación para operarios que quieren avanzar.",
-    text: "Accede a cursos y temarios de carretillas, PEMP, puente grúa, maquinaria, logística y prevención.",
+    tag: "Mejoras económicas y laborales",
+    title: "Defendemos mejores condiciones laborales.",
+    text: "Negociación colectiva, mejores condiciones salariales, regulación de horas extras y turnos especiales, mejores condiciones de vacaciones y negociación de medidas para el futuro laboral y la jubilación.",
   },
   {
     image: "/hero/hero-3.png",
-    tag: "Tests gratuitos",
-    title: "Estudia. Haz el test. Comprueba tu resultado.",
-    text: "Estudia a tu ritmo y realiza los tests de tus cursos sin pagar. Todo desde el móvil.",
+    tag: "Ventajas de pertenecer al Sindicato",
+    title: "Más apoyo. Más oportunidades.",
+    text: "Afiliación gratuita y de por vida, formación desde 0 €, acceso a beneficios y servicios para afiliados y apoyo y representación en el ámbito laboral.",
   },
   {
     image: "/hero/hero-1.png",
-    tag: "Tu progreso",
-    title: "Ten tu formación siempre a mano.",
-    text: "Desde Mi Área puedes consultar tu afiliación, cursos realizados y progreso formativo.",
+    tag: "Formación gratuita",
+    title: "Estudia y haz tus tests gratis.",
+    text: "Accede a cursos y temarios, estudia a tu ritmo y realiza los tests sin pagar. Solo pagas al final si, después de aprobar, quieres obtener tu certificado.",
   },
 ];
 
