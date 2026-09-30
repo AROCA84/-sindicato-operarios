@@ -3,11 +3,11 @@ import { NextResponse } from "next/server";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    const nombre = String(body.nombre || "").trim();
     const email = String(body.email || "").trim().toLowerCase();
-    const numero = String(body.numero || "").trim();
 
-    if (!email || !/^\d+$/.test(numero)) {
-      return NextResponse.json({ ok: false, error: "Introduce tu correo y número de afiliado." }, { status: 400 });
+    if (!nombre || !email || !/^\S+@\S+\.\S+$/.test(email)) {
+      return NextResponse.json({ ok: false, error: "Introduce tu nombre y correo electrónico." }, { status: 400 });
     }
 
     const url = process.env.SUPABASE_URL;
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
 
     const rows = await response.json();
     if (!Array.isArray(rows) || !rows[0]) {
-      return NextResponse.json({ ok: false, error: "No encontramos una afiliación activa con esos datos." }, { status: 401 });
+      return NextResponse.json({ ok: false, error: "No encontramos una afiliación activa con ese nombre y correo." }, { status: 401 });
     }
 
     return NextResponse.json({ ok: true, afiliado: rows[0] });
