@@ -28,10 +28,16 @@ export function TemarioDownload({ course, modules }: { course: Course; modules: 
         <h2>${escapeHtml(module.title)}</h2>
         <h3>${escapeHtml(module.lesson.title)}</h3>
         <p class="intro">${escapeHtml(module.lesson.intro)}</p>
-        <h4>Contenido del tema</h4>
-        <ul>
-          ${module.lesson.points.map((point) => `<li>${escapeHtml(point)}</li>`).join("")}
-        </ul>
+        <h4>Desarrollo completo del tema</h4>
+        ${module.lesson.sections?.length ? module.lesson.sections.map((section) => `
+          <div class="section-block">
+            <h4>${escapeHtml(section.heading)}</h4>
+            <p>${escapeHtml(section.text)}</p>
+            ${section.bullets?.length ? \`<ul>${section.bullets.map((bullet) => \`<li>${escapeHtml(bullet)}</li>\`).join("")}</ul>\` : ""}
+          </div>
+        `).join("") : `
+          <ul>${module.lesson.points.map((point) => \`<li>${escapeHtml(point)}</li>\`).join("")}</ul>
+        `}
         <div class="study-note">
           <strong>Objetivo de estudio</strong>
           <p>Lee y comprende todos los puntos de este tema antes de pasar al siguiente. El test final incluirá preguntas relacionadas con los contenidos de esta formación.</p>
