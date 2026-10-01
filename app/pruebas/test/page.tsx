@@ -11,7 +11,7 @@ export default function TestPruebaPage() {
   const score = Math.max(PASS_MARK, Math.min(questions.length, PASS_MARK + 2));
   const answers = questions.map((q, i) => (i < score ? q.answer : (q.answer + 1) % q.options.length));
   const attemptId = "PRUEBA-INTERNA";
-  const certificateUrl = `/certificado/${course.id}?score=${score}&total=${questions.length}&intento=${encodeURIComponent(attemptId)}`;
+  const certificateUrl = `/certificado/${course.id}?score=${score}&total=${questions.length}&intento=${encodeURIComponent(attemptId)}&prueba=1`;
 
   return (
     <main className="min-h-screen bg-slate-50 px-5 py-10 text-slate-900">
