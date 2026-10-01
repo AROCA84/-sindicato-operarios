@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     const h = headers(key);
 
     const memberResponse = await supabaseFetch(
-      `${url}/rest/v1/afiliados?select=id,numero_afiliado,email&numero_afiliado=eq.${numero}&email=eq.${encodeURIComponent(email)}&activo=eq.true&limit=1`,
+      `${url}/rest/v1/afiliados?select=id,numero_afiliado,email,activo&numero_afiliado=eq.${numero}&email=eq.${encodeURIComponent(email)}&limit=1`,
       { headers: h, cache: "no-store" }
     );
     if (!memberResponse.ok) return NextResponse.json({ error: "No se pudo comprobar la afiliación." }, { status: 502 });
