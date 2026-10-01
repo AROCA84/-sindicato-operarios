@@ -41,6 +41,8 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
   const [paymentUrl, setPaymentUrl] = useState(PAYMENT_URL);
   const [affiliationNumber, setAffiliationNumber] = useState("");
   const [error, setError] = useState("");
+  const searchParams = useSearchParams();
+  const internalTest = searchParams.get("prueba") === "1";
 
   useEffect(() => {
     setAffiliationNumber(window.localStorage.getItem("sdo-numero-afiliado") || "");
@@ -48,7 +50,12 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
     if (storedName) setName(storedName);
     const storedEmail = window.localStorage.getItem("sdo-afiliado-email");
     if (storedEmail) setEmail(storedEmail);
-  }, []);
+    if (internalTest) {
+      setCertificateCode("SDO-PRUEBA-INTERNA");
+      setPaymentStarted(true);
+      setPaymentConfirmed(false);
+    }
+  }, [internalTest]);
 
   const verificationUrl = typeof window !== "undefined"
     ? `${window.location.origin}/verificar?codigo=${encodeURIComponent(certificateCode)}`
@@ -56,7 +63,15 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
 
   const canPreview = name.trim().length >= 3 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
+  async function simulateInternalPayment() {
+    setError("");
+    setCertificateCode("SDO-PRUEBA-INTERNA");
+    setPaymentStarted(true);
+    setPaymentConfirmed(true);
+  }
+
   async function goToPayment() {
+    if (internalTest) return simulateInternalPayment();
     if (!canPreview || !affiliationNumber || !attemptId) return;
     setError("");
     try {
@@ -152,15 +167,14 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
     <div className="space-y-6">
       <div className="rounded-3xl border border-safety/30 bg-navy p-6 shadow-2xl sm:p-8">
         <div className="flex items-center gap-4"><SindicatoMark /><div><p className="text-xs font-black uppercase tracking-[0.18em] text-safety">Certificación</p><h2 className="mt-1 text-2xl font-black text-white">Completa tus datos</h2></div></div>
-        <p className="mt-4 text-sm leading-6 text-slate-300">Introduce tus datos. El certificado se podrá visualizar y descargar únicamente después de que myPOS confirme el pago de 4,99 €.</p>
+        <p className="mt-4 text-sm leading-6 text-slate-300">{internalTest ? "Ruta interna de prueba: puedes simular el pago sin realizar ningún cobro y comprobar la descarga del certificado." : "Introduce tus datos. El certificado se podrá visualizar y descargar únicamente después de que myPOS confirme el pago de 4,99 €."}</p>
         <label className="mt-6 block text-sm font-bold text-white">Nombre y apellidos<input value={name} onChange={(event) => setName(event.target.value)} placeholder="Nombre y apellidos" autoComplete="name" className="mt-2 w-full rounded-xl border border-white/15 bg-white px-4 py-3 text-base font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-safety" /></label>
         <label className="mt-4 block text-sm font-bold text-white">Correo electrónico<input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="tu@email.com" type="email" autoComplete="email" className="mt-2 w-full rounded-xl border border-white/15 bg-white px-4 py-3 text-base font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-safety" /></label>
         {!paymentStarted ? (
-          <button type="button" disabled={!canPreview} onClick={goToPayment} className="mt-5 w-full rounded-xl bg-safety px-5 py-4 text-sm font-black uppercase tracking-wide text-navy transition hover:bg-safety-dark disabled:cursor-not-allowed disabled:opacity-40">Continuar al pago · 4,99 €</button>
+          <button type="button" disabled={!canPreview} onClick={goToPayment} className="mt-5 w-full rounded-xl bg-safety px-5 py-4 text-sm font-black uppercase tracking-wide text-navy transition hover:bg-safety-dark disabled:cursor-not-allowed disabled:opacity-40">{internalTest ? "Simular pago · 0,00 € (prueba)" : "Continuar al pago · 4,99 €"}</button>
         ) : (
           <div className="mt-5 space-y-3">
-            <a href={paymentUrl} target="_blank" rel="noreferrer" className="block w-full rounded-xl bg-safety px-5 py-4 text-center text-sm font-black uppercase tracking-wide text-navy">Pagar 4,99 € en myPOS</a>
-            <button type="button" onClick={checkPayment} className="w-full rounded-xl border-2 border-safety bg-safety/10 px-5 py-4 text-sm font-black uppercase tracking-wide text-safety transition hover:bg-safety/20">Comprobar pago y desbloquear certificado</button>
+{internalTest ? <button type="button" onClick={simulateInternalPayment} className="block w-full rounded-xl bg-safety px-5 py-4 text-center text-sm font-black uppercase tracking-wide text-navy">Simular pago · 0,00 € (no cobra)</button> : <><a href={paymentUrl} target="_blank" rel="noreferrer" className="block w-full rounded-xl bg-safety px-5 py-4 text-center text-sm font-black uppercase tracking-wide text-navy">Pagar 4,99 € en myPOS</a><button type="button" onClick={checkPayment} className="w-full rounded-xl border-2 border-safety bg-safety/10 px-5 py-4 text-sm font-black uppercase tracking-wide text-safety transition hover:bg-safety/20">Comprobar pago y desbloquear certificado</button></>}
           </div>
         )}
         {error && <div role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">{error}</div>}
