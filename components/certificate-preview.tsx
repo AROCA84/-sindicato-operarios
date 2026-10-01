@@ -41,6 +41,7 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
   const [paymentUrl, setPaymentUrl] = useState(PAYMENT_URL);
   const [affiliationNumber, setAffiliationNumber] = useState("");
   const [error, setError] = useState("");
+  const [startingPayment, setStartingPayment] = useState(false);
   const searchParams = useSearchParams();
   const internalTest = searchParams.get("prueba") === "1";
 
@@ -74,7 +75,10 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
     if (internalTest) return simulateInternalPayment();
     if (!canPreview || !affiliationNumber || !attemptId) return;
     setError("");
+    setStartingPayment(true);
     try {
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 15000);
       const response = await fetch("/api/certificados/iniciar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -85,6 +89,7 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
           intento_id: attemptId,
         }),
       });
+      window.clearTimeout(timeout);
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "No se pudo iniciar el certificado.");
       setCertificateCode(data.codigo);
@@ -92,7 +97,9 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
       setPaymentStarted(true);
       window.location.href = data.payment_url || PAYMENT_URL;
     } catch (e) {
-      setError(e instanceof Error ? e.message : "No se pudo iniciar el certificado.");
+      setError(e instanceof DOMException && e.name === "AbortError" ? "La preparación del pago está tardando demasiado. Vuelve a intentarlo." : e instanceof Error ? e.message : "No se pudo iniciar el certificado.");
+    } finally {
+      setStartingPayment(false);
     }
   }
 
@@ -171,7 +178,7 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
         <label className="mt-6 block text-sm font-bold text-white">Nombre y apellidos<input value={name} onChange={(event) => setName(event.target.value)} placeholder="Nombre y apellidos" autoComplete="name" className="mt-2 w-full rounded-xl border border-white/15 bg-white px-4 py-3 text-base font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-safety" /></label>
         <label className="mt-4 block text-sm font-bold text-white">Correo electrónico<input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="tu@email.com" type="email" autoComplete="email" className="mt-2 w-full rounded-xl border border-white/15 bg-white px-4 py-3 text-base font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-safety" /></label>
         {!paymentStarted ? (
-          <button type="button" disabled={!canPreview} onClick={goToPayment} className="mt-5 w-full rounded-xl bg-safety px-5 py-4 text-sm font-black uppercase tracking-wide text-navy transition hover:bg-safety-dark disabled:cursor-not-allowed disabled:opacity-40">{internalTest ? "Simular pago · 0,00 € (prueba)" : "Continuar al pago · 4,99 €"}</button>
+          <button type="button" disabled={!canPreview || startingPayment} onClick={goToPayment} className="mt-5 w-full rounded-xl bg-safety px-5 py-4 text-sm font-black uppercase tracking-wide text-navy transition hover:bg-safety-dark disabled:cursor-not-allowed disabled:opacity-40">{internalTest ? "Simular pago · 0,00 € (prueba)" : startingPayment ? "Preparando pago seguro…" : "Continuar al pago · 4,99 €"}</button>
         ) : (
           <div className="mt-5 space-y-3">
 {internalTest ? <button type="button" onClick={simulateInternalPayment} className="block w-full rounded-xl bg-safety px-5 py-4 text-center text-sm font-black uppercase tracking-wide text-navy">Simular pago · 0,00 € (no cobra)</button> : <><a href={paymentUrl} target="_blank" rel="noreferrer" className="block w-full rounded-xl bg-safety px-5 py-4 text-center text-sm font-black uppercase tracking-wide text-navy">Pagar 4,99 € en myPOS</a><button type="button" onClick={checkPayment} className="w-full rounded-xl border-2 border-safety bg-safety/10 px-5 py-4 text-sm font-black uppercase tracking-wide text-safety transition hover:bg-safety/20">Comprobar pago y desbloquear certificado</button></>}
