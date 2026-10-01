@@ -190,7 +190,7 @@ function ResultCard({ passed, score, total, course, attemptId, questions, answer
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-black leading-6 text-navy sm:text-base"><span className="text-slate-400">Pregunta {index + 1}.</span> {question.q}</p>
-                    <p className="mt-3 text-sm leading-6 ${correct ? "text-emerald-700" : "text-red-700"}">
+                    <p className={`mt-3 text-sm leading-6 ${correct ? "text-emerald-700" : "text-red-700"}`}>
                       <span className="font-black">{correct ? "Tu respuesta: " : "Tu respuesta: "}</span>
                       {selected >= 0 ? question.options[selected] : "Sin respuesta"}
                     </p>
