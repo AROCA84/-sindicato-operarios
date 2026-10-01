@@ -3,6 +3,15 @@ import crypto from "node:crypto";
 
 export const runtime = "nodejs";
 
+const SUPABASE_TIMEOUT_MS = 10000;
+
+async function supabaseFetch(input: RequestInfo | URL, init: RequestInit) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), SUPABASE_TIMEOUT_MS);
+  try { return await fetch(input, { ...init, signal: controller.signal }); }
+  finally { clearTimeout(timeout); }
+}
+
 function supabaseConfig() {
   const url = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)?.replace(/\/$/, "");
   const raw = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -34,7 +43,7 @@ export async function POST(request: Request) {
     if (!url || !key) return NextResponse.json({ error: "La base de datos no está configurada." }, { status: 503 });
     const h = headers(key);
 
-    const attemptResponse = await fetch(
+    const attemptResponse = await supabaseFetch(
       `${url}/rest/v1/intentos_test?select=id,afiliado_id,curso_id,puntuacion,total,aprobado&id=eq.${encodeURIComponent(intentoId)}&limit=1`,
       { headers: h, cache: "no-store" }
     );
@@ -44,7 +53,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "El certificado solo está disponible después de aprobar el test con al menos el 70 %." }, { status: 403 });
     }
 
-    const memberResponse = await fetch(
+    const memberResponse = await supabaseFetch(
       `${url}/rest/v1/afiliados?select=id,numero_afiliado,nombre,apellidos,email&numero_afiliado=eq.${numero}&email=eq.${encodeURIComponent(email)}&activo=eq.true&limit=1`,
       { headers: h, cache: "no-store" }
     );
@@ -54,7 +63,7 @@ export async function POST(request: Request) {
     if (attempts[0].afiliado_id !== members[0].id) return NextResponse.json({ error: "El intento de test no pertenece a esta afiliación." }, { status: 403 });
 
     const code = `SDO-${new Date().getFullYear()}-${crypto.randomBytes(5).toString("hex").toUpperCase()}`;
-    const insert = await fetch(`${url}/rest/v1/certificados`, {
+    const insert = await supabaseFetch(`${url}/rest/v1/certificados`, {
       method: "POST",
       headers: { ...h, Prefer: "return=representation" },
       body: JSON.stringify({
@@ -86,6 +95,7 @@ export async function POST(request: Request) {
       payment_url: `/api/certificados/pago?codigo=${encodeURIComponent(code)}`,
     });
   } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") return NextResponse.json({ error: "La base de datos tardó demasiado en responder. Inténtalo de nuevo." }, { status: 504 });
     console.error("Certificate start error:", error);
     return NextResponse.json({ error: "Error del servidor al iniciar el certificado." }, { status: 500 });
   }
