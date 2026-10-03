@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { Course } from "@/lib/courses";
 import { getExam, PASS_MARK, TOTAL_QUESTIONS, type ExamQuestion } from "@/lib/exam";
 type Phase = "quiz" | "result";
-export function CourseExam({ course }: { course: Course }) {
+export function CourseExam({ course, internalPreview = false }: { course: Course; internalPreview?: boolean }) {
   const questions = useMemo(() => getExam(course), [course]);
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<number[]>(() => Array(questions.length).fill(-1));
@@ -13,7 +13,16 @@ export function CourseExam({ course }: { course: Course }) {
   const [submitting, setSubmitting] = useState(false);
   const [attemptId, setAttemptId] = useState("");
   const [submitError, setSubmitError] = useState("");
+  const internalAnswers = useMemo(() => questions.map((q, i) => (i < Math.max(PASS_MARK, Math.min(questions.length, PASS_MARK + 2)) ? q.answer : (q.answer + 1) % q.options.length)), [questions]);
+  const internalScore = Math.max(PASS_MARK, Math.min(questions.length, PASS_MARK + 2));
   const total = questions.length;
+
+  useEffect(() => {
+    if (!internalPreview) return;
+    setAnswers(internalAnswers);
+    setAttemptId("PRUEBA-INTERNA");
+    setPhase("result");
+  }, [internalPreview, internalAnswers]);
   const selected = answers[current];
   const isLast = current === total - 1;
   const score = useMemo(() => answers.reduce((acc, ans, i) => (ans === questions[i].answer ? acc + 1 : acc), 0), [answers, questions]);
