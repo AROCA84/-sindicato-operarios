@@ -37,7 +37,26 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
 
   useEffect(() => {
     setAffiliated(window.localStorage.getItem("sdo-afiliado") === "true");
-  }, []);
+
+    if (!internalPreview && window.localStorage.getItem("sdo-progreso-" + course.id) === "100") {
+      try {
+        const saved = JSON.parse(window.localStorage.getItem("sdo-resultado-" + course.id) || "null");
+        if (
+          saved &&
+          typeof saved.attemptId === "string" &&
+          typeof saved.score === "number" &&
+          typeof saved.total === "number" &&
+          Array.isArray(saved.answers)
+        ) {
+          setAttemptId(saved.attemptId);
+          setAnswers(saved.answers);
+          setPhase("result");
+        }
+      } catch {
+        // Si no hay resultado guardado, se mantiene el flujo normal del test.
+      }
+    }
+  }, [course.id, internalPreview]);
 
   function select(optionIndex: number) {
     setAnswers((prev) => { const next = [...prev]; next[current] = optionIndex; return next; });
@@ -79,8 +98,21 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
           throw new Error("El servidor no devolvió un resultado de test válido.");
         }
         setAttemptId(data.intento_id);
-        if (data.aprobado) window.localStorage.setItem("sdo-progreso-" + course.id, "100");
-        else window.localStorage.setItem("sdo-progreso-" + course.id, String(Math.min(99, Math.round((data.puntuacion / data.total) * 100))));
+        if (data.aprobado) {
+          window.localStorage.setItem("sdo-progreso-" + course.id, "100");
+          window.localStorage.setItem(
+            "sdo-resultado-" + course.id,
+            JSON.stringify({
+              attemptId: data.intento_id,
+              score: data.puntuacion,
+              total: data.total,
+              answers,
+            })
+          );
+        } else {
+          window.localStorage.setItem("sdo-progreso-" + course.id, String(Math.min(99, Math.round((data.puntuacion / data.total) * 100))));
+          window.localStorage.removeItem("sdo-resultado-" + course.id);
+        }
         setPhase("result");
       } catch (error) {
         setSubmitError(error instanceof Error ? error.message : "No se pudo guardar el resultado.");
