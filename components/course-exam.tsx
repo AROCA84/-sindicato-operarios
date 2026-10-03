@@ -101,7 +101,7 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
 
   if (affiliated === null) return <div className="min-h-screen bg-slate-50" />;
 
-  if (!affiliated) {
+  if (!affiliated && !internalPreview) {
     const returnTo = `/cursos/${course.id}/test`;
     return (
       <main className="min-h-screen bg-navy px-6 py-12 text-white">
