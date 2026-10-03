@@ -6,26 +6,45 @@ import { getExam, PASS_MARK, TOTAL_QUESTIONS, type ExamQuestion } from "@/lib/ex
 
 type Phase = "quiz" | "result";
 
-function readStoredPassedResult(courseId: string, expectedQuestions: number) {
+type StoredResult = {
+  attemptId: string;
+  score: number;
+  total: number;
+  answers: number[];
+};
+
+type RecoveredResult = {
+  attemptId: string;
+  score: number;
+  total: number;
+  answers: number[] | null;
+};
+
+function readStoredPassedResult(courseId: string, expectedQuestions: number): RecoveredResult | null {
   try {
     const raw = window.localStorage.getItem("sdo-resultado-" + courseId);
     if (!raw) return null;
-    const saved = JSON.parse(raw);
+    const saved = JSON.parse(raw) as unknown;
     if (
       saved &&
-      typeof saved.attemptId === "string" &&
-      typeof saved.score === "number" &&
-      typeof saved.total === "number" &&
-      saved.score >= PASS_MARK &&
-      saved.total === expectedQuestions &&
-      Array.isArray(saved.answers) &&
-      saved.answers.length === expectedQuestions
+      typeof saved === "object" &&
+      "attemptId" in saved &&
+      "score" in saved &&
+      "total" in saved &&
+      typeof (saved as StoredResult).attemptId === "string" &&
+      typeof (saved as StoredResult).score === "number" &&
+      typeof (saved as StoredResult).total === "number" &&
+      (saved as StoredResult).score >= PASS_MARK &&
+      (saved as StoredResult).total === expectedQuestions &&
+      "answers" in saved &&
+      Array.isArray((saved as StoredResult).answers) &&
+      (saved as StoredResult).answers.length === expectedQuestions
     ) {
       return {
-        attemptId: saved.attemptId,
-        score: saved.score,
-        total: saved.total,
-        answers: saved.answers.map(Number),
+        attemptId: (saved as StoredResult).attemptId,
+        score: (saved as StoredResult).score,
+        total: (saved as StoredResult).total,
+        answers: (saved as StoredResult).answers.map(Number),
       };
     }
   } catch {
@@ -60,6 +79,9 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
   const [submitting, setSubmitting] = useState(false);
   const [attemptId, setAttemptId] = useState(internalPreview ? "PRUEBA-INTERNA" : "");
   const [submitError, setSubmitError] = useState("");
+  const [resultScore, setResultScore] = useState<number | null>(null);
+  const [hasAnswersAvailable, setHasAnswersAvailable] = useState(false);
+
   const internalScore = Math.max(PASS_MARK, Math.min(questions.length, PASS_MARK + 2));
   const internalAnswers = useMemo(
     () => questions.map((q, i) => (i < internalScore ? q.answer : (q.answer + 1) % q.options.length)),
@@ -71,12 +93,15 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
     setAnswers(internalAnswers);
     setAttemptId("PRUEBA-INTERNA");
     setPhase("result");
-  }, [internalPreview, internalAnswers]);
+    setResultScore(internalScore);
+    setHasAnswersAvailable(true);
+  }, [internalPreview, internalAnswers, internalScore]);
 
   const selected = answers[current];
   const isLast = current === questions.length - 1;
   const score = useMemo(() => answers.reduce((acc, ans, i) => (ans === questions[i].answer ? acc + 1 : acc), 0), [answers, questions]);
-  const passed = score >= PASS_MARK;
+  const displayScore = resultScore !== null ? resultScore : score;
+  const passed = displayScore >= PASS_MARK;
 
   useEffect(() => {
     const isAffiliated = window.localStorage.getItem("sdo-afiliado") === "true";
@@ -87,7 +112,9 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
     const storedResult = readStoredPassedResult(course.id, questions.length);
     if (storedResult) {
       setAttemptId(storedResult.attemptId);
-      setAnswers(storedResult.answers);
+      setAnswers(storedResult.answers || Array(questions.length).fill(-1));
+      setResultScore(storedResult.score);
+      setHasAnswersAvailable(storedResult.answers !== null);
       setPhase("result");
       return;
     }
@@ -125,6 +152,8 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
           persistPassedResult(course.id, result.attemptId, result.score, result.total, result.answers);
           setAttemptId(result.attemptId);
           setAnswers(result.answers);
+          setResultScore(result.score);
+          setHasAnswersAvailable(true);
           setPhase("result");
         }
       })
@@ -141,7 +170,11 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
   }, [course.id, internalPreview, questions.length]);
 
   function select(optionIndex: number) {
-    setAnswers((prev) => { const next = [...prev]; next[current] = optionIndex; return next; });
+    setAnswers((prev) => {
+      const next = [...prev];
+      next[current] = optionIndex;
+      return next;
+    });
   }
 
   async function next() {
@@ -181,6 +214,8 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
           throw new Error("El servidor no devolvió un resultado de test válido.");
         }
         setAttemptId(data.intento_id);
+        setResultScore(data.puntuacion);
+        setHasAnswersAvailable(true);
         if (data.aprobado) {
           persistPassedResult(course.id, data.intento_id, data.puntuacion, data.total, answers);
         } else {
@@ -204,6 +239,8 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
     setAnswers(Array(questions.length).fill(-1));
     setCurrent(0);
     setPhase("quiz");
+    setResultScore(null);
+    setHasAnswersAvailable(false);
   }
 
   if (affiliated === null) return <div className="min-h-screen bg-slate-50" />;
@@ -247,7 +284,7 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
         <h1 className="mt-4 text-balance text-2xl font-black leading-tight sm:text-3xl">Test Final · <span className="text-safety">{course.title.replace(/^Curso de /, "")}</span></h1>
         {phase === "quiz" && <div className="mt-6"><div className="flex items-center justify-between text-sm font-semibold text-slate-300"><span>Pregunta {current + 1} de {questions.length}</span><span>{Math.round(((current + 1) / questions.length) * 100)}%</span></div><div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/15"><div className="h-full rounded-full bg-safety transition-all duration-300" style={{ width: `${((current + 1) / questions.length) * 100}%` }} /></div></div>}
       </div></header>
-      <div className="mx-auto max-w-3xl px-6 py-10 sm:py-14">{phase === "quiz" ? <QuizCard question={questions[current]} selected={selected} onSelect={select} onNext={next} isLast={isLast} submitting={submitting} submitError={submitError} /> : <ResultCard passed={passed} score={score} total={questions.length} course={course} attemptId={attemptId} questions={questions} answers={answers} onRetry={retry} />}</div>
+      <div className="mx-auto max-w-3xl px-6 py-10 sm:py-14">{phase === "quiz" ? <QuizCard question={questions[current]} selected={selected} onSelect={select} onNext={next} isLast={isLast} submitting={submitting} submitError={submitError} /> : <ResultCard passed={passed} score={displayScore} total={questions.length} course={course} attemptId={attemptId} questions={questions} answers={answers} onRetry={retry} hasAnswersAvailable={hasAnswersAvailable} />}</div>
     </main>
   );
 }
@@ -257,7 +294,7 @@ function QuizCard({ question, selected, onSelect, onNext, isLast, submitting, su
   return <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 sm:p-8"><h2 className="text-balance text-xl font-black leading-snug text-navy sm:text-2xl">{question.q}</h2><div className="mt-6 space-y-3">{question.options.map((option, index) => <button key={option} type="button" onClick={() => onSelect(index)} className={`flex w-full items-start gap-3 rounded-2xl border px-4 py-4 text-left transition ${selected === index ? "border-safety bg-safety/10 ring-2 ring-safety/20" : "border-slate-200 bg-white hover:border-slate-300"}`}><span className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm font-black text-slate-700">{letters[index]}</span><span className="text-sm leading-6 text-slate-700 sm:text-base">{option}</span></button>)}</div>{submitError && <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">{submitError}</div>}<div className="mt-8 flex justify-end"><button type="button" onClick={onNext} disabled={submitting || selected < 0} className="inline-flex items-center justify-center rounded-xl bg-navy px-6 py-3 text-sm font-black uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:opacity-50">{submitting ? "Guardando…" : isLast ? "Enviar test" : "Siguiente"}</button></div></div>;
 }
 
-function ResultCard({ passed, score, total, course, attemptId, questions, answers, onRetry }: { passed: boolean; score: number; total: number; course: Course; attemptId: string; questions: ExamQuestion[]; answers: number[]; onRetry: () => void; }) {
+function ResultCard({ passed, score, total, course, attemptId, questions, answers, onRetry, hasAnswersAvailable }: { passed: boolean; score: number; total: number; course: Course; attemptId: string; questions: ExamQuestion[]; answers: number[]; onRetry: () => void; hasAnswersAvailable: boolean; }) {
   return (
     <div className="space-y-6">
       <div className="overflow-hidden rounded-2xl bg-white shadow-lg ring-1 ring-slate-200">
@@ -298,39 +335,41 @@ function ResultCard({ passed, score, total, course, attemptId, questions, answer
         </div>
       </div>
 
-      <section className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
-        <div className="border-b border-slate-200 bg-slate-50 px-6 py-5">
-          <h3 className="text-xl font-black text-navy">Revisión de tus respuestas</h3>
-          <p className="mt-1 text-sm text-slate-500">Comprueba qué has acertado y cuál era la respuesta correcta en cada pregunta.</p>
-        </div>
-        <div className="divide-y divide-slate-200">
-          {questions.map((question, index) => {
-            const selected = answers[index];
-            const correct = selected === question.answer;
-            return (
-              <article key={index} className="p-5 sm:p-6">
-                <div className="flex items-start gap-3">
-                  <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-black ${correct ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
-                    {correct ? "✓" : "✕"}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-black leading-6 text-navy sm:text-base"><span className="text-slate-400">Pregunta {index + 1}.</span> {question.q}</p>
-                    <p className={`mt-3 text-sm leading-6 ${correct ? "text-emerald-700" : "text-red-700"}`}>
-                      <span className="font-black">Tu respuesta: </span>
-                      {selected >= 0 ? question.options[selected] : "Sin respuesta"}
-                    </p>
-                    {!correct && (
-                      <p className="mt-1 text-sm leading-6 text-emerald-700">
-                        <span className="font-black">Respuesta correcta:</span> {question.options[question.answer]}
+      {hasAnswersAvailable && (
+        <section className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+          <div className="border-b border-slate-200 bg-slate-50 px-6 py-5">
+            <h3 className="text-xl font-black text-navy">Revisión de tus respuestas</h3>
+            <p className="mt-1 text-sm text-slate-500">Comprueba qué has acertado y cuál era la respuesta correcta en cada pregunta.</p>
+          </div>
+          <div className="divide-y divide-slate-200">
+            {questions.map((question, index) => {
+              const selected = answers[index];
+              const correct = selected === question.answer;
+              return (
+                <article key={index} className="p-5 sm:p-6">
+                  <div className="flex items-start gap-3">
+                    <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-black ${correct ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
+                      {correct ? "✓" : "✕"}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-black leading-6 text-navy sm:text-base"><span className="text-slate-400">Pregunta {index + 1}.</span> {question.q}</p>
+                      <p className={`mt-3 text-sm leading-6 ${correct ? "text-emerald-700" : "text-red-700"}`}>
+                        <span className="font-black">Tu respuesta: </span>
+                        {selected >= 0 ? question.options[selected] : "Sin respuesta"}
                       </p>
-                    )}
+                      {!correct && (
+                        <p className="mt-1 text-sm leading-6 text-emerald-700">
+                          <span className="font-black">Respuesta correcta:</span> {question.options[question.answer]}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </article>
-            );
-          })}
-        </div>
-      </section>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
