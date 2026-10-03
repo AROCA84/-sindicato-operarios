@@ -66,7 +66,7 @@ export async function POST(request: Request) {
     const insert = await supabaseFetch(`${url}/rest/v1/intentos_test`, {
       method: "POST",
       headers: { ...h, Prefer: "return=representation" },
-      body: JSON.stringify({ afiliado_id: members[0].id, curso_id: cursoId, puntuacion, total: TOTAL_QUESTIONS, aprobado, respuestas: answers }),
+      body: JSON.stringify({ afiliado_id: members[0].id, curso_id: cursoId, puntuacion, aprobado, respuestas: answers }),
       cache: "no-store",
     });
     if (!insert.ok) {
