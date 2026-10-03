@@ -65,9 +65,11 @@ export async function GET(request: Request) {
       respuestas?: unknown;
     }>;
     const attempt = attempts[0];
-    if (!attempt || !Array.isArray(attempt.respuestas) || attempt.respuestas.length !== TOTAL_QUESTIONS) {
-      return NextResponse.json({ found: false });
-    }
+    if (!attempt) return NextResponse.json({ found: false });
+
+    const respuestas = Array.isArray(attempt.respuestas) && attempt.respuestas.length === TOTAL_QUESTIONS
+      ? attempt.respuestas.map(Number)
+      : null;
 
     return NextResponse.json({
       found: true,
@@ -75,7 +77,7 @@ export async function GET(request: Request) {
       puntuacion: attempt.puntuacion,
       total: TOTAL_QUESTIONS,
       aprobado: true,
-      respuestas: attempt.respuestas.map(Number),
+      respuestas,
     });
   } catch (error) {
     console.error("Test result lookup error:", error);
