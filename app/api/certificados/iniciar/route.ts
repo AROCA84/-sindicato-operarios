@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import crypto from "node:crypto";
-import { TOTAL_QUESTIONS, PASS_MARK } from "@/lib/exam";
+import { PASS_MARK } from "@/lib/exam";
 
 export const runtime = "nodejs";
 
