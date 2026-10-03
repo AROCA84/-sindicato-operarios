@@ -9,6 +9,15 @@ function supabaseConfig() {
   const key = raw?.trim().replace(/[\u0000-\u001F\u007F-\u009F]/g, "").replace(/[•·]/g, "");
   return { url, key };
 }
+const SUPABASE_TIMEOUT_MS = 10000;
+
+async function supabaseFetch(input: RequestInfo | URL, init: RequestInit) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), SUPABASE_TIMEOUT_MS);
+  try { return await fetch(input, { ...init, signal: controller.signal }); }
+  finally { clearTimeout(timeout); }
+}
+
 function headers(key: string) {
   const h: Record<string, string> = { apikey: key, "Content-Type": "application/json" };
   if (!key.startsWith("sb_secret_")) h.Authorization = `Bearer ${key}`;
@@ -31,7 +40,7 @@ export async function GET(request: Request) {
     const { url, key } = supabaseConfig();
     if (!url || !key) return new NextResponse("Server not configured", { status: 503 });
 
-    const db = await fetch(
+    const db = await supabaseFetch(
       `${url}/rest/v1/certificados?select=id,codigo,estado_pago,curso_id,afiliado_id&codigo=eq.${encodeURIComponent(code)}&limit=1`,
       { headers: headers(key), cache: "no-store" }
     );
@@ -77,13 +86,21 @@ export async function GET(request: Request) {
       CustomerEmail: member.email,
       CustomerFirstNames: firstNames,
       CustomerFamilyName: familyName,
+      PaymentMethod: "3",
+      Note: "Certificado Sindicato de Operarios",
+      CartItems: "1",
+      Article_1: "Certificado de aptitud",
+      Quantity_1: "1",
+      Price_1: "4.99",
+      Currency_1: "EUR",
+      Amount_1: "4.99",
     };
     const signature = sign(Object.values(data), privateKey);
     const fields = Object.entries({ ...data, Signature: signature }).map(([name, value]) =>
       `<input type="hidden" name="${htmlEscape(name)}" value="${htmlEscape(value)}">`
     ).join("");
 
-    const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pago seguro myPOS</title></head><body><p>Redirigiendo al pago seguro de myPOS…</p><form id="mypos" method="post" action="${htmlEscape(apiUrl)}">${fields}</form><script>document.getElementById("mypos").submit()</script></body></html>`;
+    const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pago seguro myPOS</title><style>body{font-family:system-ui,-apple-system,sans-serif;padding:32px;text-align:center;background:#f5f7f8;color:#101820}button{border:0;border-radius:12px;padding:16px 24px;background:#f5b400;color:#101820;font-weight:800;font-size:16px;cursor:pointer}</style></head><body><h2>Preparando tu pago seguro…</h2><p>Serás enviado a myPOS para completar el pago de 4,99 €.</p><form id="mypos" method="post" action="${htmlEscape(apiUrl)}">${fields}<button type="submit">Continuar al pago seguro</button></form><script>window.setTimeout(function(){document.getElementById("mypos").submit()},50)</script></body></html>`;
     return new NextResponse(html, { status: 200, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("myPOS checkout error:", error);
