@@ -9,10 +9,13 @@ export function generateStaticParams() {
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<{ prueba?: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
+  const prueba = searchParams ? (await searchParams).prueba === "1" : false;
   const course = allCourses.find((item) => item.id === id);
   if (!course) return { title: "Examen no encontrado" };
   return {
@@ -29,5 +32,5 @@ export default async function TestPage({
   const { id } = await params;
   const course = allCourses.find((item) => item.id === id);
   if (!course) notFound();
-  return <CourseExam course={course} />;
+  return <CourseExam course={course} internalPreview={prueba} />;
 }
