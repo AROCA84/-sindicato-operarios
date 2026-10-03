@@ -3,7 +3,50 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { Course } from "@/lib/courses";
 import { getExam, PASS_MARK, TOTAL_QUESTIONS, type ExamQuestion } from "@/lib/exam";
+
 type Phase = "quiz" | "result";
+
+function readStoredPassedResult(courseId: string, expectedQuestions: number) {
+  try {
+    const raw = window.localStorage.getItem("sdo-resultado-" + courseId);
+    if (!raw) return null;
+    const saved = JSON.parse(raw);
+    if (
+      saved &&
+      typeof saved.attemptId === "string" &&
+      typeof saved.score === "number" &&
+      typeof saved.total === "number" &&
+      saved.score >= PASS_MARK &&
+      saved.total === expectedQuestions &&
+      Array.isArray(saved.answers) &&
+      saved.answers.length === expectedQuestions
+    ) {
+      return {
+        attemptId: saved.attemptId,
+        score: saved.score,
+        total: saved.total,
+        answers: saved.answers.map(Number),
+      };
+    }
+  } catch {
+    // Se ignora si el valor guardado no es válido.
+  }
+  return null;
+}
+
+function persistPassedResult(courseId: string, attemptId: string, score: number, total: number, answers: number[]) {
+  window.localStorage.setItem("sdo-progreso-" + courseId, "100");
+  window.localStorage.setItem(
+    "sdo-resultado-" + courseId,
+    JSON.stringify({
+      attemptId,
+      score,
+      total,
+      answers,
+    })
+  );
+}
+
 export function CourseExam({ course, internalPreview = false }: { course: Course; internalPreview?: boolean }) {
   const questions = useMemo(() => getExam(course), [course]);
   const [current, setCurrent] = useState(0);
@@ -41,26 +84,10 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
 
     if (internalPreview || !isAffiliated) return;
 
-    const saved = (() => {
-      try {
-        return JSON.parse(window.localStorage.getItem("sdo-resultado-" + course.id) || "null");
-      } catch {
-        return null;
-      }
-    })();
-
-    if (
-      saved &&
-      typeof saved.attemptId === "string" &&
-      typeof saved.score === "number" &&
-      typeof saved.total === "number" &&
-      saved.score >= PASS_MARK &&
-      saved.total === questions.length &&
-      Array.isArray(saved.answers) &&
-      saved.answers.length === questions.length
-    ) {
-      setAttemptId(saved.attemptId);
-      setAnswers(saved.answers.map(Number));
+    const storedResult = readStoredPassedResult(course.id, questions.length);
+    if (storedResult) {
+      setAttemptId(storedResult.attemptId);
+      setAnswers(storedResult.answers);
       setPhase("result");
       return;
     }
@@ -69,6 +96,7 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
     const email = window.localStorage.getItem("sdo-afiliado-email") || "";
     if (!numero || !email) return;
 
+    let cancelled = false;
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 10000);
 
@@ -77,7 +105,7 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
       { cache: "no-store", signal: controller.signal }
     )
       .then(async (response) => {
-        if (!response.ok) return null;
+        if (cancelled || !response.ok) return;
         const data = await response.json();
         if (
           data?.found &&
@@ -94,21 +122,28 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
             total: questions.length,
             answers: data.respuestas.map(Number),
           };
-          window.localStorage.setItem("sdo-progreso-" + course.id, "100");
-          window.localStorage.setItem("sdo-resultado-" + course.id, JSON.stringify(result));
+          persistPassedResult(course.id, result.attemptId, result.score, result.total, result.answers);
           setAttemptId(result.attemptId);
           setAnswers(result.answers);
           setPhase("result");
         }
-        return null;
       })
       .catch(() => undefined)
-      .finally(() => window.clearTimeout(timeout));
+      .finally(() => {
+        if (!cancelled) window.clearTimeout(timeout);
+      });
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+      window.clearTimeout(timeout);
+    };
   }, [course.id, internalPreview, questions.length]);
 
   function select(optionIndex: number) {
     setAnswers((prev) => { const next = [...prev]; next[current] = optionIndex; return next; });
   }
+
   async function next() {
     if (isLast) {
       setSubmitting(true);
@@ -147,16 +182,7 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
         }
         setAttemptId(data.intento_id);
         if (data.aprobado) {
-          window.localStorage.setItem("sdo-progreso-" + course.id, "100");
-          window.localStorage.setItem(
-            "sdo-resultado-" + course.id,
-            JSON.stringify({
-              attemptId: data.intento_id,
-              score: data.puntuacion,
-              total: data.total,
-              answers,
-            })
-          );
+          persistPassedResult(course.id, data.intento_id, data.puntuacion, data.total, answers);
         } else {
           window.localStorage.setItem("sdo-progreso-" + course.id, String(Math.min(99, Math.round((data.puntuacion / data.total) * 100))));
           window.localStorage.removeItem("sdo-resultado-" + course.id);
@@ -171,6 +197,7 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
     }
     setCurrent((c) => c + 1);
   }
+
   function retry() {
     setAttemptId("");
     setSubmitError("");
@@ -201,7 +228,7 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
                 <div className="rounded-xl bg-slate-50 p-4 font-bold">✓ Test gratuitos</div>
                 <div className="rounded-xl bg-slate-50 p-4 font-bold">✓ Certificado opcional tras aprobar</div>
               </div>
-              <Link href={`/afiliarse?returnTo=${encodeURIComponent(returnTo)}`} className="mt-7 block rounded-xl bg-safety px-6 py-4 text-center text-sm font-black uppercase tracking-wide text-navy shadow-lg hover:bg-safety-dark">
+              <Link href={`/afiliarse?returnTo=${encodeURIComponent(returnTo)}`} className="mt-7 block rounded-xl bg-safety px-6 py-4 text-center text-sm font-black uppercase tracking-wide text-navy shadow-lg transition-colors hover:bg-safety-dark">
                 Afiliarme gratis y hacer el test
               </Link>
               <p className="mt-4 text-center text-xs leading-5 text-slate-500">No se cobra nada por afiliarte, estudiar ni realizar el test.</p>
@@ -224,11 +251,13 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
     </main>
   );
 }
-function QuizCard({ question, selected, onSelect, onNext, isLast, submitting, submitError }: { question: ExamQuestion; selected: number; onSelect: (i: number) => void; onNext: () => void; isLast: boolean; submitting: boolean; submitError: string }) {
+
+function QuizCard({ question, selected, onSelect, onNext, isLast, submitting, submitError }: { question: ExamQuestion; selected: number; onSelect: (i: number) => void; onNext: () => void; isLast: boolean; submitting: boolean; submitError: string; }) {
   const letters = ["A", "B", "C", "D"];
-  return <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 sm:p-8"><h2 className="text-balance text-xl font-black leading-snug text-navy sm:text-2xl">{question.q}</h2><div className="mt-6 grid gap-3">{question.options.map((option, i) => { const active = selected === i; return <button key={option} type="button" onClick={() => onSelect(i)} aria-pressed={active} className={`flex items-center gap-4 rounded-xl border-2 px-4 py-4 text-left transition-all ${active ? "border-safety bg-safety/10 shadow-sm" : "border-slate-200 bg-white hover:border-navy/40 hover:bg-slate-50"}`}><span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-black ${active ? "bg-safety text-navy" : "bg-slate-100 text-slate-500"}`}>{letters[i]}</span><span className={`text-sm font-semibold leading-snug sm:text-base ${active ? "text-navy" : "text-slate-700"}`}>{option}</span></button>; })}</div><div className="mt-8 flex items-center justify-between border-t border-slate-200 pt-6"><p className="text-xs font-medium text-slate-400">Selecciona una respuesta para continuar</p><button type="button" onClick={onNext} disabled={selected === -1} className="inline-flex items-center gap-2 rounded-lg bg-navy px-6 py-3 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-navy-light disabled:cursor-not-allowed disabled:opacity-40">{submitting ? "Guardando resultado…" : isLast ? "Finalizar Test" : "Siguiente Pregunta"}<ArrowIcon /></button></div></div>;
+  return <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 sm:p-8"><h2 className="text-balance text-xl font-black leading-snug text-navy sm:text-2xl">{question.q}</h2><div className="mt-6 space-y-3">{question.options.map((option, index) => <button key={option} type="button" onClick={() => onSelect(index)} className={`flex w-full items-start gap-3 rounded-2xl border px-4 py-4 text-left transition ${selected === index ? "border-safety bg-safety/10 ring-2 ring-safety/20" : "border-slate-200 bg-white hover:border-slate-300"}`}><span className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm font-black text-slate-700">{letters[index]}</span><span className="text-sm leading-6 text-slate-700 sm:text-base">{option}</span></button>)}</div>{submitError && <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">{submitError}</div>}<div className="mt-8 flex justify-end"><button type="button" onClick={onNext} disabled={submitting || selected < 0} className="inline-flex items-center justify-center rounded-xl bg-navy px-6 py-3 text-sm font-black uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:opacity-50">{submitting ? "Guardando…" : isLast ? "Enviar test" : "Siguiente"}</button></div></div>;
 }
-function ResultCard({ passed, score, total, course, attemptId, questions, answers, onRetry }: { passed: boolean; score: number; total: number; course: Course; attemptId: string; questions: ExamQuestion[]; answers: number[]; onRetry: () => void }) {
+
+function ResultCard({ passed, score, total, course, attemptId, questions, answers, onRetry }: { passed: boolean; score: number; total: number; course: Course; attemptId: string; questions: ExamQuestion[]; answers: number[]; onRetry: () => void; }) {
   return (
     <div className="space-y-6">
       <div className="overflow-hidden rounded-2xl bg-white shadow-lg ring-1 ring-slate-200">
@@ -250,20 +279,20 @@ function ResultCard({ passed, score, total, course, attemptId, questions, answer
         <div className="p-6 sm:p-10">
           {passed ? (
             <div className="flex flex-col gap-4">
-              <a href={`/certificado/${course.id}?score=${score}&total=${total}&intento=${encodeURIComponent(attemptId)}`} className="inline-flex items-center justify-center gap-2 rounded-lg bg-safety px-8 py-4 text-base font-black uppercase tracking-wide text-navy shadow-lg transition-colors hover:bg-safety-dark">
+              <a href={`/certificado/${course.id}?score=${score}&total=${total}&intento=${encodeURIComponent(attemptId)}`} className="inline-flex items-center justify-center gap-2 rounded-lg bg-safety px-6 py-4 text-base font-black uppercase tracking-wide text-navy transition-colors hover:bg-safety-dark">
                 Obtener diploma / certificado · 4,99 € <ArrowIcon />
               </a>
               <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center">
                 <p className="text-sm font-black uppercase tracking-wide text-emerald-700">✓ APROBADO Y REGISTRADO</p>
-                <p className="mt-1 text-sm leading-relaxed text-emerald-800">El test es gratuito. Si quieres tu diploma/certificado, continúa con el pago de 4,99 €. Después podrás descargar el PDF.</p>
+                <p className="mt-1 text-sm leading-relaxed text-emerald-800">El test es gratuito. Si quieres tu diploma/certificado, continúa con el pago de 4,99 €.</p>
               </div>
               <Link href={`/cursos/${course.id}`} className="text-center text-sm font-semibold text-slate-500 transition-colors hover:text-navy">Volver al temario del curso</Link>
             </div>
           ) : (
             <div className="flex flex-col gap-4">
-              <Link href={`/cursos/${course.id}`} className="inline-flex items-center justify-center gap-2 rounded-lg border-2 border-navy bg-white px-8 py-4 text-base font-black uppercase tracking-wide text-navy shadow-sm transition-colors hover:bg-slate-50">Repasar el temario<ArrowIcon /></Link>
-              <button type="button" onClick={onRetry} className="inline-flex items-center justify-center gap-2 rounded-lg bg-navy px-8 py-4 text-base font-black uppercase tracking-wide text-white shadow-lg transition-colors hover:bg-navy-light"><RetryIcon />Repetir Test Gratis</button>
-              <p className="text-center text-sm leading-relaxed text-slate-500">No has obtenido el apto. Repasa el temario y vuelve a intentarlo gratis. No se realiza ningún pago por suspender.</p>
+              <Link href={`/cursos/${course.id}`} className="inline-flex items-center justify-center gap-2 rounded-lg border-2 border-navy bg-white px-8 py-4 text-base font-black uppercase tracking-wide text-navy transition-colors hover:bg-slate-50">Volver al curso</Link>
+              <button type="button" onClick={onRetry} className="inline-flex items-center justify-center gap-2 rounded-lg bg-navy px-8 py-4 text-base font-black uppercase tracking-wide text-white transition-colors hover:bg-navy/90">Reintentar test</button>
+              <p className="text-center text-sm leading-relaxed text-slate-500">No has obtenido el apto. Repasa el temario y vuelve a intentarlo gratis.</p>
             </div>
           )}
         </div>
@@ -287,7 +316,7 @@ function ResultCard({ passed, score, total, course, attemptId, questions, answer
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-black leading-6 text-navy sm:text-base"><span className="text-slate-400">Pregunta {index + 1}.</span> {question.q}</p>
                     <p className={`mt-3 text-sm leading-6 ${correct ? "text-emerald-700" : "text-red-700"}`}>
-                      <span className="font-black">{correct ? "Tu respuesta: " : "Tu respuesta: "}</span>
+                      <span className="font-black">Tu respuesta: </span>
                       {selected >= 0 ? question.options[selected] : "Sin respuesta"}
                     </p>
                     {!correct && (
@@ -308,5 +337,5 @@ function ResultCard({ passed, score, total, course, attemptId, questions, answer
 
 function ArrowIcon() { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>; }
 function BackIcon() { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>; }
-function TrophyIcon() { return <svg width="36" height="36" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>; }
-function RetryIcon() { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><path d="M3 3v5h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>; }
+function TrophyIcon() { return <svg width="36" height="36" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>; }
+function RetryIcon() { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>; }
