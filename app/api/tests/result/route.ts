@@ -52,7 +52,7 @@ export async function GET(request: Request) {
     if (!members.length) return NextResponse.json({ found: false });
 
     const attemptsResponse = await supabaseFetch(
-      `${url}/rest/v1/intentos_test?select=id,curso_id,puntuacion,aprobado,respuestas,creado_en&id=not.is.null&afiliado_id=eq.${encodeURIComponent(members[0].id)}&curso_id=eq.${encodeURIComponent(cursoId)}&aprobado=eq.true&puntuacion=gte.${PASS_MARK}&order=creado_en.desc&limit=1`,
+      `${url}/rest/v1/intentos_test?select=id,curso_id,puntuacion,aprobado,respuestas&afiliado_id=eq.${encodeURIComponent(members[0].id)}&curso_id=eq.${encodeURIComponent(cursoId)}&aprobado=eq.true&puntuacion=gte.${PASS_MARK}&order=id.desc&limit=1`,
       { headers: h, cache: "no-store" }
     );
     if (!attemptsResponse.ok) return NextResponse.json({ error: "No se pudo consultar el resultado del test." }, { status: 502 });
