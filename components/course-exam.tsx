@@ -36,27 +36,75 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
   const passed = score >= PASS_MARK;
 
   useEffect(() => {
-    setAffiliated(window.localStorage.getItem("sdo-afiliado") === "true");
+    const isAffiliated = window.localStorage.getItem("sdo-afiliado") === "true";
+    setAffiliated(isAffiliated);
 
-    if (!internalPreview && window.localStorage.getItem("sdo-progreso-" + course.id) === "100") {
+    if (internalPreview || !isAffiliated) return;
+
+    const saved = (() => {
       try {
-        const saved = JSON.parse(window.localStorage.getItem("sdo-resultado-" + course.id) || "null");
+        return JSON.parse(window.localStorage.getItem("sdo-resultado-" + course.id) || "null");
+      } catch {
+        return null;
+      }
+    })();
+
+    if (
+      saved &&
+      typeof saved.attemptId === "string" &&
+      typeof saved.score === "number" &&
+      typeof saved.total === "number" &&
+      saved.score >= PASS_MARK &&
+      saved.total === questions.length &&
+      Array.isArray(saved.answers) &&
+      saved.answers.length === questions.length
+    ) {
+      setAttemptId(saved.attemptId);
+      setAnswers(saved.answers.map(Number));
+      setPhase("result");
+      return;
+    }
+
+    const numero = window.localStorage.getItem("sdo-numero-afiliado") || "";
+    const email = window.localStorage.getItem("sdo-afiliado-email") || "";
+    if (!numero || !email) return;
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 10000);
+
+    fetch(
+      `/api/tests/result?email=${encodeURIComponent(email)}&numero_afiliado=${encodeURIComponent(numero)}&curso_id=${encodeURIComponent(course.id)}`,
+      { cache: "no-store", signal: controller.signal }
+    )
+      .then(async (response) => {
+        if (!response.ok) return null;
+        const data = await response.json();
         if (
-          saved &&
-          typeof saved.attemptId === "string" &&
-          typeof saved.score === "number" &&
-          typeof saved.total === "number" &&
-          Array.isArray(saved.answers)
+          data?.found &&
+          data.aprobado === true &&
+          typeof data.intento_id === "string" &&
+          typeof data.puntuacion === "number" &&
+          data.puntuacion >= PASS_MARK &&
+          Array.isArray(data.respuestas) &&
+          data.respuestas.length === questions.length
         ) {
-          setAttemptId(saved.attemptId);
-          setAnswers(saved.answers);
+          const result = {
+            attemptId: data.intento_id,
+            score: data.puntuacion,
+            total: questions.length,
+            answers: data.respuestas.map(Number),
+          };
+          window.localStorage.setItem("sdo-progreso-" + course.id, "100");
+          window.localStorage.setItem("sdo-resultado-" + course.id, JSON.stringify(result));
+          setAttemptId(result.attemptId);
+          setAnswers(result.answers);
           setPhase("result");
         }
-      } catch {
-        // Si no hay resultado guardado, se mantiene el flujo normal del test.
-      }
-    }
-  }, [course.id, internalPreview]);
+        return null;
+      })
+      .catch(() => undefined)
+      .finally(() => window.clearTimeout(timeout));
+  }, [course.id, internalPreview, questions.length]);
 
   function select(optionIndex: number) {
     setAnswers((prev) => { const next = [...prev]; next[current] = optionIndex; return next; });
