@@ -25,6 +25,11 @@ export function CourseDetail({ course, modules }: CourseDetailProps) {
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-safety/30 bg-safety/10 px-4 py-2 text-sm font-black uppercase tracking-wide text-safety"><BookOpen className="h-4 w-4" />Curso gratuito</div>
           <h1 className="text-3xl font-black uppercase leading-tight tracking-tight sm:text-4xl lg:text-5xl">{course.title}</h1>
           <p className="mt-5 max-w-3xl text-lg leading-relaxed text-white/70">{course.description}</p>
+          {affiliated && (
+            <a href={`/cursos/${course.id}/test`} className="mt-7 inline-flex items-center justify-center gap-2 rounded-lg bg-safety px-7 py-4 text-sm font-black uppercase tracking-wide text-navy shadow-lg transition-colors hover:bg-safety-dark">
+              Realizar Test Final Gratis <ClipboardCheck className="h-5 w-5" />
+            </a>
+          )}
         </div></div>
       </section>
 
