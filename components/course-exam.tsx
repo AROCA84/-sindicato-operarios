@@ -16,6 +16,7 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
   const [affiliated, setAffiliated] = useState<boolean | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [attemptId, setAttemptId] = useState(internalPreview ? "PRUEBA-INTERNA" : "");
+  const [resultScore, setResultScore] = useState<number | null>(internalPreview ? internalScore : null);
   const [submitError, setSubmitError] = useState("");
   const internalScore = Math.max(PASS_MARK, Math.min(questions.length, PASS_MARK + 2));
   const internalAnswers = useMemo(
@@ -27,13 +28,15 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
     if (!internalPreview) return;
     setAnswers(internalAnswers);
     setAttemptId("PRUEBA-INTERNA");
+    setResultScore(internalScore);
     setPhase("result");
   }, [internalPreview, internalAnswers]);
 
   const selected = answers[current];
   const isLast = current === questions.length - 1;
   const score = useMemo(() => answers.reduce((acc, ans, i) => (ans === questions[i].answer ? acc + 1 : acc), 0), [answers, questions]);
-  const passed = score >= PASS_MARK;
+  const displayScore = resultScore ?? score;
+  const passed = displayScore >= PASS_MARK;
 
   useEffect(() => {
     const isAffiliated = window.localStorage.getItem("sdo-afiliado") === "true";
@@ -60,6 +63,7 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
       saved.answers.length === questions.length
     ) {
       setAttemptId(saved.attemptId);
+      setResultScore(saved.score);
       setAnswers(saved.answers.map(Number));
       setPhase("result");
       return;
@@ -102,6 +106,7 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
           window.localStorage.setItem("sdo-progreso-" + course.id, "100");
           window.localStorage.setItem("sdo-resultado-" + course.id, JSON.stringify(result));
           setAttemptId(result.attemptId);
+          setResultScore(result.score);
           setAnswers(result.answers);
           setPhase("result");
         }
@@ -151,6 +156,7 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
           throw new Error("El servidor no devolvió un resultado de test válido.");
         }
         setAttemptId(data.intento_id);
+        setResultScore(data.puntuacion);
         if (data.aprobado) {
           window.localStorage.setItem("sdo-progreso-" + course.id, "100");
           window.localStorage.setItem(
@@ -178,6 +184,7 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
   }
   function retry() {
     setAttemptId("");
+    setResultScore(null);
     setSubmitError("");
     setAnswers(Array(questions.length).fill(-1));
     setCurrent(0);
@@ -225,7 +232,7 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
         <h1 className="mt-4 text-balance text-2xl font-black leading-tight sm:text-3xl">Test Final · <span className="text-safety">{course.title.replace(/^Curso de /, "")}</span></h1>
         {phase === "quiz" && <div className="mt-6"><div className="flex items-center justify-between text-sm font-semibold text-slate-300"><span>Pregunta {current + 1} de {questions.length}</span><span>{Math.round(((current + 1) / questions.length) * 100)}%</span></div><div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/15"><div className="h-full rounded-full bg-safety transition-all duration-300" style={{ width: `${((current + 1) / questions.length) * 100}%` }} /></div></div>}
       </div></header>
-      <div className="mx-auto max-w-3xl px-6 py-10 sm:py-14">{phase === "quiz" ? <QuizCard question={questions[current]} selected={selected} onSelect={select} onNext={next} isLast={isLast} submitting={submitting} submitError={submitError} /> : <ResultCard passed={passed} score={score} total={questions.length} course={course} attemptId={attemptId} questions={questions} answers={answers} onRetry={retry} />}</div>
+      <div className="mx-auto max-w-3xl px-6 py-10 sm:py-14">{phase === "quiz" ? <QuizCard question={questions[current]} selected={selected} onSelect={select} onNext={next} isLast={isLast} submitting={submitting} submitError={submitError} /> : <ResultCard passed={passed} score={displayScore} total={questions.length} course={course} attemptId={attemptId} questions={questions} answers={answers} onRetry={retry} />}</div>
     </main>
   );
 }
