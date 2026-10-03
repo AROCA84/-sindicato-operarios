@@ -139,21 +139,27 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
           data.aprobado === true &&
           typeof data.intento_id === "string" &&
           typeof data.puntuacion === "number" &&
-          data.puntuacion >= PASS_MARK &&
-          Array.isArray(data.respuestas) &&
-          data.respuestas.length === questions.length
+          data.puntuacion >= PASS_MARK
         ) {
+          const hasAnswers = Array.isArray(data.respuestas) && data.respuestas.length === questions.length;
           const result = {
             attemptId: data.intento_id,
             score: data.puntuacion,
             total: questions.length,
-            answers: data.respuestas.map(Number),
+            answers: hasAnswers ? data.respuestas.map(Number) : null,
           };
-          persistPassedResult(course.id, result.attemptId, result.score, result.total, result.answers);
+          window.localStorage.setItem(
+            "sdo-progreso-" + course.id,
+            "100"
+          );
+          window.localStorage.setItem(
+            "sdo-resultado-" + course.id,
+            JSON.stringify(result)
+          );
           setAttemptId(result.attemptId);
-          setAnswers(result.answers);
+          setAnswers(result.answers || Array(questions.length).fill(-1));
           setResultScore(result.score);
-          setHasAnswersAvailable(true);
+          setHasAnswersAvailable(hasAnswers);
           setPhase("result");
         }
       })
