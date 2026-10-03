@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import crypto from "node:crypto";
+import { TOTAL_QUESTIONS, PASS_MARK } from "@/lib/exam";
 
 export const runtime = "nodejs";
 
@@ -44,12 +45,12 @@ export async function POST(request: Request) {
     const h = headers(key);
 
     const attemptResponse = await supabaseFetch(
-      `${url}/rest/v1/intentos_test?select=id,afiliado_id,curso_id,puntuacion,total,aprobado&id=eq.${encodeURIComponent(intentoId)}&limit=1`,
+      `${url}/rest/v1/intentos_test?select=id,afiliado_id,curso_id,puntuacion,aprobado&id=eq.${encodeURIComponent(intentoId)}&limit=1`,
       { headers: h, cache: "no-store" }
     );
     if (!attemptResponse.ok) return NextResponse.json({ error: "No se pudo comprobar el resultado del test." }, { status: 502 });
-    const attempts = await attemptResponse.json() as Array<{ id: string; afiliado_id: string; curso_id: string; puntuacion: number; total: number; aprobado: boolean }>;
-    if (!attempts.length || attempts[0].curso_id !== cursoId || attempts[0].total !== 20 || attempts[0].puntuacion < 14 || !attempts[0].aprobado) {
+    const attempts = await attemptResponse.json() as Array<{ id: string; afiliado_id: string; curso_id: string; puntuacion: number; aprobado: boolean }>;
+    if (!attempts.length || attempts[0].curso_id !== cursoId || attempts[0].puntuacion < PASS_MARK || !attempts[0].aprobado) {
       return NextResponse.json({ error: "El certificado solo está disponible después de aprobar el test con al menos el 70 %." }, { status: 403 });
     }
 
@@ -71,7 +72,7 @@ export async function POST(request: Request) {
         curso_id: cursoId,
         codigo: code,
         puntuacion: attempts[0].puntuacion,
-        total: attempts[0].total,
+        total: TOTAL_QUESTIONS,
         estado_pago: "pendiente",
         estado_emision: "pendiente",
       }),
