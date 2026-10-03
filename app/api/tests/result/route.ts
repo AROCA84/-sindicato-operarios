@@ -75,9 +75,8 @@ export async function GET(request: Request) {
       return NextResponse.json({ found: false });
     }
 
-    const hasAnswers =
-      Array.isArray(attempt.respuestas) &&
-      attempt.respuestas.length === TOTAL_QUESTIONS;
+    const answerList = Array.isArray(attempt.respuestas) ? attempt.respuestas : null;
+    const hasAnswers = answerList !== null && answerList.length === TOTAL_QUESTIONS;
 
     return NextResponse.json({
       found: true,
@@ -85,7 +84,7 @@ export async function GET(request: Request) {
       puntuacion: attempt.puntuacion,
       total: TOTAL_QUESTIONS,
       aprobado: true,
-      respuestas: hasAnswers ? attempt.respuestas!.map(Number) : null,
+      respuestas: hasAnswers ? answerList.map(Number) : null,
     });
   } catch (error) {
     console.error("Test result lookup error:", error);
