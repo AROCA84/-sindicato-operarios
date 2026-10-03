@@ -72,7 +72,6 @@ export async function POST(request: Request) {
         curso_id: cursoId,
         codigo: code,
         puntuacion: attempts[0].puntuacion,
-        total: TOTAL_QUESTIONS,
         estado_pago: "pendiente",
         estado_emision: "pendiente",
       }),
