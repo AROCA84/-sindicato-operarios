@@ -26,10 +26,13 @@ export async function generateMetadata({
 
 export default async function TestPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<{ prueba?: string }>;
 }) {
   const { id } = await params;
+  const prueba = searchParams ? (await searchParams).prueba === "1" : false;
   const course = allCourses.find((item) => item.id === id);
   if (!course) notFound();
   return <CourseExam course={course} internalPreview={prueba} />;
