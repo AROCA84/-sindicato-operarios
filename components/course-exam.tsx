@@ -7,15 +7,21 @@ type Phase = "quiz" | "result";
 export function CourseExam({ course, internalPreview = false }: { course: Course; internalPreview?: boolean }) {
   const questions = useMemo(() => getExam(course), [course]);
   const [current, setCurrent] = useState(0);
-  const [answers, setAnswers] = useState<number[]>(() => Array(questions.length).fill(-1));
-  const [phase, setPhase] = useState<Phase>("quiz");
+  const [answers, setAnswers] = useState<number[]>(() =>
+    internalPreview
+      ? questions.map((q, i) => (i < Math.max(PASS_MARK, Math.min(questions.length, PASS_MARK + 2)) ? q.answer : (q.answer + 1) % q.options.length))
+      : Array(questions.length).fill(-1)
+  );
+  const [phase, setPhase] = useState<Phase>(internalPreview ? "result" : "quiz");
   const [affiliated, setAffiliated] = useState<boolean | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [attemptId, setAttemptId] = useState("");
+  const [attemptId, setAttemptId] = useState(internalPreview ? "PRUEBA-INTERNA" : "");
   const [submitError, setSubmitError] = useState("");
-  const internalAnswers = useMemo(() => questions.map((q, i) => (i < Math.max(PASS_MARK, Math.min(questions.length, PASS_MARK + 2)) ? q.answer : (q.answer + 1) % q.options.length)), [questions]);
   const internalScore = Math.max(PASS_MARK, Math.min(questions.length, PASS_MARK + 2));
-  const total = questions.length;
+  const internalAnswers = useMemo(
+    () => questions.map((q, i) => (i < internalScore ? q.answer : (q.answer + 1) % q.options.length)),
+    [questions, internalScore]
+  );
 
   useEffect(() => {
     if (!internalPreview) return;
@@ -23,6 +29,7 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
     setAttemptId("PRUEBA-INTERNA");
     setPhase("result");
   }, [internalPreview, internalAnswers]);
+
   const selected = answers[current];
   const isLast = current === total - 1;
   const score = useMemo(() => answers.reduce((acc, ans, i) => (ans === questions[i].answer ? acc + 1 : acc), 0), [answers, questions]);
