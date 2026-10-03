@@ -31,7 +31,7 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
   }, [internalPreview, internalAnswers]);
 
   const selected = answers[current];
-  const isLast = current === total - 1;
+  const isLast = current === questions.length - 1;
   const score = useMemo(() => answers.reduce((acc, ans, i) => (ans === questions[i].answer ? acc + 1 : acc), 0), [answers, questions]);
   const passed = score >= PASS_MARK;
 
@@ -138,9 +138,9 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
         <Link href={`/cursos/${course.id}`} className="inline-flex items-center gap-2 text-sm font-semibold text-slate-300 transition-colors hover:text-safety"><BackIcon />Volver al curso</Link>
         <div className="mt-5 flex flex-wrap items-center gap-3"><span className="inline-block rounded-md bg-safety px-3 py-1 text-xs font-black uppercase tracking-wide text-navy">Test 100% Gratuito</span><span className="text-xs font-semibold uppercase tracking-wide text-slate-300">Afiliado · acceso gratuito</span><span className="text-xs font-semibold uppercase tracking-wide text-slate-300">Aprobado: {PASS_MARK} / {TOTAL_QUESTIONS} aciertos</span></div>
         <h1 className="mt-4 text-balance text-2xl font-black leading-tight sm:text-3xl">Test Final · <span className="text-safety">{course.title.replace(/^Curso de /, "")}</span></h1>
-        {phase === "quiz" && <div className="mt-6"><div className="flex items-center justify-between text-sm font-semibold text-slate-300"><span>Pregunta {current + 1} de {total}</span><span>{Math.round(((current + 1) / total) * 100)}%</span></div><div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/15"><div className="h-full rounded-full bg-safety transition-all duration-300" style={{ width: `${((current + 1) / total) * 100}%` }} /></div></div>}
+        {phase === "quiz" && <div className="mt-6"><div className="flex items-center justify-between text-sm font-semibold text-slate-300"><span>Pregunta {current + 1} de {questions.length}</span><span>{Math.round(((current + 1) / total) * 100)}%</span></div><div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/15"><div className="h-full rounded-full bg-safety transition-all duration-300" style={{ width: `${((current + 1) / questions.length) * 100}%` }} /></div></div>}
       </div></header>
-      <div className="mx-auto max-w-3xl px-6 py-10 sm:py-14">{phase === "quiz" ? <QuizCard question={questions[current]} selected={selected} onSelect={select} onNext={next} isLast={isLast} submitting={submitting} submitError={submitError} /> : <ResultCard passed={passed} score={score} total={total} course={course} attemptId={attemptId} questions={questions} answers={answers} onRetry={retry} />}</div>
+      <div className="mx-auto max-w-3xl px-6 py-10 sm:py-14">{phase === "quiz" ? <QuizCard question={questions[current]} selected={selected} onSelect={select} onNext={next} isLast={isLast} submitting={submitting} submitError={submitError} /> : <ResultCard passed={passed} score={score} total={questions.length} course={course} attemptId={attemptId} questions={questions} answers={answers} onRetry={retry} />}</div>
     </main>
   );
 }
