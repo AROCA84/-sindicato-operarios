@@ -41,13 +41,13 @@ export async function GET(request: Request) {
     if (!url || !key) return new NextResponse("Server not configured", { status: 503 });
 
     const db = await supabaseFetch(
-      `${url}/rest/v1/certificados?select=id,codigo,estado_pago,curso_id,afiliado_id&codigo=eq.${encodeURIComponent(code)}&limit=1`,
+      `${url}/rest/v1/certificados?select=id,codigo,estado_pago,curso_id,afiliado_id,puntuacion&codigo=eq.${encodeURIComponent(code)}&limit=1`,
       { headers: headers(key), cache: "no-store" }
     );
     if (!db.ok) return new NextResponse("No se pudo consultar el certificado.", { status: 502 });
-    const rows = await db.json() as Array<{ id: string; codigo: string; estado_pago: string; curso_id: string; afiliado_id: string }>;
+    const rows = await db.json() as Array<{ id: string; codigo: string; estado_pago: string; curso_id: string; afiliado_id: string; puntuacion: number }>;
     if (!rows.length) return new NextResponse("Certificado no encontrado.", { status: 404 });
-    if (rows[0].estado_pago === "pagado") return NextResponse.redirect(new URL(`/certificado/${encodeURIComponent(rows[0].curso_id)}?pago=ok&codigo=${encodeURIComponent(rows[0].codigo)}`, request.url));
+    if (rows[0].estado_pago === "pagado") return NextResponse.redirect(new URL(`/certificado/${encodeURIComponent(rows[0].curso_id)}?pago=ok&codigo=${encodeURIComponent(rows[0].codigo)}&score=${encodeURIComponent(String(rows[0].puntuacion))}&total=20`, request.url));
 
     const sid = process.env.MYPOS_SID?.trim();
     const wallet = process.env.MYPOS_WALLET_NUMBER?.trim();
