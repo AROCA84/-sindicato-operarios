@@ -5,18 +5,19 @@ import { CertificatePreview } from "@/components/certificate-preview";
 
 type CertificatePageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ score?: string; total?: string; intento?: string }>;
+  searchParams: Promise<{ score?: string; total?: string; intento?: string; codigo?: string; pago?: string }>;
 };
 
 export default async function CertificatePage({ params, searchParams }: CertificatePageProps) {
   const { id } = await params;
-  const { score, total, intento } = await searchParams;
+  const { score, total, intento, codigo, pago } = await searchParams;
   const course = allCourses.find((item) => item.id === id);
   if (!course) notFound();
 
   const scoreNumber = Number(score ?? 0);
   const totalNumber = Number(total ?? 20);
-  const passed = totalNumber === 20 && scoreNumber >= 14 && Boolean(intento?.trim());
+  const certificateReturn = Boolean(codigo?.trim()) && pago === "ok";
+  const passed = totalNumber === 20 && scoreNumber >= 14 && (Boolean(intento?.trim()) || certificateReturn);
 
   if (!passed) {
     return (
@@ -47,7 +48,7 @@ export default async function CertificatePage({ params, searchParams }: Certific
             <div className="rounded-2xl border border-slate-700 bg-slate-950/70 p-5 text-center"><p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Test</p><p className="mt-2 text-2xl font-black text-white">GRATUITO</p></div>
           </div>
         </section>
-        <CertificatePreview courseId={course.id} courseTitle={course.title} score={scoreNumber} total={totalNumber} attemptId={intento!} />
+        <CertificatePreview courseId={course.id} courseTitle={course.title} score={scoreNumber} total={totalNumber} attemptId={intento || codigo || ""} />
       </div>
     </main>
   );
