@@ -44,6 +44,8 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
   const [startingPayment, setStartingPayment] = useState(false);
   const searchParams = useSearchParams();
   const internalTest = searchParams.get("prueba") === "1";
+  const returnedCode = searchParams.get("codigo")?.trim() || "";
+  const paymentReturnOk = searchParams.get("pago") === "ok";
 
   useEffect(() => {
     setAffiliationNumber(window.localStorage.getItem("sdo-numero-afiliado") || "");
@@ -51,12 +53,32 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
     if (storedName) setName(storedName);
     const storedEmail = window.localStorage.getItem("sdo-afiliado-email");
     if (storedEmail) setEmail(storedEmail);
+    if (returnedCode) {
+      setCertificateCode(returnedCode);
+      setPaymentStarted(true);
+    }
     if (internalTest) {
       setCertificateCode("SDO-PRUEBA-INTERNA");
       setPaymentStarted(true);
       setPaymentConfirmed(false);
     }
-  }, [internalTest]);
+  }, [internalTest, returnedCode]);
+
+  useEffect(() => {
+    if (!paymentReturnOk || !returnedCode) return;
+    let active = true;
+    (async () => {
+      try {
+        const response = await fetch(`/api/certificados/estado?codigo=${encodeURIComponent(returnedCode)}`, { cache: "no-store" });
+        const data = await response.json();
+        if (active && response.ok && data.emitido) setPaymentConfirmed(true);
+        else if (active && response.ok) setError("El pago ha vuelto correctamente, pero todavía estamos esperando la confirmación de emisión. Pulsa «Comprobar pago» en unos segundos.");
+      } catch {
+        if (active) setError("No se pudo comprobar automáticamente el pago. Pulsa «Comprobar pago» para reintentarlo.");
+      }
+    })();
+    return () => { active = false; };
+  }, [paymentReturnOk, returnedCode]);
 
   const verificationUrl = typeof window !== "undefined"
     ? `${window.location.origin}/verificar?codigo=${encodeURIComponent(certificateCode)}`
@@ -185,7 +207,7 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
           </div>
         )}
         {error && <div role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">{error}</div>}
-        <p className="mt-3 text-center text-xs leading-5 text-slate-400">Estudiar y hacer el test es gratis. El certificado cuesta 4,99 € y el pago se realiza mediante myPOS.</p>
+        <p className="mt-3 text-center text-xs leading-5 text-slate-400">La formación y el test son gratuitos. El certificado cuesta 4,99 € y el pago se realiza mediante myPOS.</p>
       </div>
 
       {paymentConfirmed && (
