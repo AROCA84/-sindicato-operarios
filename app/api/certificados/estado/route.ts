@@ -19,19 +19,19 @@ export async function GET(request: Request) {
     if (!key.startsWith("sb_secret_")) h.Authorization = `Bearer ${key}`;
 
     const response = await fetch(
-      `${url}/rest/v1/certificados?select=codigo,curso_id,puntuacion,total,estado_pago,estado_emision,emitido_at,afiliado_id&codigo=eq.${encodeURIComponent(code)}&limit=1`,
+      `${url}/rest/v1/certificados?select=codigo,curso_id,puntuacion,estado_pago,estado_emision,emitido_at,afiliado_id&codigo=eq.${encodeURIComponent(code)}&limit=1`,
       { headers: h, cache: "no-store" }
     );
     if (!response.ok) return NextResponse.json({ error: "No se pudo consultar el certificado." }, { status: 502 });
     const rows = await response.json() as Array<{
-      codigo: string; curso_id: string; puntuacion: number; total: number;
+      codigo: string; curso_id: string; puntuacion: number;
       estado_pago: string; estado_emision: string; emitido_at: string | null; afiliado_id: string;
     }>;
     if (!rows.length) return NextResponse.json({ ok: false, estado: "no_encontrado" }, { status: 404 });
 
     const cert = rows[0];
     const emitido = cert.estado_pago === "pagado" && cert.estado_emision === "emitido";
-    return NextResponse.json({ ok: true, emitido, ...cert });
+    return NextResponse.json({ ok: true, emitido, total: 20, ...cert });
   } catch {
     return NextResponse.json({ error: "Error del servidor." }, { status: 500 });
   }
