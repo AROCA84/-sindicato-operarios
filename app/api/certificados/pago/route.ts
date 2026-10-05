@@ -77,7 +77,7 @@ export async function GET(request: Request) {
       Amount: "4.99",
       Currency: "EUR",
       OrderID: rows[0].codigo,
-      URL_OK: `${origin}/certificado/${encodeURIComponent(rows[0].curso_id)}?pago=ok&codigo=${encodeURIComponent(rows[0].codigo)}`,
+      URL_OK: `${origin}/certificado/${encodeURIComponent(rows[0].curso_id)}?pago=ok&codigo=${encodeURIComponent(rows[0].codigo)}&score=${encodeURIComponent(String(rows[0].puntuacion))}&total=20`,
       URL_Cancel: `${origin}/certificado/${encodeURIComponent(rows[0].curso_id)}?pago=cancelado&codigo=${encodeURIComponent(rows[0].codigo)}`,
       URL_Notify: `${origin}/api/certificados/notify`,
       CardTokenRequest: "0",
