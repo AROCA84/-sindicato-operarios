@@ -67,17 +67,41 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
   useEffect(() => {
     if (!paymentReturnOk || !returnedCode) return;
     let active = true;
-    (async () => {
+    let timer: number | undefined;
+    let attempts = 0;
+
+    const poll = async () => {
+      if (!active) return;
+      attempts += 1;
       try {
         const response = await fetch(`/api/certificados/estado?codigo=${encodeURIComponent(returnedCode)}`, { cache: "no-store" });
         const data = await response.json();
-        if (active && response.ok && data.emitido) setPaymentConfirmed(true);
-        else if (active && response.ok) setError("El pago ha vuelto correctamente, pero todavía estamos esperando la confirmación de emisión. Pulsa «Comprobar pago» en unos segundos.");
+        if (active && response.ok && data.emitido) {
+          setPaymentConfirmed(true);
+          setError("");
+          return;
+        }
+        if (active && attempts < 12) {
+          timer = window.setTimeout(poll, 2500);
+          return;
+        }
+        if (active && response.ok) {
+          setError("El pago ha vuelto correctamente, pero myPOS todavía no ha confirmado la emisión. Pulsa «Comprobar pago» para reintentarlo.");
+        }
       } catch {
+        if (active && attempts < 12) {
+          timer = window.setTimeout(poll, 2500);
+          return;
+        }
         if (active) setError("No se pudo comprobar automáticamente el pago. Pulsa «Comprobar pago» para reintentarlo.");
       }
-    })();
-    return () => { active = false; };
+    };
+
+    poll();
+    return () => {
+      active = false;
+      if (timer) window.clearTimeout(timer);
+    };
   }, [paymentReturnOk, returnedCode]);
 
   const verificationUrl = typeof window !== "undefined"
