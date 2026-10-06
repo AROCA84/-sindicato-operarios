@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getCourse } from "@/lib/courses";
+import { supabaseConfig, headers, supabaseFetch } from "@/lib/supabase-server";
 
 type Props = {
   searchParams: Promise<{
@@ -18,39 +19,23 @@ type Affiliate = {
 };
 
 type Certificate = {
-  codigo: string;
+  codigo_certificado: string;
   curso_id: string;
   puntuacion: number;
-  total: number;
-  estado_pago: string;
-  estado_emision: string;
-  emitido_at: string | null;
+  total_preguntas: number;
+  pago_realizado: boolean;
+  estado: string;
+  fecha_emision: string | null;
   afiliado_id: string;
 };
 
-function config() {
-  const url = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)?.replace(/\/$/, "");
-  const raw = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const key = raw?.trim();
-  return { url, key };
-}
-
-function dbHeaders(key: string) {
-  const headers: Record<string, string> = {
-    apikey: key,
-    "Content-Type": "application/json",
-  };
-  if (!key.startsWith("sb_secret_")) headers.Authorization = `Bearer ${key}`;
-  return headers;
-}
-
 async function findAffiliate(numero: string) {
-  const { url, key } = config();
+  const { url, key } = supabaseConfig();
   if (!url || !key || !/^\d+$/.test(numero)) return null;
 
-  const response = await fetch(
+  const response = await supabaseFetch(
     `${url}/rest/v1/afiliados?select=id,numero_afiliado,nombre,apellidos,email,activo&numero_afiliado=eq.${encodeURIComponent(numero)}&activo=eq.true&limit=1`,
-    { headers: dbHeaders(key), cache: "no-store" },
+    { headers: headers(key), cache: "no-store" },
   );
   if (!response.ok) return null;
   const rows = await response.json() as Affiliate[];
@@ -58,15 +43,29 @@ async function findAffiliate(numero: string) {
 }
 
 async function findCertificate(codigo: string) {
-  const { url, key } = config();
+  const { url, key } = supabaseConfig();
   if (!url || !key || !/^SDO-[A-Z0-9-]+$/i.test(codigo)) return null;
 
-  const response = await fetch(
-    `${url}/rest/v1/certificados?select=codigo,curso_id,puntuacion,total,estado_pago,estado_emision,emitido_at,afiliado_id&codigo=eq.${encodeURIComponent(codigo)}&estado_pago=eq.pagado&estado_emision=eq.emitido&limit=1`,
-    { headers: dbHeaders(key), cache: "no-store" },
+  // Query by REAL column: codigo_certificado
+  const response = await supabaseFetch(
+    `${url}/rest/v1/certificados?select=codigo_certificado,curso_id,puntuacion,total_preguntas,pago_realizado,estado,fecha_emision,afiliado_id&codigo_certificado=eq.${encodeURIComponent(codigo)}&pago_realizado=eq.true&estado=eq.emitido&limit=1`,
+    { headers: headers(key), cache: "no-store" },
   );
   if (!response.ok) return null;
   const rows = await response.json() as Certificate[];
+  return rows[0] ?? null;
+}
+
+async function findAffiliateById(id: string) {
+  const { url, key } = supabaseConfig();
+  if (!url || !key) return null;
+
+  const response = await supabaseFetch(
+    `${url}/rest/v1/afiliados?select=id,numero_afiliado,nombre,apellidos,email,activo&id=eq.${encodeURIComponent(id)}&activo=eq.true&limit=1`,
+    { headers: headers(key), cache: "no-store" },
+  );
+  if (!response.ok) return null;
+  const rows = await response.json() as Affiliate[];
   return rows[0] ?? null;
 }
 
@@ -112,8 +111,8 @@ export default async function VerificationPage({ searchParams }: Props) {
                 </div>
                 <div className="mt-7 space-y-4">
                   <div><p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Formación</p><p className="mt-1 font-bold">{getCourse(certificate.curso_id)?.title ?? certificate.curso_id}</p></div>
-                  <div><p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Resultado</p><p className="mt-1 font-black text-emerald-700">APTO · {certificate.puntuacion}/{certificate.total}</p></div>
-                  <div><p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Código de verificación</p><p className="mt-1 font-black">{certificate.codigo}</p></div>
+                  <div><p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Resultado</p><p className="mt-1 font-black text-emerald-700">APTO · {certificate.puntuacion}/{certificate.total_preguntas}</p></div>
+                  <div><p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Código de verificación</p><p className="mt-1 font-black">{certificate.codigo_certificado}</p></div>
                 </div>
               </section>
             ) : validAffiliate && member ? (
@@ -141,17 +140,4 @@ export default async function VerificationPage({ searchParams }: Props) {
       </div>
     </main>
   );
-}
-
-async function findAffiliateById(id: string) {
-  const { url, key } = config();
-  if (!url || !key) return null;
-
-  const response = await fetch(
-    `${url}/rest/v1/afiliados?select=id,numero_afiliado,nombre,apellidos,email,activo&id=eq.${encodeURIComponent(id)}&activo=eq.true&limit=1`,
-    { headers: dbHeaders(key), cache: "no-store" },
-  );
-  if (!response.ok) return null;
-  const rows = await response.json() as Affiliate[];
-  return rows[0] ?? null;
 }

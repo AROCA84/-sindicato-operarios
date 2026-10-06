@@ -3,7 +3,16 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { Course } from "@/lib/courses";
 import { getExam, PASS_MARK, TOTAL_QUESTIONS, type ExamQuestion } from "@/lib/exam";
+
 type Phase = "quiz" | "result";
+
+type ServerResult = {
+  attemptId: string;
+  score: number;
+  total: number;
+  answers: number[] | null;
+};
+
 export function CourseExam({ course, internalPreview = false }: { course: Course; internalPreview?: boolean }) {
   const questions = useMemo(() => getExam(course), [course]);
   const [current, setCurrent] = useState(0);
@@ -14,9 +23,11 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
   );
   const [phase, setPhase] = useState<Phase>(internalPreview ? "result" : "quiz");
   const [affiliated, setAffiliated] = useState<boolean | null>(null);
+  const [serverResult, setServerResult] = useState<ServerResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [attemptId, setAttemptId] = useState(internalPreview ? "PRUEBA-INTERNA" : "");
   const [submitError, setSubmitError] = useState("");
+  const [checkingServer, setCheckingServer] = useState(false);
   const internalScore = Math.max(PASS_MARK, Math.min(questions.length, PASS_MARK + 2));
   const internalAnswers = useMemo(
     () => questions.map((q, i) => (i < internalScore ? q.answer : (q.answer + 1) % q.options.length)),
@@ -32,43 +43,27 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
 
   const selected = answers[current];
   const isLast = current === questions.length - 1;
-  const score = useMemo(() => answers.reduce((acc, ans, i) => (ans === questions[i].answer ? acc + 1 : acc), 0), [answers, questions]);
-  const passed = score >= PASS_MARK;
+  // Score is always derived from the server result when available, never from client-only calculation
+  const score = useMemo(() => {
+    if (serverResult) return serverResult.score;
+    return answers.reduce((acc, ans, i) => (ans === questions[i].answer ? acc + 1 : acc), 0);
+  }, [answers, questions, serverResult]);
+  const passed = serverResult ? serverResult.score >= PASS_MARK : score >= PASS_MARK;
 
+  // RECOVERY: Always query the server first for a real approved attempt.
+  // localStorage is only used as a visual cache after the server confirms.
   useEffect(() => {
+    if (internalPreview) return;
     const isAffiliated = window.localStorage.getItem("sdo-afiliado") === "true";
     setAffiliated(isAffiliated);
-
-    if (internalPreview || !isAffiliated) return;
-
-    const saved = (() => {
-      try {
-        return JSON.parse(window.localStorage.getItem("sdo-resultado-" + course.id) || "null");
-      } catch {
-        return null;
-      }
-    })();
-
-    if (
-      saved &&
-      typeof saved.attemptId === "string" &&
-      typeof saved.score === "number" &&
-      typeof saved.total === "number" &&
-      saved.score >= PASS_MARK &&
-      saved.total === questions.length &&
-      Array.isArray(saved.answers) &&
-      saved.answers.length === questions.length
-    ) {
-      setAttemptId(saved.attemptId);
-      setAnswers(saved.answers.map(Number));
-      setPhase("result");
-      return;
-    }
+    if (!isAffiliated) return;
 
     const numero = window.localStorage.getItem("sdo-numero-afiliado") || "";
     const email = window.localStorage.getItem("sdo-afiliado-email") || "";
     if (!numero || !email) return;
 
+    // Always query the server to verify the approved state is real
+    setCheckingServer(true);
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 10000);
 
@@ -84,31 +79,38 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
           data.aprobado === true &&
           typeof data.intento_id === "string" &&
           typeof data.puntuacion === "number" &&
-          data.puntuacion >= PASS_MARK &&
-          Array.isArray(data.respuestas) &&
-          data.respuestas.length === questions.length
+          data.puntuacion >= PASS_MARK
         ) {
-          const result = {
+          // Server confirms a real approved attempt — show result, never go back to test
+          const result: ServerResult = {
             attemptId: data.intento_id,
             score: data.puntuacion,
             total: questions.length,
-            answers: data.respuestas.map(Number),
+            answers: Array.isArray(data.respuestas) ? data.respuestas.map(Number) : null,
           };
           window.localStorage.setItem("sdo-progreso-" + course.id, "100");
           window.localStorage.setItem("sdo-resultado-" + course.id, JSON.stringify(result));
+          setServerResult(result);
           setAttemptId(result.attemptId);
-          setAnswers(result.answers);
+          if (result.answers) setAnswers(result.answers);
           setPhase("result");
+        } else {
+          // Server says no approved attempt — clear stale localStorage cache
+          window.localStorage.removeItem("sdo-resultado-" + course.id);
         }
         return null;
       })
       .catch(() => undefined)
-      .finally(() => window.clearTimeout(timeout));
+      .finally(() => {
+        window.clearTimeout(timeout);
+        setCheckingServer(false);
+      });
   }, [course.id, internalPreview, questions.length]);
 
   function select(optionIndex: number) {
     setAnswers((prev) => { const next = [...prev]; next[current] = optionIndex; return next; });
   }
+
   async function next() {
     if (isLast) {
       setSubmitting(true);
@@ -145,20 +147,19 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
         if (!data.intento_id || typeof data.puntuacion !== "number" || typeof data.total !== "number" || typeof data.aprobado !== "boolean") {
           throw new Error("El servidor no devolvió un resultado de test válido.");
         }
+        // Use SERVER-CALCULATED score, not client-calculated
+        const serverScore = data.puntuacion;
+        const serverPassed = data.aprobado;
+        setServerResult({ attemptId: data.intento_id, score: serverScore, total: data.total, answers: serverPassed ? answers : null });
         setAttemptId(data.intento_id);
-        if (data.aprobado) {
+        if (serverPassed) {
           window.localStorage.setItem("sdo-progreso-" + course.id, "100");
           window.localStorage.setItem(
             "sdo-resultado-" + course.id,
-            JSON.stringify({
-              attemptId: data.intento_id,
-              score: data.puntuacion,
-              total: data.total,
-              answers,
-            })
+            JSON.stringify({ attemptId: data.intento_id, score: serverScore, total: data.total, answers: serverPassed ? answers : undefined })
           );
         } else {
-          window.localStorage.setItem("sdo-progreso-" + course.id, String(Math.min(99, Math.round((data.puntuacion / data.total) * 100))));
+          window.localStorage.setItem("sdo-progreso-" + course.id, String(Math.min(99, Math.round((serverScore / data.total) * 100))));
           window.localStorage.removeItem("sdo-resultado-" + course.id);
         }
         setPhase("result");
@@ -171,7 +172,10 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
     }
     setCurrent((c) => c + 1);
   }
+
+  // Retry is only available for NON-approved attempts — once the server says approved, the user stays on the result
   function retry() {
+    setServerResult(null);
     setAttemptId("");
     setSubmitError("");
     setAnswers(Array(questions.length).fill(-1));
@@ -179,7 +183,7 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
     setPhase("quiz");
   }
 
-  if (affiliated === null) return <div className="min-h-screen bg-slate-50" />;
+  if (affiliated === null || checkingServer) return <div className="min-h-screen bg-slate-50" />;
 
   if (!affiliated && !internalPreview) {
     const returnTo = `/cursos/${course.id}/test`;
@@ -220,15 +224,17 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
         <h1 className="mt-4 text-balance text-2xl font-black leading-tight sm:text-3xl">Test Final · <span className="text-safety">{course.title.replace(/^Curso de /, "")}</span></h1>
         {phase === "quiz" && <div className="mt-6"><div className="flex items-center justify-between text-sm font-semibold text-slate-300"><span>Pregunta {current + 1} de {questions.length}</span><span>{Math.round(((current + 1) / questions.length) * 100)}%</span></div><div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/15"><div className="h-full rounded-full bg-safety transition-all duration-300" style={{ width: `${((current + 1) / questions.length) * 100}%` }} /></div></div>}
       </div></header>
-      <div className="mx-auto max-w-3xl px-6 py-10 sm:py-14">{phase === "quiz" ? <QuizCard question={questions[current]} selected={selected} onSelect={select} onNext={next} isLast={isLast} submitting={submitting} submitError={submitError} /> : <ResultCard passed={passed} score={score} total={questions.length} course={course} attemptId={attemptId} questions={questions} answers={answers} onRetry={retry} internalPreview={internalPreview} />}</div>
+      <div className="mx-auto max-w-3xl px-6 py-10 sm:py-14">{phase === "quiz" ? <QuizCard question={questions[current]} selected={selected} onSelect={select} onNext={next} isLast={isLast} submitting={submitting} submitError={submitError} /> : <ResultCard passed={passed} score={score} total={serverResult?.total ?? questions.length} course={course} attemptId={attemptId} questions={questions} answers={answers} onRetry={retry} internalPreview={internalPreview} serverApproved={Boolean(serverResult)} />}</div>
     </main>
   );
 }
+
 function QuizCard({ question, selected, onSelect, onNext, isLast, submitting, submitError }: { question: ExamQuestion; selected: number; onSelect: (i: number) => void; onNext: () => void; isLast: boolean; submitting: boolean; submitError: string }) {
   const letters = ["A", "B", "C", "D"];
-  return <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 sm:p-8"><h2 className="text-balance text-xl font-black leading-snug text-navy sm:text-2xl">{question.q}</h2><div className="mt-6 grid gap-3">{question.options.map((option, i) => { const active = selected === i; return <button key={option} type="button" onClick={() => onSelect(i)} aria-pressed={active} className={`flex items-center gap-4 rounded-xl border-2 px-4 py-4 text-left transition-all ${active ? "border-safety bg-safety/10 shadow-sm" : "border-slate-200 bg-white hover:border-navy/40 hover:bg-slate-50"}`}><span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-black ${active ? "bg-safety text-navy" : "bg-slate-100 text-slate-500"}`}>{letters[i]}</span><span className={`text-sm font-semibold leading-snug sm:text-base ${active ? "text-navy" : "text-slate-700"}`}>{option}</span></button>; })}</div><div className="mt-8 flex items-center justify-between border-t border-slate-200 pt-6"><p className="text-xs font-medium text-slate-400">Selecciona una respuesta para continuar</p><button type="button" onClick={onNext} disabled={selected === -1} className="inline-flex items-center gap-2 rounded-lg bg-navy px-6 py-3 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-navy-light disabled:cursor-not-allowed disabled:opacity-40">{submitting ? "Guardando resultado…" : isLast ? "Finalizar Test" : "Siguiente Pregunta"}<ArrowIcon /></button></div></div>;
+  return <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 sm:p-8"><h2 className="text-balance text-xl font-black leading-snug text-navy sm:text-2xl">{question.q}</h2><div className="mt-6 grid gap-3">{question.options.map((option, i) => { const active = selected === i; return <button key={option} type="button" onClick={() => onSelect(i)} aria-pressed={active} className={`flex items-center gap-4 rounded-xl border-2 px-4 py-4 text-left transition-all ${active ? "border-safety bg-safety/10 shadow-sm" : "border-slate-200 bg-white hover:border-navy/40 hover:bg-slate-50"}`}><span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-black ${active ? "bg-safety text-navy" : "bg-slate-100 text-slate-500"}`}>{letters[i]}</span><span className={`text-sm font-semibold leading-snug sm:text-base ${active ? "text-navy" : "text-slate-700"}`}>{option}</span></button>; })}</div><div className="mt-8 flex items-center justify-between border-t border-slate-200 pt-6"><p className="text-xs font-medium text-slate-400">Selecciona una respuesta para continuar</p><button type="button" onClick={onNext} disabled={selected === -1} className="inline-flex items-center gap-2 rounded-lg bg-navy px-6 py-3 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-navy-light disabled:cursor-not-allowed disabled:opacity-40">{submitting ? "Guardando resultado…" : isLast ? "Finalizar Test" : "Siguiente Pregunta"}<ArrowIcon /></button></div>{submitError && <div role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">{submitError}</div>}</div>;
 }
-function ResultCard({ passed, score, total, course, attemptId, questions, answers, onRetry, internalPreview }: { passed: boolean; score: number; total: number; course: Course; attemptId: string; questions: ExamQuestion[]; answers: number[]; onRetry: () => void; internalPreview: boolean }) {
+
+function ResultCard({ passed, score, total, course, attemptId, questions, answers, onRetry, internalPreview, serverApproved }: { passed: boolean; score: number; total: number; course: Course; attemptId: string; questions: ExamQuestion[]; answers: number[]; onRetry: () => void; internalPreview: boolean; serverApproved: boolean }) {
   return (
     <div className="space-y-6">
       <div className="overflow-hidden rounded-2xl bg-white shadow-lg ring-1 ring-slate-200">
@@ -262,8 +268,9 @@ function ResultCard({ passed, score, total, course, attemptId, questions, answer
           ) : (
             <div className="flex flex-col gap-4">
               <Link href={`/cursos/${course.id}`} className="inline-flex items-center justify-center gap-2 rounded-lg border-2 border-navy bg-white px-8 py-4 text-base font-black uppercase tracking-wide text-navy shadow-sm transition-colors hover:bg-slate-50">Repasar el temario<ArrowIcon /></Link>
-              <button type="button" onClick={onRetry} className="inline-flex items-center justify-center gap-2 rounded-lg bg-navy px-8 py-4 text-base font-black uppercase tracking-wide text-white shadow-lg transition-colors hover:bg-navy-light"><RetryIcon />Repetir Test Gratis</button>
-              <p className="text-center text-sm leading-relaxed text-slate-500">No has obtenido el apto. Repasa el temario y vuelve a intentarlo gratis. No se realiza ningún pago por suspender.</p>
+              {/* Retry is only shown for NON-approved attempts — once approved, the user stays on the result page */}
+              {!serverApproved && <button type="button" onClick={onRetry} className="inline-flex items-center justify-center gap-2 rounded-lg bg-navy px-8 py-4 text-base font-black uppercase tracking-wide text-white shadow-lg transition-colors hover:bg-navy-light"><RetryIcon />Repetir Test Gratis</button>}
+              {!serverApproved && <p className="text-center text-sm leading-relaxed text-slate-500">No has obtenido el apto. Repasa el temario y vuelve a intentarlo gratis. No se realiza ningún pago por suspender.</p>}
             </div>
           )}
         </div>
@@ -276,8 +283,8 @@ function ResultCard({ passed, score, total, course, attemptId, questions, answer
         </div>
         <div className="divide-y divide-slate-200">
           {questions.map((question, index) => {
-            const selected = answers[index];
-            const correct = selected === question.answer;
+            const selectedAns = answers[index];
+            const correct = selectedAns === question.answer;
             return (
               <article key={index} className="p-5 sm:p-6">
                 <div className="flex items-start gap-3">
@@ -287,8 +294,8 @@ function ResultCard({ passed, score, total, course, attemptId, questions, answer
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-black leading-6 text-navy sm:text-base"><span className="text-slate-400">Pregunta {index + 1}.</span> {question.q}</p>
                     <p className={`mt-3 text-sm leading-6 ${correct ? "text-emerald-700" : "text-red-700"}`}>
-                      <span className="font-black">{correct ? "Tu respuesta: " : "Tu respuesta: "}</span>
-                      {selected >= 0 ? question.options[selected] : "Sin respuesta"}
+                      <span className="font-black">Tu respuesta: </span>
+                      {selectedAns >= 0 ? question.options[selectedAns] : "Sin respuesta"}
                     </p>
                     {!correct && (
                       <p className="mt-1 text-sm leading-6 text-emerald-700">

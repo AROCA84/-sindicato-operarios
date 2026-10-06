@@ -1,24 +1,12 @@
 import { NextResponse } from "next/server";
 import crypto from "node:crypto";
+import { supabaseConfig, headers, supabaseFetch } from "@/lib/supabase-server";
 
 export const runtime = "nodejs";
 
-function supabaseConfig() {
-  const url = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)?.replace(/\/$/, "");
-  const raw = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const key = raw?.trim().replace(/[\u0000-\u001F\u007F-\u009F]/g, "").replace(/[•·]/g, "");
-  return { url, key };
-}
-
-function dbHeaders(key: string) {
-  const h: Record<string, string> = { apikey: key, "Content-Type": "application/json" };
-  if (!key.startsWith("sb_secret_")) h.Authorization = `Bearer ${key}`;
-  return h;
-}
-
 /**
  * myPOS signs every notification field except Signature.
- * The signature is always the last POST parameter. We therefore preserve
+ * The signature is always the last POST parameter. We preserve
  * the incoming URL-encoded parameter order and verify the exact payload
  * supplied by myPOS with the merchant's myPOS API public RSA key.
  */
@@ -48,28 +36,30 @@ function verifyMyPosSignature(rawBody: string, publicKey: string) {
 }
 
 async function findCertificate(url: string, key: string, orderId: string) {
-  const response = await fetch(
-    `${url}/rest/v1/certificados?select=id,codigo,estado_pago,estado_emision&codigo=eq.${encodeURIComponent(orderId)}&limit=1`,
-    { headers: dbHeaders(key), cache: "no-store" },
+  // Query by REAL column: codigo_certificado (not codigo)
+  const response = await supabaseFetch(
+    `${url}/rest/v1/certificados?select=id,codigo_certificado,pago_realizado,estado&codigo_certificado=eq.${encodeURIComponent(orderId)}&limit=1`,
+    { headers: headers(key), cache: "no-store" },
   );
   if (!response.ok) throw new Error("database_lookup_failed");
   const rows = await response.json() as Array<{
     id: string;
-    codigo: string;
-    estado_pago: string;
-    estado_emision: string;
+    codigo_certificado: string;
+    pago_realizado: boolean;
+    estado: string;
   }>;
   return rows[0] || null;
 }
 
 async function updateCertificate(url: string, key: string, id: string, paid: boolean) {
+  // Update with REAL columns: pago_realizado (not estado_pago), estado (not estado_emision), fecha_emision (not emitido_at)
   const patch = paid
-    ? { estado_pago: "pagado", estado_emision: "emitido", emitido_at: new Date().toISOString() }
-    : { estado_pago: "pendiente", estado_emision: "pendiente" };
+    ? { pago_realizado: true, estado: "emitido", fecha_emision: new Date().toISOString() }
+    : { pago_realizado: false, estado: "pendiente" };
 
-  const response = await fetch(`${url}/rest/v1/certificados?id=eq.${encodeURIComponent(id)}`, {
+  const response = await supabaseFetch(`${url}/rest/v1/certificados?id=eq.${encodeURIComponent(id)}`, {
     method: "PATCH",
-    headers: { ...dbHeaders(key), Prefer: "return=minimal" },
+    headers: { ...headers(key), Prefer: "return=minimal" },
     body: JSON.stringify(patch),
     cache: "no-store",
   });
@@ -89,6 +79,7 @@ export async function POST(request: Request) {
       return new NextResponse("Invalid method", { status: 400 });
     }
 
+    // Server validates amount and currency — client cannot forge price
     if (!orderId || amount !== "4.99" || currency !== "EUR") {
       return new NextResponse("Invalid payment", { status: 400 });
     }
@@ -117,7 +108,7 @@ export async function POST(request: Request) {
       });
     }
 
-    if (certificate.estado_pago === "pagado" && certificate.estado_emision === "emitido") {
+    if (certificate.pago_realizado && certificate.estado === "emitido") {
       return new NextResponse("OK", {
         status: 200,
         headers: { "Content-Type": "text/plain" },

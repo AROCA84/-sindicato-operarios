@@ -1,28 +1,9 @@
 import { NextResponse } from "next/server";
 import crypto from "node:crypto";
+import { supabaseConfig, headers, supabaseFetch } from "@/lib/supabase-server";
 
 export const runtime = "nodejs";
 
-function supabaseConfig() {
-  const url = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)?.replace(/\/$/, "");
-  const raw = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const key = raw?.trim().replace(/[\u0000-\u001F\u007F-\u009F]/g, "").replace(/[•·]/g, "");
-  return { url, key };
-}
-const SUPABASE_TIMEOUT_MS = 10000;
-
-async function supabaseFetch(input: RequestInfo | URL, init: RequestInit) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), SUPABASE_TIMEOUT_MS);
-  try { return await fetch(input, { ...init, signal: controller.signal }); }
-  finally { clearTimeout(timeout); }
-}
-
-function headers(key: string) {
-  const h: Record<string, string> = { apikey: key, "Content-Type": "application/json" };
-  if (!key.startsWith("sb_secret_")) h.Authorization = `Bearer ${key}`;
-  return h;
-}
 function htmlEscape(value: string) {
   return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
@@ -39,15 +20,25 @@ export async function GET(request: Request) {
 
     const { url, key } = supabaseConfig();
     if (!url || !key) return new NextResponse("Server not configured", { status: 503 });
+    const h = headers(key);
 
+    // Query by REAL column: codigo_certificado (not codigo)
     const db = await supabaseFetch(
-      `${url}/rest/v1/certificados?select=id,codigo,estado_pago,curso_id,afiliado_id,puntuacion&codigo=eq.${encodeURIComponent(code)}&limit=1`,
-      { headers: headers(key), cache: "no-store" }
+      `${url}/rest/v1/certificados?select=id,codigo_certificado,curso_id,afiliado_id,puntuacion,pago_realizado,estado&codigo_certificado=eq.${encodeURIComponent(code)}&limit=1`,
+      { headers: h, cache: "no-store" }
     );
     if (!db.ok) return new NextResponse("No se pudo consultar el certificado.", { status: 502 });
-    const rows = await db.json() as Array<{ id: string; codigo: string; estado_pago: string; curso_id: string; afiliado_id: string; puntuacion: number }>;
+    const rows = await db.json() as Array<{ id: string; codigo_certificado: string; curso_id: string; afiliado_id: string; puntuacion: number; pago_realizado: boolean; estado: string }>;
     if (!rows.length) return new NextResponse("Certificado no encontrado.", { status: 404 });
-    if (rows[0].estado_pago === "pagado") return NextResponse.redirect(new URL(`/certificado/${encodeURIComponent(rows[0].curso_id)}?pago=ok&codigo=${encodeURIComponent(rows[0].codigo)}&score=${encodeURIComponent(String(rows[0].puntuacion))}&total=20`, request.url));
+
+    const cert = rows[0];
+    // Check pago_realizado (not estado_pago === "pagado")
+    if (cert.pago_realizado) {
+      return NextResponse.redirect(new URL(
+        `/certificado/${encodeURIComponent(cert.curso_id)}?pago=ok&codigo=${encodeURIComponent(cert.codigo_certificado)}&score=${encodeURIComponent(String(cert.puntuacion))}&total=20`,
+        request.url
+      ));
+    }
 
     const sid = process.env.MYPOS_SID?.trim();
     const wallet = process.env.MYPOS_WALLET_NUMBER?.trim();
@@ -59,15 +50,17 @@ export async function GET(request: Request) {
       return new NextResponse("Falta configurar las credenciales de Checkout de myPOS.", { status: 503 });
     }
 
-    const memberResponse = await fetch(`${url}/rest/v1/afiliados?select=nombre,apellidos,email&id=eq.${encodeURIComponent(rows[0].afiliado_id)}&limit=1`, { headers: headers(key), cache: "no-store" });
+    const memberResponse = await supabaseFetch(
+      `${url}/rest/v1/afiliados?select=nombre,apellidos,email&id=eq.${encodeURIComponent(cert.afiliado_id)}&limit=1`,
+      { headers: h, cache: "no-store" }
+    );
     if (!memberResponse.ok) return new NextResponse("No se pudieron cargar los datos del titular.", { status: 502 });
     const members = await memberResponse.json() as Array<{ nombre: string; apellidos: string; email: string }>;
     if (!members.length) return new NextResponse("Titular no encontrado.", { status: 404 });
     const member = members[0];
-    const firstNames = member.nombre.trim();
-    const familyName = member.apellidos.trim();
 
     const origin = new URL(request.url).origin;
+    // Price is fixed server-side at 4.99 EUR — client cannot control it
     const data: Record<string, string> = {
       IPCmethod: "IPCPurchase",
       IPCVersion: "1.4",
@@ -76,16 +69,16 @@ export async function GET(request: Request) {
       WalletNumber: wallet,
       Amount: "4.99",
       Currency: "EUR",
-      OrderID: rows[0].codigo,
-      URL_OK: `${origin}/certificado/${encodeURIComponent(rows[0].curso_id)}?pago=ok&codigo=${encodeURIComponent(rows[0].codigo)}&score=${encodeURIComponent(String(rows[0].puntuacion))}&total=20`,
-      URL_Cancel: `${origin}/certificado/${encodeURIComponent(rows[0].curso_id)}?pago=cancelado&codigo=${encodeURIComponent(rows[0].codigo)}`,
+      OrderID: cert.codigo_certificado,
+      URL_OK: `${origin}/certificado/${encodeURIComponent(cert.curso_id)}?pago=ok&codigo=${encodeURIComponent(cert.codigo_certificado)}&score=${encodeURIComponent(String(cert.puntuacion))}&total=20`,
+      URL_Cancel: `${origin}/certificado/${encodeURIComponent(cert.curso_id)}?pago=cancelado&codigo=${encodeURIComponent(cert.codigo_certificado)}`,
       URL_Notify: `${origin}/api/certificados/notify`,
       CardTokenRequest: "0",
       KeyIndex: keyIndex,
       PaymentParametersRequired: "1",
       CustomerEmail: member.email,
-      CustomerFirstNames: firstNames,
-      CustomerFamilyName: familyName,
+      CustomerFirstNames: member.nombre.trim(),
+      CustomerFamilyName: member.apellidos.trim(),
       PaymentMethod: "3",
       Note: "Certificado Sindicato de Operarios",
       CartItems: "1",

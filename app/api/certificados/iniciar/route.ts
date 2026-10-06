@@ -1,30 +1,9 @@
 import { NextResponse } from "next/server";
 import crypto from "node:crypto";
-import { PASS_MARK } from "@/lib/exam";
+import { PASS_MARK, TOTAL_QUESTIONS } from "@/lib/exam";
+import { supabaseConfig, headers, supabaseFetch } from "@/lib/supabase-server";
 
 export const runtime = "nodejs";
-
-const SUPABASE_TIMEOUT_MS = 10000;
-
-async function supabaseFetch(input: RequestInfo | URL, init: RequestInit) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), SUPABASE_TIMEOUT_MS);
-  try { return await fetch(input, { ...init, signal: controller.signal }); }
-  finally { clearTimeout(timeout); }
-}
-
-function supabaseConfig() {
-  const url = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)?.replace(/\/$/, "");
-  const raw = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const key = raw?.trim().replace(/[\u0000-\u001F\u007F-\u009F]/g, "").replace(/[•·]/g, "");
-  return { url, key };
-}
-
-function headers(key: string) {
-  const h: Record<string, string> = { apikey: key, "Content-Type": "application/json" };
-  if (!key.startsWith("sb_secret_")) h.Authorization = `Bearer ${key}`;
-  return h;
-}
 
 export async function POST(request: Request) {
   try {
@@ -44,6 +23,7 @@ export async function POST(request: Request) {
     if (!url || !key) return NextResponse.json({ error: "La base de datos no está configurada." }, { status: 503 });
     const h = headers(key);
 
+    // Validate the attempt is real and approved — server-side, not client-controllable
     const attemptResponse = await supabaseFetch(
       `${url}/rest/v1/intentos_test?select=id,afiliado_id,curso_id,puntuacion,aprobado&id=eq.${encodeURIComponent(intentoId)}&limit=1`,
       { headers: h, cache: "no-store" }
@@ -54,6 +34,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "El certificado solo está disponible después de aprobar el test con al menos el 70 %." }, { status: 403 });
     }
 
+    // Validate the afiliado and ownership of the attempt
     const memberResponse = await supabaseFetch(
       `${url}/rest/v1/afiliados?select=id,numero_afiliado,nombre,apellidos,email&numero_afiliado=eq.${numero}&email=eq.${encodeURIComponent(email)}&activo=eq.true&limit=1`,
       { headers: h, cache: "no-store" }
@@ -63,17 +44,49 @@ export async function POST(request: Request) {
     if (!members.length) return NextResponse.json({ error: "No encontramos una afiliación activa con esos datos." }, { status: 401 });
     if (attempts[0].afiliado_id !== members[0].id) return NextResponse.json({ error: "El intento de test no pertenece a esta afiliación." }, { status: 403 });
 
+    const member = members[0];
+    const nombreCompleto = `${member.nombre} ${member.apellidos}`.trim();
+
+    // Check if a certificate already exists for this attempt/course/afiliado
+    const existingResponse = await supabaseFetch(
+      `${url}/rest/v1/certificados?select=codigo_certificado,estado,pago_realizado&afiliado_id=eq.${encodeURIComponent(member.id)}&curso_id=eq.${encodeURIComponent(cursoId)}&limit=1`,
+      { headers: h, cache: "no-store" }
+    );
+    if (existingResponse.ok) {
+      const existing = await existingResponse.json() as Array<{ codigo_certificado: string; estado: string; pago_realizado: boolean }>;
+      if (existing[0]?.codigo_certificado) {
+        return NextResponse.json({
+          ok: true,
+          codigo: existing[0].codigo_certificado,
+          numero_afiliado: member.numero_afiliado,
+          nombre: member.nombre,
+          apellidos: member.apellidos,
+          email: member.email,
+          estado_pago: existing[0].pago_realizado ? "pagado" : "pendiente",
+          estado_emision: existing[0].estado,
+          payment_url: `/api/certificados/pago?codigo=${encodeURIComponent(existing[0].codigo_certificado)}`,
+        });
+      }
+    }
+
+    // Create certificate with REAL column names
     const code = `SDO-${new Date().getFullYear()}-${crypto.randomBytes(5).toString("hex").toUpperCase()}`;
     const insert = await supabaseFetch(`${url}/rest/v1/certificados`, {
       method: "POST",
       headers: { ...h, Prefer: "return=representation" },
       body: JSON.stringify({
-        afiliado_id: members[0].id,
+        afiliado_id: member.id,
         curso_id: cursoId,
-        codigo: code,
+        nombre: nombreCompleto,
+        email: member.email,
+        numero_afiliado: member.numero_afiliado,
+        codigo_certificado: code,
         puntuacion: attempts[0].puntuacion,
-        estado_pago: "pendiente",
-        estado_emision: "pendiente",
+        total_preguntas: TOTAL_QUESTIONS,
+        aprobado: true,
+        pago_realizado: false,
+        importe_pago: 4.99,
+        estado: "pendiente",
       }),
       cache: "no-store",
     });
@@ -83,13 +96,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No se pudo crear la solicitud de certificado." }, { status: 502 });
     }
 
+    // Return normalized response (codigo/estado_pago/estado_emision for frontend compatibility)
     return NextResponse.json({
       ok: true,
       codigo: code,
-      numero_afiliado: members[0].numero_afiliado,
-      nombre: members[0].nombre,
-      apellidos: members[0].apellidos,
-      email: members[0].email,
+      numero_afiliado: member.numero_afiliado,
+      nombre: member.nombre,
+      apellidos: member.apellidos,
+      email: member.email,
       estado_pago: "pendiente",
       estado_emision: "pendiente",
       payment_url: `/api/certificados/pago?codigo=${encodeURIComponent(code)}`,

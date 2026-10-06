@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { allCourses } from "@/lib/academy-catalog";
+import { PASS_MARK, TOTAL_QUESTIONS } from "@/lib/exam";
+import { supabaseConfig, headers, supabaseFetch } from "@/lib/supabase-server";
 import { CertificatePreview } from "@/components/certificate-preview";
 
 type CertificatePageProps = {
@@ -8,16 +10,90 @@ type CertificatePageProps = {
   searchParams: Promise<{ score?: string; total?: string; intento?: string; codigo?: string; pago?: string }>;
 };
 
+/**
+ * Validate server-side that the user has a real approved attempt.
+ * The client cannot forge the score, total, or approved status.
+ */
+async function validateAttempt(intentoId: string, courseId: string) {
+  const { url, key } = supabaseConfig();
+  if (!url || !key) return null;
+
+  const response = await supabaseFetch(
+    `${url}/rest/v1/intentos_test?select=id,curso_id,puntuacion,aprobado,total_preguntas&id=eq.${encodeURIComponent(intentoId)}&limit=1`,
+    { headers: headers(key), cache: "no-store" }
+  );
+  if (!response.ok) return null;
+  const rows = await response.json() as Array<{
+    id: string; curso_id: string; puntuacion: number; aprobado: boolean; total_preguntas: number;
+  }>;
+  const attempt = rows[0];
+  if (!attempt || !attempt.aprobado || attempt.puntuacion < PASS_MARK || attempt.curso_id !== courseId) {
+    return null;
+  }
+  return {
+    puntuacion: attempt.puntuacion,
+    total: attempt.total_preguntas || TOTAL_QUESTIONS,
+  };
+}
+
+/**
+ * Validate server-side that the certificate is paid and emitted.
+ */
+async function validateCertificate(codigo: string) {
+  const { url, key } = supabaseConfig();
+  if (!url || !key) return null;
+
+  const response = await supabaseFetch(
+    `${url}/rest/v1/certificados?select=codigo_certificado,curso_id,puntuacion,total_preguntas,pago_realizado,estado&codigo_certificado=eq.${encodeURIComponent(codigo)}&limit=1`,
+    { headers: headers(key), cache: "no-store" }
+  );
+  if (!response.ok) return null;
+  const rows = await response.json() as Array<{
+    codigo_certificado: string; curso_id: string; puntuacion: number; total_preguntas: number;
+    pago_realizado: boolean; estado: string;
+  }>;
+  const cert = rows[0];
+  if (!cert) return null;
+  return {
+    puntuacion: cert.puntuacion,
+    total: cert.total_preguntas || TOTAL_QUESTIONS,
+    paid: cert.pago_realizado,
+    estado: cert.estado,
+    curso_id: cert.curso_id,
+  };
+}
+
 export default async function CertificatePage({ params, searchParams }: CertificatePageProps) {
   const { id } = await params;
   const { score, total, intento, codigo, pago } = await searchParams;
   const course = allCourses.find((item) => item.id === id);
   if (!course) notFound();
 
-  const scoreNumber = Number(score ?? 0);
-  const totalNumber = Number(total ?? 20);
-  const certificateReturn = Boolean(codigo?.trim()) && pago === "ok";
-  const passed = totalNumber === 20 && scoreNumber >= 14 && (Boolean(intento?.trim()) || certificateReturn);
+  // Server-side validation: don't trust client-provided score/total
+  let validatedScore = 0;
+  let validatedTotal = TOTAL_QUESTIONS;
+  let passed = false;
+
+  if (intento?.trim()) {
+    // User comes from the test result — validate the attempt is real and approved
+    const attempt = await validateAttempt(intento.trim(), course.id);
+    if (attempt) {
+      validatedScore = attempt.puntuacion;
+      validatedTotal = attempt.total;
+      passed = true;
+    }
+  } else if (codigo?.trim() && pago === "ok") {
+    // User returns from payment — validate the certificate is real
+    const cert = await validateCertificate(codigo.trim());
+    if (cert && cert.paid) {
+      validatedScore = cert.puntuacion;
+      validatedTotal = cert.total;
+      passed = true;
+    }
+  }
+
+  // Ignore client-provided score/total — only use server-validated values
+  void score; void total;
 
   if (!passed) {
     return (
@@ -44,11 +120,11 @@ export default async function CertificatePage({ params, searchParams }: Certific
           <p className="mt-3 text-lg text-slate-300">Has superado el test final de:</p>
           <h2 className="mt-2 text-xl font-bold text-white">{course.title}</h2>
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
-            <div className="rounded-2xl border border-slate-700 bg-slate-950/70 p-5 text-center"><p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Resultado</p><p className="mt-2 text-4xl font-black text-emerald-400">{scoreNumber}/{totalNumber}</p></div>
+            <div className="rounded-2xl border border-slate-700 bg-slate-950/70 p-5 text-center"><p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Resultado</p><p className="mt-2 text-4xl font-black text-emerald-400">{validatedScore}/{validatedTotal}</p></div>
             <div className="rounded-2xl border border-slate-700 bg-slate-950/70 p-5 text-center"><p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Test</p><p className="mt-2 text-2xl font-black text-white">GRATUITO</p></div>
           </div>
         </section>
-        <CertificatePreview courseId={course.id} courseTitle={course.title} score={scoreNumber} total={totalNumber} attemptId={intento || codigo || ""} />
+        <CertificatePreview courseId={course.id} courseTitle={course.title} score={validatedScore} total={validatedTotal} attemptId={intento || codigo || ""} />
       </div>
     </main>
   );
