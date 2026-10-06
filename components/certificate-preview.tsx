@@ -217,7 +217,7 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
   }
 
   return (
-    <div className="space-y-6">
+    <div className="certificate-preview space-y-6">
       <div className="rounded-3xl border border-safety/30 bg-navy p-6 shadow-2xl sm:p-8">
         <div className="flex items-center gap-4"><SindicatoMark /><div><p className="text-xs font-black uppercase tracking-[0.18em] text-safety">Certificación</p><h2 className="mt-1 text-2xl font-black text-white">Completa tus datos</h2></div></div>
         <p className="mt-4 text-sm leading-6 text-slate-300">{internalTest ? "Ruta interna de prueba: puedes simular el pago sin realizar ningún cobro y comprobar la descarga del certificado." : "Introduce tus datos. El certificado se podrá visualizar y descargar únicamente después de que myPOS confirme el pago de 4,99 €."}</p>
