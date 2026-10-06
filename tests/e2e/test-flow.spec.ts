@@ -17,8 +17,8 @@ test.describe("Flujo de aprobado — prueba interna", () => {
     // Wait for the result phase to render (internalPreview starts in result phase)
     await expect(page.getByText("¡APROBADO!")).toBeVisible({ timeout: 10000 });
     await expect(page.getByText(/aciertos/).first()).toBeVisible();
-    await expect(page.getByText("Revisión de respuestas")).toBeVisible();
-    await expect(page.getByText("Respuesta correcta")).toBeVisible();
+    await expect(page.getByText(/Revisión de.*respuestas/)).toBeVisible();
+    await expect(page.getByText(/Respuesta correcta/).first()).toBeVisible();
 
     // Certificate access link should be visible
     await expect(page.getByRole("link", { name: /Obtener diploma.*certificado/i })).toBeVisible();
@@ -39,10 +39,11 @@ test.describe("Flujo de aprobado — prueba interna", () => {
     await expect(page.getByText("¡APROBADO!")).toBeVisible({ timeout: 10000 });
 
     // Check that the review section shows correct/wrong markers
-    const reviewSection = page.getByText("Revisión de respuestas").locator("xpath=ancestor::section");
+    const reviewSection = page.getByText(/Revisión de.*respuestas/).locator("xpath=ancestor::section");
+    await reviewSection.scrollIntoViewIfNeeded();
     await expect(reviewSection).toBeVisible();
     // Should have check marks (✓) for correct answers
-    await expect(reviewSection.getByText("✓")).toBeVisible();
+    await expect(reviewSection.getByText("✓").first()).toBeVisible();
   });
 });
 
