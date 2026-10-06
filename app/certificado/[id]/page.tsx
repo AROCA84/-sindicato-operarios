@@ -83,9 +83,13 @@ export default async function CertificatePage({ params, searchParams }: Certific
       passed = true;
     }
   } else if (codigo?.trim() && pago === "ok") {
-    // User returns from payment — validate the certificate is real
+    // User returns from myPOS. The server-to-server notification can arrive
+    // a few seconds after the browser redirect, so do NOT require payment to
+    // already be confirmed here. The client will poll /api/certificados/estado
+    // and only reveal/download the certificate after pago_realizado=true and
+    // estado="emitido".
     const cert = await validateCertificate(codigo.trim());
-    if (cert && cert.paid && cert.estado === "emitido" && cert.curso_id === course.id) {
+    if (cert && cert.curso_id === course.id) {
       validatedScore = cert.puntuacion;
       validatedTotal = cert.total;
       passed = true;
