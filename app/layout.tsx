@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0e2340",
+  themeColor: "#111417",
   width: "device-width",
   initialScale: 1,
 };
@@ -38,7 +38,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className={inter.variable}>
-      <body className="pb-20 md:pb-0">{children}<MobileBottomNav /></body>
+      <body className="site-industrial pb-20 md:pb-0">{children}<MobileBottomNav /></body>
     </html>
   );
 }
