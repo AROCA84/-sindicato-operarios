@@ -250,7 +250,7 @@ function ResultCard({ passed, score, total, course, attemptId, questions, answer
         <div className="p-6 sm:p-10">
           {passed ? (
             <div className="flex flex-col gap-4">
-              <a href={`/certificado/${course.id}?score=${score}&total=${total}&intento=${encodeURIComponent(attemptId)}`} className="inline-flex items-center justify-center gap-2 rounded-lg bg-safety px-8 py-4 text-base font-black uppercase tracking-wide text-navy shadow-lg transition-colors hover:bg-safety-dark">
+              <a href={`/certificado/${course.id}?score=${score}&total=${total}&intento=${encodeURIComponent(attemptId)}${internalPreview ? "&prueba=1" : ""}`} className="inline-flex items-center justify-center gap-2 rounded-lg bg-safety px-8 py-4 text-base font-black uppercase tracking-wide text-navy shadow-lg transition-colors hover:bg-safety-dark">
                 Obtener diploma / certificado · 4,99 € <ArrowIcon />
               </a>
               <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center">
