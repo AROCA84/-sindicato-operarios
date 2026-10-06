@@ -44,7 +44,7 @@ export async function GET(request: Request) {
     const wallet = process.env.MYPOS_WALLET_NUMBER?.trim();
     const keyIndex = process.env.MYPOS_KEY_INDEX?.trim() || "1";
     const privateKey = process.env.MYPOS_PRIVATE_KEY?.replace(/\\n/g, "\n").trim();
-    const apiUrl = process.env.MYPOS_CHECKOUT_URL?.trim() || "https://www.mypos.com/vmp/checkout";
+    const apiUrl = process.env.MYPOS_CHECKOUT_URL?.trim() || "https://www.mypos.eu/vmp/checkout";
 
     if (!sid || !wallet || !privateKey) {
       return new NextResponse("Falta configurar las credenciales de Checkout de myPOS.", { status: 503 });
@@ -64,9 +64,9 @@ export async function GET(request: Request) {
     const data: Record<string, string> = {
       IPCmethod: "IPCPurchase",
       IPCVersion: "1.4",
-      IPCLanguage: "ES",
+      IPCLanguage: "EN",
       SID: sid,
-      WalletNumber: wallet,
+      walletnumber: wallet,
       Amount: "4.99",
       Currency: "EUR",
       OrderID: cert.codigo_certificado,
@@ -76,9 +76,9 @@ export async function GET(request: Request) {
       CardTokenRequest: "0",
       KeyIndex: keyIndex,
       PaymentParametersRequired: "1",
-      CustomerEmail: member.email,
-      CustomerFirstNames: member.nombre.trim(),
-      CustomerFamilyName: member.apellidos.trim(),
+      customeremail: member.email,
+      customerfirstnames: member.nombre.trim(),
+      customerfamilyname: member.apellidos.trim(),
       PaymentMethod: "3",
       Note: "Certificado Sindicato de Operarios",
       CartItems: "1",
