@@ -1,0 +1,26 @@
+name: Export project ZIP
+
+on:
+  push:
+    paths:
+      - ".github/workflows/export-project-zip.yml"
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Create ZIP
+        run: |
+          zip -r sindicato-operarios-bolt.zip . \
+            -x ".git/*" \
+            -x ".github/workflows/export-project-zip.yml"
+      - name: Upload ZIP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sindicato-operarios-bolt
+          path: sindicato-operarios-bolt.zip
+          retention-days: 1
