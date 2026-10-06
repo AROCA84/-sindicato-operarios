@@ -60,7 +60,7 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
     if (internalTest) {
       setCertificateCode("SDO-PRUEBA-INTERNA");
       setPaymentStarted(true);
-      setPaymentConfirmed(false);
+      setPaymentConfirmed(true);
     }
   }, [internalTest, returnedCode]);
 
