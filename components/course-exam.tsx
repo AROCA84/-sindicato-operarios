@@ -11,6 +11,7 @@ type ServerResult = {
   score: number;
   total: number;
   answers: number[] | null;
+  approved: boolean;
 };
 
 export function CourseExam({ course, internalPreview = false }: { course: Course; internalPreview?: boolean }) {
@@ -53,7 +54,10 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
   // RECOVERY: Always query the server first for a real approved attempt.
   // localStorage is only used as a visual cache after the server confirms.
   useEffect(() => {
-    if (internalPreview) return;
+    if (internalPreview) {
+      setAffiliated(true);
+      return;
+    }
     const isAffiliated = window.localStorage.getItem("sdo-afiliado") === "true";
     setAffiliated(isAffiliated);
     if (!isAffiliated) return;
@@ -87,6 +91,7 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
             score: data.puntuacion,
             total: questions.length,
             answers: Array.isArray(data.respuestas) ? data.respuestas.map(Number) : null,
+            approved: true,
           };
           window.localStorage.setItem("sdo-progreso-" + course.id, "100");
           window.localStorage.setItem("sdo-resultado-" + course.id, JSON.stringify(result));
@@ -150,7 +155,7 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
         // Use SERVER-CALCULATED score, not client-calculated
         const serverScore = data.puntuacion;
         const serverPassed = data.aprobado;
-        setServerResult({ attemptId: data.intento_id, score: serverScore, total: data.total, answers: serverPassed ? answers : null });
+        setServerResult({ attemptId: data.intento_id, score: serverScore, total: data.total, answers: serverPassed ? answers : null, approved: serverPassed });
         setAttemptId(data.intento_id);
         if (serverPassed) {
           window.localStorage.setItem("sdo-progreso-" + course.id, "100");
@@ -224,7 +229,7 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
         <h1 className="mt-4 text-balance text-2xl font-black leading-tight sm:text-3xl">Test Final · <span className="text-safety">{course.title.replace(/^Curso de /, "")}</span></h1>
         {phase === "quiz" && <div className="mt-6"><div className="flex items-center justify-between text-sm font-semibold text-slate-300"><span>Pregunta {current + 1} de {questions.length}</span><span>{Math.round(((current + 1) / questions.length) * 100)}%</span></div><div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/15"><div className="h-full rounded-full bg-safety transition-all duration-300" style={{ width: `${((current + 1) / questions.length) * 100}%` }} /></div></div>}
       </div></header>
-      <div className="mx-auto max-w-3xl px-6 py-10 sm:py-14">{phase === "quiz" ? <QuizCard question={questions[current]} selected={selected} onSelect={select} onNext={next} isLast={isLast} submitting={submitting} submitError={submitError} /> : <ResultCard passed={passed} score={score} total={serverResult?.total ?? questions.length} course={course} attemptId={attemptId} questions={questions} answers={answers} onRetry={retry} internalPreview={internalPreview} serverApproved={Boolean(serverResult)} />}</div>
+      <div className="mx-auto max-w-3xl px-6 py-10 sm:py-14">{phase === "quiz" ? <QuizCard question={questions[current]} selected={selected} onSelect={select} onNext={next} isLast={isLast} submitting={submitting} submitError={submitError} /> : <ResultCard passed={passed} score={score} total={serverResult?.total ?? questions.length} course={course} attemptId={attemptId} questions={questions} answers={answers} onRetry={retry} internalPreview={internalPreview} serverApproved={Boolean(serverResult?.approved)} />}</div>
     </main>
   );
 }

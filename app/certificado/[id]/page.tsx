@@ -85,7 +85,7 @@ export default async function CertificatePage({ params, searchParams }: Certific
   } else if (codigo?.trim() && pago === "ok") {
     // User returns from payment — validate the certificate is real
     const cert = await validateCertificate(codigo.trim());
-    if (cert && cert.paid) {
+    if (cert && cert.paid && cert.estado === "emitido" && cert.curso_id === course.id) {
       validatedScore = cert.puntuacion;
       validatedTotal = cert.total;
       passed = true;
