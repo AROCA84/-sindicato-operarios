@@ -88,3 +88,197 @@
     print-color-adjust: exact !important;
   }
 }
+
+
+/* =========================================================
+   SINDICATO DE OPERARIOS — INDUSTRIAL PREMIUM UI
+   Visual layer only. Business logic, routes and APIs untouched.
+   ========================================================= */
+
+.site-industrial {
+  --industrial-bg: #0b0d0f;
+  --industrial-surface: #121619;
+  --industrial-surface-2: #181d20;
+  --industrial-border: rgba(255,255,255,.10);
+  --industrial-orange: #f59e0b;
+  --industrial-yellow: #facc15;
+  --industrial-text: #f4f6f7;
+  --industrial-muted: #9da7ae;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(245,158,11,.08), transparent 30rem),
+    radial-gradient(circle at 88% 12%, rgba(255,255,255,.035), transparent 28rem),
+    var(--industrial-bg);
+  color: var(--industrial-text);
+}
+
+.site-industrial main {
+  position: relative;
+  isolation: isolate;
+}
+
+.site-industrial main::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: .32;
+  background-image:
+    linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px),
+    linear-gradient(135deg, transparent 0 47%, rgba(245,158,11,.045) 47.2% 47.5%, transparent 47.7%);
+  background-size: 44px 44px, 44px 44px, 160px 160px;
+}
+
+.site-industrial main::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: .10;
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent 0 14px,
+    rgba(255,255,255,.04) 15px,
+    transparent 16px 30px
+  );
+  mask-image: linear-gradient(to bottom, black, transparent 85%);
+}
+
+.site-industrial .bg-slate-50,
+.site-industrial .bg-slate-100 {
+  background-color: var(--industrial-bg) !important;
+}
+
+.site-industrial .bg-slate-50\/70 {
+  background-color: rgba(255,255,255,.025) !important;
+}
+
+.site-industrial .bg-white {
+  background-color: var(--industrial-surface) !important;
+}
+
+.site-industrial .bg-white\/95 {
+  background-color: rgba(18,22,25,.96) !important;
+}
+
+.site-industrial .bg-white\/5,
+.site-industrial .bg-white\/\[0\.05\],
+.site-industrial .bg-white\/\[0\.06\],
+.site-industrial .bg-white\/\[0\.07\],
+.site-industrial .bg-white\/\[0\.14\] {
+  background-color: rgba(255,255,255,.045) !important;
+}
+
+.site-industrial .text-navy {
+  color: #f4f6f7 !important;
+}
+
+.site-industrial .text-slate-700,
+.site-industrial .text-slate-600,
+.site-industrial .text-slate-500 {
+  color: var(--industrial-muted) !important;
+}
+
+.site-industrial .text-slate-400 {
+  color: #7f8a92 !important;
+}
+
+.site-industrial .border-slate-200,
+.site-industrial .border-slate-100 {
+  border-color: var(--industrial-border) !important;
+}
+
+.site-industrial .ring-slate-200,
+.site-industrial .ring-slate-100 {
+  --tw-ring-color: var(--industrial-border) !important;
+}
+
+.site-industrial input,
+.site-industrial textarea,
+.site-industrial select {
+  color: #f4f6f7;
+  background-color: var(--industrial-surface) !important;
+  border-color: var(--industrial-border);
+}
+
+.site-industrial input::placeholder,
+.site-industrial textarea::placeholder {
+  color: #74808a;
+}
+
+.site-industrial input:focus,
+.site-industrial textarea:focus,
+.site-industrial select:focus {
+  border-color: rgba(245,158,11,.75) !important;
+  box-shadow: 0 0 0 3px rgba(245,158,11,.14);
+}
+
+.site-industrial .shadow-sm,
+.site-industrial .shadow-md {
+  box-shadow: 0 10px 30px rgba(0,0,0,.22);
+}
+
+.site-industrial .hover\\:bg-slate-50:hover {
+  background-color: rgba(255,255,255,.04) !important;
+}
+
+.site-industrial section {
+  position: relative;
+}
+
+.site-industrial a,
+.site-industrial button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.site-industrial .bg-navy {
+  background-color: #0e1114 !important;
+}
+
+.site-industrial .bg-navy-light {
+  background-color: #151a1d !important;
+}
+
+.site-industrial .text-safety,
+.site-industrial .text-safety-dark {
+  color: var(--industrial-orange) !important;
+}
+
+.site-industrial .bg-safety {
+  background-color: var(--industrial-orange) !important;
+}
+
+.site-industrial .border-safety {
+  border-color: var(--industrial-orange) !important;
+}
+
+.site-industrial .ring-safety {
+  --tw-ring-color: var(--industrial-orange) !important;
+}
+
+.site-industrial .certificate-preview .bg-white,
+.site-industrial .certificate-preview .bg-white\/95 {
+  background-color: #ffffff !important;
+}
+
+.site-industrial .certificate-preview .text-navy {
+  color: #0e2340 !important;
+}
+
+.site-industrial .certificate-preview .text-slate-700 {
+  color: #334155 !important;
+}
+
+@media (max-width: 767px) {
+  .site-industrial main::before {
+    opacity: .20;
+    background-size: 34px 34px, 34px 34px, 120px 120px;
+  }
+
+  .site-industrial main::after {
+    opacity: .06;
+  }
+}
