@@ -7,7 +7,7 @@ import { CertificatePreview } from "@/components/certificate-preview";
 
 type CertificatePageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ score?: string; total?: string; intento?: string; codigo?: string; pago?: string }>;
+  searchParams: Promise<{ score?: string; total?: string; intento?: string; codigo?: string; pago?: string; prueba?: string }>;
 };
 
 /**
@@ -65,7 +65,7 @@ async function validateCertificate(codigo: string) {
 
 export default async function CertificatePage({ params, searchParams }: CertificatePageProps) {
   const { id } = await params;
-  const { score, total, intento, codigo, pago } = await searchParams;
+  const { score, total, intento, codigo, pago, prueba } = await searchParams;
   const course = allCourses.find((item) => item.id === id);
   if (!course) notFound();
 
@@ -74,7 +74,12 @@ export default async function CertificatePage({ params, searchParams }: Certific
   let validatedTotal = TOTAL_QUESTIONS;
   let passed = false;
 
-  if (intento?.trim()) {
+  if (prueba === "1") {
+    // Ruta interna de pruebas: no crea certificados reales ni procesa pagos.
+    validatedScore = TOTAL_QUESTIONS;
+    validatedTotal = TOTAL_QUESTIONS;
+    passed = true;
+  } else if (intento?.trim()) {
     // User comes from the test result — validate the attempt is real and approved
     const attempt = await validateAttempt(intento.trim(), course.id);
     if (attempt) {
