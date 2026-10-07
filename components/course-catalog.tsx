@@ -16,14 +16,14 @@ const categoryIcons: Record<string, CategoryIconName> = {
 
 type CategoryIconName = "forklift" | "platform" | "crane" | "excavator" | "warehouse" | "safety" | "shield";
 
-type TrainingGroup = {
+export type TrainingGroup = {
   title: string;
   description: string;
   icon: CategoryIconName;
   categories: string[];
 };
 
-const trainingGroups: TrainingGroup[] = [
+export const trainingGroups: TrainingGroup[] = [
   {
     title: "Industria y Maquinaria",
     description: "Maquinaria, manutención, elevación, construcción y fabricación industrial.",
