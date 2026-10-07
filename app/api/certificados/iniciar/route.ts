@@ -25,11 +25,11 @@ export async function POST(request: Request) {
 
     // Validate the attempt is real and approved — server-side, not client-controllable
     const attemptResponse = await supabaseFetch(
-      `${url}/rest/v1/intentos_test?select=id,afiliado_id,curso_id,puntuacion,aprobado&id=eq.${encodeURIComponent(intentoId)}&limit=1`,
+      `${url}/rest/v1/intentos_test?select=id,afiliado_id,curso_id,puntuacion,aprobado,total_preguntas&id=eq.${encodeURIComponent(intentoId)}&limit=1`,
       { headers: h, cache: "no-store" }
     );
     if (!attemptResponse.ok) return NextResponse.json({ error: "No se pudo comprobar el resultado del test." }, { status: 502 });
-    const attempts = await attemptResponse.json() as Array<{ id: string; afiliado_id: string; curso_id: string; puntuacion: number; aprobado: boolean }>;
+    const attempts = await attemptResponse.json() as Array<{ id: string; afiliado_id: string; curso_id: string; puntuacion: number; aprobado: boolean; total_preguntas?: number }>;
     if (!attempts.length || attempts[0].curso_id !== cursoId || attempts[0].puntuacion < PASS_MARK || !attempts[0].aprobado) {
       return NextResponse.json({ error: "El certificado solo está disponible después de aprobar el test con al menos el 70 %." }, { status: 403 });
     }
@@ -54,8 +54,8 @@ export async function POST(request: Request) {
     );
     if (existingResponse.ok) {
       const existing = await existingResponse.json() as Array<{ codigo_certificado: string; estado: string; pago_realizado: boolean; intento_id?: string | null }>;
-      const match = existing.find((cert) => cert.intento_id === intentoId || !cert.intento_id);
-      if (match?.codigo_certificado) {
+      if (existing.length > 0) {
+        const match = existing[0];
         return NextResponse.json({
           ok: true,
           codigo: match.codigo_certificado,
@@ -72,6 +72,8 @@ export async function POST(request: Request) {
 
     // Create certificate with REAL column names and retain the attempt reference for payment reconciliation
     const code = `SDO-${new Date().getFullYear()}-${crypto.randomBytes(5).toString("hex").toUpperCase()}`;
+    const totalPreguntas = attempts[0].total_preguntas || TOTAL_QUESTIONS;
+    
     const insert = await supabaseFetch(`${url}/rest/v1/certificados`, {
       method: "POST",
       headers: { ...h, Prefer: "return=representation" },
@@ -84,7 +86,7 @@ export async function POST(request: Request) {
         numero_afiliado: member.numero_afiliado,
         codigo_certificado: code,
         puntuacion: attempts[0].puntuacion,
-        total_preguntas: TOTAL_QUESTIONS,
+        total_preguntas: totalPreguntas,
         aprobado: true,
         pago_realizado: false,
         importe_pago: 4.99,
@@ -92,27 +94,35 @@ export async function POST(request: Request) {
       }),
       cache: "no-store",
     });
+    
     if (!insert.ok) {
       const detail = await insert.text();
-      console.error("Certificate creation error:", detail);
-      return NextResponse.json({ error: "No se pudo crear la solicitud de certificado." }, { status: 502 });
+      console.error("Certificate creation error:", detail, { 
+        afiliado_id: member.id,
+        curso_id: cursoId,
+        intento_id: intentoId,
+      });
+      return NextResponse.json({ error: "Error al crear certificado: " + detail }, { status: 502 });
     }
+
+    const insertedData = await insert.json() as Array<{ codigo_certificado: string }>;
+    const createdCode = insertedData[0]?.codigo_certificado || code;
 
     // Return normalized response (codigo/estado_pago/estado_emision for frontend compatibility)
     return NextResponse.json({
       ok: true,
-      codigo: code,
+      codigo: createdCode,
       numero_afiliado: member.numero_afiliado,
       nombre: member.nombre,
       apellidos: member.apellidos,
       email: member.email,
       estado_pago: "pendiente",
       estado_emision: "pendiente",
-      payment_url: `/api/certificados/pago?codigo=${encodeURIComponent(code)}`,
+      payment_url: `/api/certificados/pago?codigo=${encodeURIComponent(createdCode)}`,
     });
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") return NextResponse.json({ error: "La base de datos tardó demasiado en responder. Inténtalo de nuevo." }, { status: 504 });
     console.error("Certificate start error:", error);
-    return NextResponse.json({ error: "Error del servidor al iniciar el certificado." }, { status: 500 });
+    return NextResponse.json({ error: "Error del servidor: " + (error instanceof Error ? error.message : "desconocido") }, { status: 500 });
   }
 }
