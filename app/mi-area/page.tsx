@@ -116,7 +116,34 @@ export default function MiAreaPage() {
             </div>
           ) : null;
         })()}
-        <div className="mt-5 grid gap-4 md:grid-cols-2">{allCourses.map((course) => { const value = progress[course.id] || 0; return <article key={course.id} className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200"><div className="flex gap-4"><img src={course.image} alt="" className="h-20 w-24 rounded-xl object-cover" /><div className="min-w-0 flex-1"><p className="text-xs font-bold uppercase text-safety-dark">{course.category}</p><h3 className="mt-1 font-black leading-snug">{course.title}</h3></div></div><div className="mt-5 flex justify-between text-xs font-bold"><span>{value >= 100 ? "Completado" : value > 0 ? "En curso" : "Sin comenzar"}</span><span>{value}%</span></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-safety" style={{ width: value + "%" }} /></div><Link href={"/cursos/" + course.id} className="mt-4 inline-flex w-full justify-center rounded-lg border-2 border-navy px-4 py-2.5 text-sm font-black text-navy">{value >= 100 ? "Repasar curso" : value > 0 ? "Continuar formación" : "Ver curso"}</Link></article>; })}</div>
+        <div className="mt-5 space-y-3">
+          {allCourses.map((course) => {
+            const value = progress[course.id] || 0;
+            return (
+              <details key={course.id} className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+                <summary className="flex cursor-pointer list-none items-center gap-4 p-4 sm:p-5">
+                  <img src={course.image} alt="" className="h-16 w-20 shrink-0 rounded-xl object-cover" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-bold uppercase text-safety-dark">{course.category}</p>
+                    <h3 className="mt-1 font-black leading-snug">{course.title}</h3>
+                    <div className="mt-2 flex items-center gap-3">
+                      <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-safety" style={{ width: value + "%" }} /></div>
+                      <span className="shrink-0 text-xs font-black">{value}%</span>
+                    </div>
+                  </div>
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy text-lg font-black text-white transition group-open:rotate-180">⌄</span>
+                </summary>
+                <div className="border-t border-slate-100 px-4 pb-5 pt-4 sm:px-5">
+                  <p className="text-sm text-slate-600">{value >= 100 ? "Curso completado." : value > 0 ? "Curso en progreso." : "Curso todavía sin comenzar."}</p>
+                  <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                    <Link href={"/cursos/" + course.id} className="inline-flex justify-center rounded-lg bg-navy px-4 py-2.5 text-sm font-black text-white">{value >= 100 ? "Repasar curso" : value > 0 ? "Continuar formación" : "Ver curso"}</Link>
+                    {value >= 100 && <Link href={"/cursos/" + course.id + "/test"} className="inline-flex justify-center rounded-lg border-2 border-navy px-4 py-2.5 text-sm font-black text-navy">Ver test y resultado</Link>}
+                  </div>
+                </div>
+              </details>
+            );
+          })}
+        </div>
       </section>
       <section className="mt-8">
         <div>
