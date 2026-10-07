@@ -19,6 +19,8 @@ export default function MiAreaPage() {
   const [data, setData] = useState({ nombre: "", apellidos: "", email: "", numero: "" });
   const [progress, setProgress] = useState<Record<string, number>>({});
   const [certificates, setCertificates] = useState<Array<{ codigo: string; curso_id: string; puntuacion: number; total: number; emitido_at: string | null }>>([]);
+  const [openTrainingGroup, setOpenTrainingGroup] = useState<string | null>(null);
+  const [openTrainingCategory, setOpenTrainingCategory] = useState<string | null>(null);
 
   function loadArea() {
     const ok = localStorage.getItem("sdo-afiliado") === "true";
@@ -118,14 +120,11 @@ export default function MiAreaPage() {
           ) : null;
         })()}
         <div className="mt-5 space-y-4">
-          {(() => {
-            const [openGroup, setOpenGroup] = useState<string | null>(null);
-            const [openCategory, setOpenCategory] = useState<string | null>(null);
-            return trainingGroups.map((group) => {
-              const isGroupOpen = openGroup === group.title;
+          {trainingGroups.map((group) => {
+              const isGroupOpen = openTrainingGroup === group.title;
               return (
                 <div key={group.title} className="overflow-hidden rounded-xl bg-white ring-1 ring-slate-200 shadow-sm">
-                  <button type="button" onClick={() => setOpenGroup(isGroupOpen ? null : group.title)} aria-expanded={isGroupOpen}
+                  <button type="button" onClick={() => setOpenTrainingGroup(isGroupOpen ? null : group.title)} aria-expanded={isGroupOpen}
                     className="group flex w-full items-center gap-5 px-5 py-5 text-left transition-all duration-200 hover:bg-slate-50 sm:gap-7 sm:px-8 sm:py-6">
                     <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border-2 border-slate-200 bg-slate-50 text-2xl shadow-sm sm:h-18 sm:w-18">
                       {group.icon === "forklift" ? "🚜" : group.icon === "warehouse" ? "📦" : group.icon === "safety" ? "🦺" : group.icon === "excavator" ? "🏗️" : group.icon === "platform" ? "💻" : "⚙️"}
@@ -141,10 +140,10 @@ export default function MiAreaPage() {
                     <div className="space-y-2 border-t border-slate-100 bg-slate-50/70 p-3 sm:p-4">
                       {group.categories.map((category) => {
                         const categoryCourses = allCourses.filter((course) => course.category === category);
-                        const isCategoryOpen = openCategory === category;
+                        const isCategoryOpen = openTrainingCategory === category;
                         return (
                           <div key={category} className="overflow-hidden rounded-lg bg-white ring-1 ring-slate-200">
-                            <button type="button" onClick={() => setOpenCategory(isCategoryOpen ? null : category)} aria-expanded={isCategoryOpen}
+                            <button type="button" onClick={() => setOpenTrainingCategory(isCategoryOpen ? null : category)} aria-expanded={isCategoryOpen}
                               className="flex w-full items-center gap-4 px-4 py-4 text-left transition-colors hover:bg-slate-50 sm:px-5">
                               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-navy text-lg">📚</span>
                               <span className="min-w-0 flex-1">
@@ -182,8 +181,7 @@ export default function MiAreaPage() {
                   )}
                 </div>
               );
-            });
-          })()}
+            })}
         </div>
       </section>
       <section className="mt-8">
