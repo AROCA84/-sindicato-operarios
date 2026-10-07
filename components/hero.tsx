@@ -7,26 +7,26 @@ const slides = [
   {
     image: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=1800&q=85",
     tag: "Protección legal y personal",
-    title: "Defensa y apoyo cuando más lo necesitas.",
+    title: "Más protección. Más formación. Más oportunidades.",
     points: ["Asesoramiento legal ante despidos, sanciones y conflictos laborales.", "Representación y acompañamiento en reuniones laborales.", "Respaldo de la caja de resistencia en situaciones específicas."],
   },
   {
     image: "https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?auto=format&fit=crop&w=1800&q=85",
     tag: "Mejoras económicas y laborales",
-    title: "Defendemos mejores condiciones laborales.",
+    title: "Formación profesional para avanzar.",
     points: ["Negociación colectiva y mejores condiciones salariales.", "Regulación de horas extras y turnos especiales.", "Mejores condiciones de vacaciones y medidas para el futuro laboral."],
   },
   {
     image: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1800&q=85",
     tag: "Ventajas de pertenecer al Sindicato",
-    title: "Más apoyo. Más oportunidades.",
+    title: "Una plataforma pensada para el operario.",
     points: ["Afiliación gratuita y de por vida.", "Formación profesional desde 0 €.", "Beneficios, servicios, apoyo y representación laboral."],
   },
   {
     image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1800&q=85",
     tag: "Formación gratuita",
-    title: "Estudia y haz tus tests gratis.",
-    points: ["Cursos y temarios para estudiar a tu ritmo.", "Tests y resultados completamente gratuitos.", "Solo pagas al final si, después de aprobar, quieres el certificado."],
+    title: "Afíliate gratis y accede a la formación gratuita.",
+    points: ["Cursos y temarios para formarte a tu ritmo.", "Tests y resultados completamente gratuitos.", "Solo decides al final si quieres obtener el certificado."],
   },
 ];
 
@@ -41,7 +41,7 @@ export function Hero() {
 
   return (
     <section id="inicio" className="relative isolate overflow-hidden bg-navy">
-      <div className="relative min-h-[430px] w-full sm:min-h-[520px]">
+      <div className="relative min-h-[500px] w-full sm:min-h-[590px]">
         {slides.map((slide, i) => (
           <div
             key={`${slide.tag}-${i}`}
@@ -49,8 +49,8 @@ export function Hero() {
             aria-hidden={i !== current}
           >
             <img src={slide.image} alt="" className="h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-r from-navy/90 via-navy/65 to-navy/20" />
-            <div className="absolute inset-0 bg-gradient-to-t from-navy via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#060b12]/95 via-[#0e2340]/72 to-[#0e2340]/20" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#080c10] via-transparent to-transparent" />
           </div>
         ))}
 
@@ -61,7 +61,7 @@ export function Hero() {
                 {slides.map((slide, i) =>
                   i === current ? (
                     <div key={slide.title}>
-                      <span className="inline-flex rounded-full border border-safety/40 bg-safety/10 px-4 py-2 text-xs font-black uppercase tracking-widest text-safety">
+                      <span className="inline-flex items-center gap-2 rounded-full border border-safety/40 bg-black/25 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-safety backdrop-blur-md">
                         {slide.tag}
                       </span>
                       <h1 className="mt-5 text-balance text-3xl font-black leading-[1.05] text-white sm:text-5xl lg:text-6xl">
@@ -80,7 +80,7 @@ export function Hero() {
                 )}
               </div>
 
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                 <Link
                   href="/afiliarse"
                   className="group relative inline-flex min-h-[58px] items-center justify-between overflow-hidden rounded-md bg-safety px-6 py-3 text-left text-sm font-black uppercase tracking-[0.1em] text-navy shadow-[0_8px_0_rgba(0,0,0,0.22),0_18px_35px_rgba(0,0,0,0.25)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_9px_0_rgba(0,0,0,0.22),0_22px_40px_rgba(0,0,0,0.3)] active:translate-y-1 active:shadow-[0_3px_0_rgba(0,0,0,0.22)] focus:outline-none focus:ring-2 focus:ring-safety focus:ring-offset-2 focus:ring-offset-navy sm:w-[235px]"
