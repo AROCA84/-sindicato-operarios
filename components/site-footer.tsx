@@ -13,27 +13,20 @@ export function SiteFooter() {
                   ¿Listo para dar el siguiente paso?
                 </h2>
                 <p className="mt-4 text-pretty text-white/70">
-                  Solicita información sin compromiso. Te asesoramos sobre el
-                  curso que mejor se adapta a tu perfil y objetivos.
+                  Explora formación gratuita, recursos profesionales y oportunidades para operarios. Todo pensado para que puedas avanzar desde el móvil.
                 </p>
                 <ul className="mt-6 space-y-3 text-sm text-white/80">
                   <li className="flex items-center gap-3">
-                    <span className="text-safety">
-                      <CheckIcon />
-                    </span>
-                    Plazas limitadas por convocatoria
+                    <span className="text-safety"><CheckIcon /></span>
+                    Afiliación gratuita
                   </li>
                   <li className="flex items-center gap-3">
-                    <span className="text-safety">
-                      <CheckIcon />
-                    </span>
-                    Financiación y bonificación disponible
+                    <span className="text-safety"><CheckIcon /></span>
+                    Formación y test gratuitos
                   </li>
                   <li className="flex items-center gap-3">
-                    <span className="text-safety">
-                      <CheckIcon />
-                    </span>
-                    Certificado al finalizar
+                    <span className="text-safety"><CheckIcon /></span>
+                    Recursos profesionales en crecimiento
                   </li>
                 </ul>
               </div>
@@ -105,7 +98,8 @@ export function SiteFooter() {
               </h3>
               <ul className="mt-4 space-y-2 text-sm text-white/70">
                 <li><a href="#inicio" className="transition-colors hover:text-safety">Inicio</a></li>
-                <li><a href="#cursos" className="transition-colors hover:text-safety">Cursos</a></li>
+                <li><a href="#cursos" className="transition-colors hover:text-safety">Formación</a></li>
+                <li><a href="#recursos" className="transition-colors hover:text-safety">Recursos</a></li>
                 <li><a href="#nosotros" className="transition-colors hover:text-safety">Nosotros</a></li>
                 <li><a href="#contacto" className="transition-colors hover:text-safety">Contacto</a></li>
               </ul>
