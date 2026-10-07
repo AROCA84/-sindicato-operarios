@@ -8,6 +8,7 @@ import { Logo } from "./logo";
 const navItems = [
   { label: "Inicio", href: "/" },
   { label: "Formación", href: "/cursos" },
+  { label: "Recursos", href: "/#recursos" },
   { label: "Mi área", href: "/mi-area" },
 ];
 
@@ -27,7 +28,7 @@ export function SiteHeader() {
               <MailIcon /> sindicatooperarios@gmail.com
             </a>
           </div>
-          <p className="font-medium tracking-wide">Formación para operarios · Acceso desde móvil</p>
+          <p className="font-medium tracking-wide">Formación profesional · Recursos para operarios · Acceso desde móvil</p>
         </div>
       </div>
 
