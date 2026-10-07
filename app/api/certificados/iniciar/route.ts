@@ -47,27 +47,40 @@ export async function POST(request: Request) {
     const member = members[0];
     const nombreCompleto = `${member.nombre} ${member.apellidos}`.trim();
 
-    // Check if a certificate already exists for this attempt/course/afiliado
+    // Reuse only a certificate belonging to this exact approved attempt.
     const existingResponse = await supabaseFetch(
-      `${url}/rest/v1/certificados?select=codigo_certificado,estado,pago_realizado,intento_id&afiliado_id=eq.${encodeURIComponent(member.id)}&curso_id=eq.${encodeURIComponent(cursoId)}&limit=1`,
+      `${url}/rest/v1/certificados?select=codigo_certificado,estado,pago_realizado,intento_id&afiliado_id=eq.${encodeURIComponent(member.id)}&curso_id=eq.${encodeURIComponent(cursoId)}&intento_id=eq.${encodeURIComponent(intentoId)}&limit=1`,
       { headers: h, cache: "no-store" }
     );
-    if (existingResponse.ok) {
-      const existing = await existingResponse.json() as Array<{ codigo_certificado: string; estado: string; pago_realizado: boolean; intento_id?: string | null }>;
-      if (existing.length > 0) {
-        const match = existing[0];
-        return NextResponse.json({
-          ok: true,
-          codigo: match.codigo_certificado,
-          numero_afiliado: member.numero_afiliado,
-          nombre: member.nombre,
-          apellidos: member.apellidos,
-          email: member.email,
-          estado_pago: match.pago_realizado ? "pagado" : "pendiente",
-          estado_emision: match.estado,
-          payment_url: `/api/certificados/pago?codigo=${encodeURIComponent(match.codigo_certificado)}`,
-        });
-      }
+    if (!existingResponse.ok) {
+      const detail = await existingResponse.text();
+      console.error("Certificate lookup error:", detail);
+      return NextResponse.json(
+        { error: "No se pudo comprobar el certificado existente.", detail: detail.slice(0, 1000) },
+        { status: 502 }
+      );
+    }
+
+    const existing = await existingResponse.json() as Array<{
+      codigo_certificado: string;
+      estado: string;
+      pago_realizado: boolean;
+      intento_id: string | null;
+    }>;
+    const match = existing[0];
+
+    if (match?.codigo_certificado) {
+      return NextResponse.json({
+        ok: true,
+        codigo: match.codigo_certificado,
+        numero_afiliado: member.numero_afiliado,
+        nombre: member.nombre,
+        apellidos: member.apellidos,
+        email: member.email,
+        estado_pago: match.pago_realizado ? "pagado" : "pendiente",
+        estado_emision: match.estado,
+        payment_url: `/api/certificados/pago?codigo=${encodeURIComponent(match.codigo_certificado)}`,
+      });
     }
 
     // Create certificate with REAL column names and retain the attempt reference for payment reconciliation
