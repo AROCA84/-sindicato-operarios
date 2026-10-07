@@ -44,58 +44,20 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
 
   const selected = answers[current];
   const isLast = current === questions.length - 1;
-  // Score is always derived from the server result when available, never from client-only calculation
   const score = useMemo(() => {
     if (serverResult) return serverResult.score;
     return answers.reduce((acc, ans, i) => (ans === questions[i].answer ? acc + 1 : acc), 0);
   }, [answers, questions, serverResult]);
   const passed = serverResult ? serverResult.score >= PASS_MARK : score >= PASS_MARK;
 
-  // RECOVERY: restore an approved result immediately from localStorage, then
-  // refresh it from the server. A temporary API/network failure must never send
-  // an already-approved user back to the quiz. The certificate page performs
-  // its own server-side validation before allowing certification.
   useEffect(() => {
     if (internalPreview) {
       setAffiliated(true);
       return;
     }
-
     const isAffiliated = window.localStorage.getItem("sdo-afiliado") === "true";
     setAffiliated(isAffiliated);
     if (!isAffiliated) return;
-
-    const storedRaw = window.localStorage.getItem("sdo-resultado-" + course.id);
-    if (storedRaw) {
-      try {
-        const stored = JSON.parse(storedRaw) as Partial<ServerResult>;
-        const storedAnswers = Array.isArray(stored.answers) ? stored.answers.map(Number) : null;
-        if (
-          typeof stored.attemptId === "string" &&
-          stored.attemptId.length > 0 &&
-          typeof stored.score === "number" &&
-          stored.score >= PASS_MARK &&
-          typeof stored.total === "number" &&
-          stored.total === questions.length &&
-          storedAnswers &&
-          storedAnswers.length === questions.length
-        ) {
-          const cachedResult: ServerResult = {
-            attemptId: stored.attemptId,
-            score: stored.score,
-            total: stored.total,
-            answers: storedAnswers,
-            approved: true,
-          };
-          setServerResult(cachedResult);
-          setAttemptId(cachedResult.attemptId);
-          setAnswers(cachedResult.answers);
-          setPhase("result");
-        }
-      } catch {
-        window.localStorage.removeItem("sdo-resultado-" + course.id);
-      }
-    }
 
     const numero = window.localStorage.getItem("sdo-numero-afiliado") || "";
     const email = window.localStorage.getItem("sdo-afiliado-email") || "";
@@ -110,9 +72,8 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
       { cache: "no-store", signal: controller.signal }
     )
       .then(async (response) => {
-        if (!response.ok) return;
+        if (!response.ok) return null;
         const data = await response.json();
-
         if (
           data?.found &&
           data.aprobado === true &&
@@ -123,7 +84,7 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
           const result: ServerResult = {
             attemptId: data.intento_id,
             score: data.puntuacion,
-            total: typeof data.total === "number" ? data.total : questions.length,
+            total: questions.length,
             answers: Array.isArray(data.respuestas) ? data.respuestas.map(Number) : null,
             approved: true,
           };
@@ -131,19 +92,12 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
           window.localStorage.setItem("sdo-resultado-" + course.id, JSON.stringify(result));
           setServerResult(result);
           setAttemptId(result.attemptId);
-          if (result.answers && result.answers.length === questions.length) setAnswers(result.answers);
+          if (result.answers) setAnswers(result.answers);
           setPhase("result");
-          return;
-        }
-
-        // Only clear the cache when the server explicitly says there is no
-        // approved attempt. HTTP/API errors leave a valid approved cache intact.
-        if (data?.found === false) {
+        } else {
           window.localStorage.removeItem("sdo-resultado-" + course.id);
-          setServerResult(null);
-          setAttemptId("");
-          setPhase("quiz");
         }
+        return null;
       })
       .catch(() => undefined)
       .finally(() => {
@@ -192,7 +146,6 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
         if (!data.intento_id || typeof data.puntuacion !== "number" || typeof data.total !== "number" || typeof data.aprobado !== "boolean") {
           throw new Error("El servidor no devolvió un resultado de test válido.");
         }
-        // Use SERVER-CALCULATED score, not client-calculated
         const serverScore = data.puntuacion;
         const serverPassed = data.aprobado;
         setServerResult({ attemptId: data.intento_id, score: serverScore, total: data.total, answers: serverPassed ? answers : null, approved: serverPassed });
@@ -218,7 +171,6 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
     setCurrent((c) => c + 1);
   }
 
-  // Retry is only available for NON-approved attempts — once the server says approved, the user stays on the result
   function retry() {
     setServerResult(null);
     setAttemptId("");
@@ -228,7 +180,7 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
     setPhase("quiz");
   }
 
-  if (affiliated === null || (checkingServer && !serverResult)) return <div className="min-h-screen bg-slate-50" />;
+  if (affiliated === null || checkingServer) return <div className="min-h-screen bg-slate-50" />;
 
   if (!affiliated && !internalPreview) {
     const returnTo = `/cursos/${course.id}/test`;
@@ -313,7 +265,6 @@ function ResultCard({ passed, score, total, course, attemptId, questions, answer
           ) : (
             <div className="flex flex-col gap-4">
               <Link href={`/cursos/${course.id}`} className="inline-flex items-center justify-center gap-2 rounded-lg border-2 border-navy bg-white px-8 py-4 text-base font-black uppercase tracking-wide text-navy shadow-sm transition-colors hover:bg-slate-50">Repasar el temario<ArrowIcon /></Link>
-              {/* Retry is only shown for NON-approved attempts — once approved, the user stays on the result page */}
               {!serverApproved && <button type="button" onClick={onRetry} className="inline-flex items-center justify-center gap-2 rounded-lg bg-navy px-8 py-4 text-base font-black uppercase tracking-wide text-white shadow-lg transition-colors hover:bg-navy-light"><RetryIcon />Repetir Test Gratis</button>}
               {!serverApproved && <p className="text-center text-sm leading-relaxed text-slate-500">No has obtenido el apto. Repasa el temario y vuelve a intentarlo gratis. No se realiza ningún pago por suspender.</p>}
             </div>
