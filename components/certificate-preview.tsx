@@ -271,29 +271,36 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
     <div className="certificate-preview space-y-6">
       <div className="rounded-3xl border border-safety/30 bg-navy p-6 shadow-2xl sm:p-8">
         <div className="flex items-center gap-4"><SindicatoMark /><div><p className="text-xs font-black uppercase tracking-[0.18em] text-safety">Certificación</p><h2 className="mt-1 text-2xl font-black text-white">Diploma Digital</h2></div></div>
-        <p className="mt-4 text-sm leading-6 text-slate-300">{internalTest ? "Ruta interna de prueba: puedes simular el pago sin realizar ningún cobro y comprobar la descarga del certificado." : "Obtén tu certificado digital verificable tras superar el test. El certificado cuesta 4,99 € y puedes descargarlo inmediatamente después de pagar."}</p>
+        <p className="mt-4 text-sm leading-6 text-slate-300">{internalTest ? "Ruta interna de prueba: puedes simular el pago sin realizar ningún cobro y comprobar la descarga del certificado." : "Obtén tu certificado digital verificable tras superar el test y descárgalo una vez completes la certificación."}</p>
         <label className="mt-6 block text-sm font-bold text-white">Nombre y apellidos<input value={name} onChange={(event) => setName(event.target.value)} placeholder="Nombre y apellidos" autoComplete="name" type="text" className="mt-2 w-full rounded-xl border border-slate-600 bg-slate-950 px-4 py-3 text-white placeholder-slate-400 focus:border-safety focus:outline-none" /></label>
         <label className="mt-4 block text-sm font-bold text-white">Correo electrónico<input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="tu@email.com" type="email" autoComplete="email" className="mt-2 w-full rounded-xl border border-slate-600 bg-slate-950 px-4 py-3 text-white placeholder-slate-400 focus:border-safety focus:outline-none" /></label>
         {!paymentStarted ? (
           <button type="button" disabled={!canPreview || startingPayment} onClick={goToPayment} className="mt-5 w-full rounded-xl bg-safety px-5 py-4 text-sm font-black uppercase tracking-wide text-navy hover:bg-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed">
-            {startingPayment ? "Preparando pago..." : "Pagar 4,99 €"}
+            {startingPayment ? "Preparando certificación..." : "CERTIFÍCATE"}
           </button>
         ) : (
           <div className="mt-5 space-y-3">
-            {internalTest ? <button type="button" onClick={simulateInternalPayment} className="block w-full rounded-xl bg-safety px-5 py-4 text-center text-sm font-black uppercase tracking-wide text-navy">Simular pago completado</button> : (
+            <div className="rounded-2xl border border-safety/30 bg-slate-950/60 p-4 text-center">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-safety">Certificado</p>
+              <div className="mt-2 flex items-center justify-center gap-2 text-white">
+                <span className="text-2xl" aria-hidden="true">💳</span>
+                <span className="text-sm font-bold">Certificación segura con tarjeta</span>
+              </div>
+            </div>
+            {internalTest ? <button type="button" onClick={simulateInternalPayment} className="block w-full rounded-xl bg-safety px-5 py-4 text-center text-sm font-black uppercase tracking-wide text-navy">Simular certificación</button> : (
               <form action={paymentUrl} method="get" target="_blank">
                 <button type="submit" className="block w-full rounded-xl bg-safety px-5 py-4 text-center text-sm font-black uppercase tracking-wide text-navy hover:bg-yellow-400">
-                  PAGAR 4,99 € CON myPOS
+                  CERTIFÍCATE
                 </button>
               </form>
             )}
             {!internalTest ? <button type="button" onClick={checkPayment} className="block w-full rounded-xl border-2 border-safety bg-transparent px-5 py-4 text-center text-sm font-black uppercase tracking-wide text-safety hover:bg-safety/10">
-              Comprobar pago
+              Comprobar certificación
             </button> : null}
           </div>
         )}
         {error && <div role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">{error}</div>}
-        <p className="mt-3 text-center text-xs leading-5 text-slate-400">La formación y el test son gratuitos. El certificado cuesta 4,99 € y el pago se realiza mediante myPOS.</p>
+        <p className="mt-3 text-center text-xs leading-5 text-slate-400">La formación y el test son gratuitos. La certificación se completa de forma segura mediante tarjeta.</p>
       </div>
 
       {paymentConfirmed && (
