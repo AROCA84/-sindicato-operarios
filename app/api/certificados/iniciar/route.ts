@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import crypto from "node:crypto";
-import { PASS_MARK, TOTAL_QUESTIONS } from "@/lib/exam";
+import { PASS_MARK, TOTAL_QUESTIONS, PASS_PERCENT } from "@/lib/exam";
 import { supabaseConfig, headers, supabaseFetch } from "@/lib/supabase-server";
 
 export const runtime = "nodejs";
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     }>;
 
     if (!attempts.length || attempts[0].curso_id !== cursoId || attempts[0].puntuacion < PASS_MARK || !attempts[0].aprobado) {
-      return NextResponse.json({ error: "El certificado solo está disponible después de aprobar el test con al menos el 70 %." }, { status: 403 });
+      return NextResponse.json({ error: `El certificado solo está disponible después de aprobar el test con al menos ${PASS_MARK} de ${TOTAL_QUESTIONS} aciertos (${PASS_PERCENT} %).` }, { status: 403 });
     }
 
     const memberResponse = await supabaseFetch(

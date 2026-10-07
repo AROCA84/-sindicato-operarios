@@ -1,5 +1,6 @@
 import type { Course } from "./courses";
 import { getAllTemario } from "./academy-catalog";
+import { TOTAL_QUESTIONS } from "./exam-config";
 
 export type ExamQuestion = {
   q: string;
@@ -8,8 +9,10 @@ export type ExamQuestion = {
   answer: number;
 };
 
-export const PASS_MARK = 14;
-export const TOTAL_QUESTIONS = 20;
+export { PASS_MARK, TOTAL_QUESTIONS, PASS_PERCENT } from "./exam-config";
+
+/** Question as sent to the browser: never includes the correct answer. */
+export type PublicExamQuestion = Omit<ExamQuestion, "answer">;
 
 /** General PRL / safety questions applicable to every course. */
 const generalQuestions: ExamQuestion[] = [
@@ -1165,4 +1168,18 @@ export function getExam(course: Course): ExamQuestion[] {
     .reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
   const combined = [...specific, ...temarioQuestions, ...generalQuestions];
   return seededShuffle(combined, seed).slice(0, TOTAL_QUESTIONS);
+}
+
+export function toPublicQuestions(questions: ExamQuestion[]): PublicExamQuestion[] {
+  return questions.map(({ q, options }) => ({ q, options }));
+}
+
+/** Per-question review computed on the server from the real answers. */
+export function reviewAnswers(questions: ExamQuestion[], answers: number[]) {
+  const aciertos = questions.map((question, i) => answers[i] === question.answer);
+  return {
+    puntuacion: aciertos.filter(Boolean).length,
+    aciertos,
+    correctas: questions.map((question) => question.answer),
+  };
 }

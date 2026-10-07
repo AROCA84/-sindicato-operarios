@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { PASS_MARK, TOTAL_QUESTIONS } from "@/lib/exam";
+import { allCourses } from "@/lib/academy-catalog";
+import { getExam, PASS_MARK, reviewAnswers, TOTAL_QUESTIONS } from "@/lib/exam";
 import { supabaseConfig, headers, supabaseFetch } from "@/lib/supabase-server";
 
 export const runtime = "nodejs";
@@ -53,8 +54,11 @@ export async function GET(request: Request) {
       return NextResponse.json({ found: false });
     }
 
-    const answerList = Array.isArray(attempt.respuestas) ? attempt.respuestas : null;
+    const answerList = Array.isArray(attempt.respuestas) ? attempt.respuestas.map(Number) : null;
     const hasAnswers = answerList !== null && answerList.length === TOTAL_QUESTIONS;
+    const course = allCourses.find((item) => item.id === cursoId);
+    const questions = course ? getExam(course) : null;
+    const review = questions && hasAnswers ? reviewAnswers(questions, answerList) : null;
 
     // Return normalized response (total field for frontend compatibility)
     return NextResponse.json({
@@ -63,7 +67,9 @@ export async function GET(request: Request) {
       puntuacion: attempt.puntuacion,
       total: attempt.total_preguntas || TOTAL_QUESTIONS,
       aprobado: true,
-      respuestas: hasAnswers ? answerList.map(Number) : null,
+      respuestas: hasAnswers ? answerList : null,
+      aciertos: review?.aciertos ?? null,
+      correctas: questions ? questions.map((question) => question.answer) : null,
     });
   } catch (error) {
     console.error("Test result lookup error:", error);
