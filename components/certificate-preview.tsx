@@ -36,7 +36,7 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [certificateCode, setCertificateCode] = useState("");
-  const [paymentUrl, setPaymentUrl] = useState("https://mypos.com/vmp/btn/BD3M7OT3ERV11");
+  const [paymentUrl, setPaymentUrl] = useState("");
   const [affiliationNumber, setAffiliationNumber] = useState("");
   const [error, setError] = useState("");
   const [startingPayment, setStartingPayment] = useState(false);
@@ -53,6 +53,7 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
     if (storedEmail) setEmail(storedEmail);
     if (returnedCode) {
       setCertificateCode(returnedCode);
+      setPaymentUrl(`/api/certificados/pago?codigo=${encodeURIComponent(returnedCode)}`);
       setPaymentStarted(true);
     }
     if (internalTest) {
@@ -228,7 +229,7 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
         ) : (
           <div className="mt-5 space-y-3">
             {internalTest ? <button type="button" onClick={simulateInternalPayment} className="block w-full rounded-xl bg-safety px-5 py-4 text-center text-sm font-black uppercase tracking-wide text-navy">Simular pago completado</button> : (
-              <form action="https://mypos.com/vmp/btn/BD3M7OT3ERV11" method="post" target="_blank">
+              <form action={paymentUrl} method="get" target="_blank">
                 <button type="submit" className="block w-full rounded-xl bg-safety px-5 py-4 text-center text-sm font-black uppercase tracking-wide text-navy hover:bg-yellow-400">
                   PAGAR 4,99 € CON myPOS
                 </button>
