@@ -49,27 +49,28 @@ export async function POST(request: Request) {
 
     // Check if a certificate already exists for this attempt/course/afiliado
     const existingResponse = await supabaseFetch(
-      `${url}/rest/v1/certificados?select=codigo_certificado,estado,pago_realizado&afiliado_id=eq.${encodeURIComponent(member.id)}&curso_id=eq.${encodeURIComponent(cursoId)}&limit=1`,
+      `${url}/rest/v1/certificados?select=codigo_certificado,estado,pago_realizado,intento_id&afiliado_id=eq.${encodeURIComponent(member.id)}&curso_id=eq.${encodeURIComponent(cursoId)}&limit=1`,
       { headers: h, cache: "no-store" }
     );
     if (existingResponse.ok) {
-      const existing = await existingResponse.json() as Array<{ codigo_certificado: string; estado: string; pago_realizado: boolean }>;
-      if (existing[0]?.codigo_certificado) {
+      const existing = await existingResponse.json() as Array<{ codigo_certificado: string; estado: string; pago_realizado: boolean; intento_id?: string | null }>;
+      const match = existing.find((cert) => cert.intento_id === intentoId || !cert.intento_id);
+      if (match?.codigo_certificado) {
         return NextResponse.json({
           ok: true,
-          codigo: existing[0].codigo_certificado,
+          codigo: match.codigo_certificado,
           numero_afiliado: member.numero_afiliado,
           nombre: member.nombre,
           apellidos: member.apellidos,
           email: member.email,
-          estado_pago: existing[0].pago_realizado ? "pagado" : "pendiente",
-          estado_emision: existing[0].estado,
-          payment_url: `/api/certificados/pago?codigo=${encodeURIComponent(existing[0].codigo_certificado)}`,
+          estado_pago: match.pago_realizado ? "pagado" : "pendiente",
+          estado_emision: match.estado,
+          payment_url: `/api/certificados/pago?codigo=${encodeURIComponent(match.codigo_certificado)}`,
         });
       }
     }
 
-    // Create certificate with REAL column names
+    // Create certificate with REAL column names and retain the attempt reference for payment reconciliation
     const code = `SDO-${new Date().getFullYear()}-${crypto.randomBytes(5).toString("hex").toUpperCase()}`;
     const insert = await supabaseFetch(`${url}/rest/v1/certificados`, {
       method: "POST",
@@ -77,6 +78,7 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         afiliado_id: member.id,
         curso_id: cursoId,
+        intento_id: intentoId,
         nombre: nombreCompleto,
         email: member.email,
         numero_afiliado: member.numero_afiliado,
