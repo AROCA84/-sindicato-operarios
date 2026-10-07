@@ -51,22 +51,56 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
   }, [answers, questions, serverResult]);
   const passed = serverResult ? serverResult.score >= PASS_MARK : score >= PASS_MARK;
 
-  // RECOVERY: Always query the server first for a real approved attempt.
-  // localStorage is only used as a visual cache after the server confirms.
+  // RECOVERY: restore an approved result immediately from localStorage, then
+  // refresh it from the server. A temporary API/network failure must never send
+  // an already-approved user back to the quiz. The certificate page performs
+  // its own server-side validation before allowing certification.
   useEffect(() => {
     if (internalPreview) {
       setAffiliated(true);
       return;
     }
+
     const isAffiliated = window.localStorage.getItem("sdo-afiliado") === "true";
     setAffiliated(isAffiliated);
     if (!isAffiliated) return;
+
+    const storedRaw = window.localStorage.getItem("sdo-resultado-" + course.id);
+    if (storedRaw) {
+      try {
+        const stored = JSON.parse(storedRaw) as Partial<ServerResult>;
+        const storedAnswers = Array.isArray(stored.answers) ? stored.answers.map(Number) : null;
+        if (
+          typeof stored.attemptId === "string" &&
+          stored.attemptId.length > 0 &&
+          typeof stored.score === "number" &&
+          stored.score >= PASS_MARK &&
+          typeof stored.total === "number" &&
+          stored.total === questions.length &&
+          storedAnswers &&
+          storedAnswers.length === questions.length
+        ) {
+          const cachedResult: ServerResult = {
+            attemptId: stored.attemptId,
+            score: stored.score,
+            total: stored.total,
+            answers: storedAnswers,
+            approved: true,
+          };
+          setServerResult(cachedResult);
+          setAttemptId(cachedResult.attemptId);
+          setAnswers(cachedResult.answers);
+          setPhase("result");
+        }
+      } catch {
+        window.localStorage.removeItem("sdo-resultado-" + course.id);
+      }
+    }
 
     const numero = window.localStorage.getItem("sdo-numero-afiliado") || "";
     const email = window.localStorage.getItem("sdo-afiliado-email") || "";
     if (!numero || !email) return;
 
-    // Always query the server to verify the approved state is real
     setCheckingServer(true);
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 10000);
@@ -76,8 +110,9 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
       { cache: "no-store", signal: controller.signal }
     )
       .then(async (response) => {
-        if (!response.ok) return null;
+        if (!response.ok) return;
         const data = await response.json();
+
         if (
           data?.found &&
           data.aprobado === true &&
@@ -85,11 +120,10 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
           typeof data.puntuacion === "number" &&
           data.puntuacion >= PASS_MARK
         ) {
-          // Server confirms a real approved attempt — show result, never go back to test
           const result: ServerResult = {
             attemptId: data.intento_id,
             score: data.puntuacion,
-            total: questions.length,
+            total: typeof data.total === "number" ? data.total : questions.length,
             answers: Array.isArray(data.respuestas) ? data.respuestas.map(Number) : null,
             approved: true,
           };
@@ -97,13 +131,19 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
           window.localStorage.setItem("sdo-resultado-" + course.id, JSON.stringify(result));
           setServerResult(result);
           setAttemptId(result.attemptId);
-          if (result.answers) setAnswers(result.answers);
+          if (result.answers && result.answers.length === questions.length) setAnswers(result.answers);
           setPhase("result");
-        } else {
-          // Server says no approved attempt — clear stale localStorage cache
-          window.localStorage.removeItem("sdo-resultado-" + course.id);
+          return;
         }
-        return null;
+
+        // Only clear the cache when the server explicitly says there is no
+        // approved attempt. HTTP/API errors leave a valid approved cache intact.
+        if (data?.found === false) {
+          window.localStorage.removeItem("sdo-resultado-" + course.id);
+          setServerResult(null);
+          setAttemptId("");
+          setPhase("quiz");
+        }
       })
       .catch(() => undefined)
       .finally(() => {
@@ -188,7 +228,7 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
     setPhase("quiz");
   }
 
-  if (affiliated === null || checkingServer) return <div className="min-h-screen bg-slate-50" />;
+  if (affiliated === null || (checkingServer && !serverResult)) return <div className="min-h-screen bg-slate-50" />;
 
   if (!affiliated && !internalPreview) {
     const returnTo = `/cursos/${course.id}/test`;
