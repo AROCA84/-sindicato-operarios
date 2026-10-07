@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import QRCode from "qrcode";
-import { courses } from "@/lib/courses";
+import { allCourses } from "@/lib/academy-catalog";
 
 type Member = { nombre: string; apellidos: string; email: string; numero_afiliado: number };
 
@@ -30,7 +30,7 @@ export default function MiAreaPage() {
     if (ok && email && numero) {
       QRCode.toDataURL(window.location.origin + "/verificar?afiliado=" + encodeURIComponent(numero), { width: 220, margin: 2 }, (err, url) => { if (!err) setQr(url); });
       const saved: Record<string, number> = {};
-      courses.forEach((c) => { saved[c.id] = Number(localStorage.getItem("sdo-progreso-" + c.id) || 0); });
+      allCourses.forEach((c) => { saved[c.id] = Number(localStorage.getItem("sdo-progreso-" + c.id) || 0); });
       setProgress(saved);
       fetch("/api/mi-area/certificados", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, numero }) })
         .then((r) => r.ok ? r.json() : null).then((result) => { if (result?.ok) setCertificates(result.certificados || []); }).catch(() => undefined);
@@ -84,7 +84,7 @@ export default function MiAreaPage() {
   </main>;
 
   const completed = Object.values(progress).filter((v) => v >= 100).length;
-  const overall = Math.round(Object.values(progress).reduce((a, b) => a + b, 0) / courses.length);
+  const overall = Math.round(Object.values(progress).reduce((a, b) => a + b, 0) / allCourses.length);
 
   return <main className="min-h-screen bg-slate-50 text-navy">
     <header className="bg-navy text-white"><div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5"><Link href="/" className="font-black text-safety">SINDICATO DE OPERARIOS</Link><Link href="/cursos" className="text-sm font-bold text-white/80">Formación</Link></div></header>
@@ -92,7 +92,7 @@ export default function MiAreaPage() {
       <p className="text-xs font-black uppercase tracking-[0.2em] text-safety-dark">Área del afiliado</p><h1 className="mt-2 text-3xl font-black sm:text-4xl">Hola, {data.nombre}</h1><p className="mt-2 text-slate-600">Tus datos, identificación y progreso formativo.</p>
       <section className="mt-7 grid gap-5 lg:grid-cols-[1.4fr_.8fr]">
         <div className="rounded-2xl bg-navy p-6 text-white shadow-xl sm:p-8"><div className="flex flex-col gap-6 sm:flex-row sm:items-center"><div className="flex-1"><p className="text-xs font-black uppercase tracking-widest text-safety">Afiliado activo</p><h2 className="mt-2 text-2xl font-black">{data.nombre} {data.apellidos}</h2><div className="mt-5 space-y-2 text-sm text-white/75"><p><b className="text-white">Nº afiliado:</b> {data.numero}</p><p><b className="text-white">Correo:</b> {data.email}</p><p><b className="text-white">Organización:</b> Sindicato de Operarios</p></div></div><div className="rounded-2xl bg-white p-3 text-center">{qr ? <img src={qr} alt="QR de verificación" className="h-40 w-40" /> : <div className="h-40 w-40 bg-slate-100" />}<p className="mt-2 text-[10px] font-black uppercase tracking-wider text-slate-500">Verificación</p></div></div></div>
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200"><p className="text-xs font-black uppercase tracking-widest text-safety-dark">Tu progreso</p><p className="mt-2 text-4xl font-black">{completed}/{courses.length}</p><p className="text-sm text-slate-500">cursos completados</p><div className="mt-5 h-3 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-safety" style={{ width: overall + "%" }} /></div><p className="mt-2 text-right text-xs font-bold">{overall}% global</p></div>
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200"><p className="text-xs font-black uppercase tracking-widest text-safety-dark">Tu progreso</p><p className="mt-2 text-4xl font-black">{completed}/{allCourses.length}</p><p className="text-sm text-slate-500">cursos completados</p><div className="mt-5 h-3 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-safety" style={{ width: overall + "%" }} /></div><p className="mt-2 text-right text-xs font-bold">{overall}% global</p></div>
       </section>
       <section className="mt-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -100,8 +100,8 @@ export default function MiAreaPage() {
           <Link href="/cursos" className="text-sm font-black text-navy underline">Ver todos los cursos →</Link>
         </div>
         {(() => {
-          const active = courses.filter((course) => (progress[course.id] || 0) > 0 && (progress[course.id] || 0) < 100);
-          const next = active[0] || courses.find((course) => (progress[course.id] || 0) === 0);
+          const active = allCourses.filter((course) => (progress[course.id] || 0) > 0 && (progress[course.id] || 0) < 100);
+          const next = active[0] || allCourses.find((course) => (progress[course.id] || 0) === 0);
           return next ? (
             <div className="mt-5 overflow-hidden rounded-2xl bg-navy p-5 text-white shadow-lg sm:p-6">
               <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
@@ -116,7 +116,41 @@ export default function MiAreaPage() {
             </div>
           ) : null;
         })()}
-        <div className="mt-5 grid gap-4 md:grid-cols-2">{courses.map((course) => { const value = progress[course.id] || 0; return <article key={course.id} className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200"><div className="flex gap-4"><img src={course.image} alt="" className="h-20 w-24 rounded-xl object-cover" /><div className="min-w-0 flex-1"><p className="text-xs font-bold uppercase text-safety-dark">{course.category}</p><h3 className="mt-1 font-black leading-snug">{course.title}</h3></div></div><div className="mt-5 flex justify-between text-xs font-bold"><span>{value >= 100 ? "Completado" : value > 0 ? "En curso" : "Sin comenzar"}</span><span>{value}%</span></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-safety" style={{ width: value + "%" }} /></div><Link href={"/cursos/" + course.id} className="mt-4 inline-flex w-full justify-center rounded-lg border-2 border-navy px-4 py-2.5 text-sm font-black text-navy">{value >= 100 ? "Repasar curso" : value > 0 ? "Continuar formación" : "Ver curso"}</Link></article>; })}</div>
+        <div className="mt-5 grid gap-4 md:grid-cols-2">{allCourses.map((course) => { const value = progress[course.id] || 0; return <article key={course.id} className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200"><div className="flex gap-4"><img src={course.image} alt="" className="h-20 w-24 rounded-xl object-cover" /><div className="min-w-0 flex-1"><p className="text-xs font-bold uppercase text-safety-dark">{course.category}</p><h3 className="mt-1 font-black leading-snug">{course.title}</h3></div></div><div className="mt-5 flex justify-between text-xs font-bold"><span>{value >= 100 ? "Completado" : value > 0 ? "En curso" : "Sin comenzar"}</span><span>{value}%</span></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-safety" style={{ width: value + "%" }} /></div><Link href={"/cursos/" + course.id} className="mt-4 inline-flex w-full justify-center rounded-lg border-2 border-navy px-4 py-2.5 text-sm font-black text-navy">{value >= 100 ? "Repasar curso" : value > 0 ? "Continuar formación" : "Ver curso"}</Link></article>; })}</div>
+      </section>
+      <section className="mt-8">
+        <div>
+          <p className="text-xs font-black uppercase tracking-widest text-safety-dark">Tus documentos</p>
+          <h2 className="mt-1 text-2xl font-black">Carné y certificado</h2>
+          <p className="mt-2 max-w-2xl text-sm text-slate-600">Puedes ver una vista previa de tus documentos. Por seguridad, las versiones descargables permanecen protegidas hasta que correspondan.</p>
+        </div>
+        <div className="mt-5 grid gap-5 lg:grid-cols-2">
+          <div className="relative overflow-hidden rounded-2xl bg-navy p-5 shadow-xl">
+            <div className="relative overflow-hidden rounded-xl bg-slate-900 p-5 text-white" style={{ filter: "blur(4px)" }}>
+              <div className="flex items-center justify-between border-b border-white/20 pb-4">
+                <div><p className="text-[10px] font-black uppercase tracking-[0.2em] text-safety">SINDICATO DE OPERARIOS</p><p className="mt-1 text-xl font-black">CARNÉ DE AFILIADO</p></div>
+                <div className="h-12 w-12 rounded-lg bg-safety/80" />
+              </div>
+              <div className="mt-5 grid grid-cols-[1fr_80px] gap-4">
+                <div className="space-y-2 text-sm"><p><b>Nombre:</b> {data.nombre} {data.apellidos}</p><p><b>Nº afiliado:</b> {data.numero}</p><p><b>Estado:</b> AFILIADO ACTIVO</p><p><b>Organización:</b> Sindicato de Operarios</p></div>
+                <div className="h-20 rounded-lg bg-white/80" />
+              </div>
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center bg-navy/35">
+              <div className="rounded-xl bg-white/95 px-5 py-4 text-center shadow-2xl"><p className="text-xs font-black uppercase tracking-widest text-safety-dark">Vista previa</p><p className="mt-1 font-black text-navy">Carné protegido</p><p className="mt-1 text-xs text-slate-500">Se muestra borroso por seguridad</p></div>
+            </div>
+          </div>
+          <div className="relative overflow-hidden rounded-2xl bg-white p-5 shadow-xl ring-1 ring-slate-200">
+            <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-[#fff8ef] p-6" style={{ filter: "blur(4px)" }}>
+              <div className="border-b-2 border-safety pb-4 text-center"><p className="text-[10px] font-black uppercase tracking-[0.2em] text-safety-dark">SINDICATO DE OPERARIOS</p><p className="mt-2 text-2xl font-black text-navy">CERTIFICADO DE FORMACIÓN</p><p className="mt-1 text-xs text-slate-500">Documento digital verificable</p></div>
+              <div className="py-7 text-center"><p className="text-xs uppercase tracking-widest text-slate-500">Se certifica que</p><p className="mt-2 text-xl font-black text-navy">{data.nombre} {data.apellidos}</p><p className="mt-3 text-sm text-slate-600">ha superado satisfactoriamente la evaluación correspondiente a una formación profesional.</p></div>
+              <div className="flex justify-between border-t border-slate-200 pt-4 text-xs text-slate-500"><span>Firma y sello</span><span>QR verificable</span></div>
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center bg-white/30">
+              <div className="rounded-xl bg-white/95 px-5 py-4 text-center shadow-2xl"><p className="text-xs font-black uppercase tracking-widest text-safety-dark">Vista previa</p><p className="mt-1 font-black text-navy">Certificado protegido</p><p className="mt-1 text-xs text-slate-500">Se muestra borroso hasta su emisión</p></div>
+            </div>
+          </div>
+        </div>
       </section>
       <section className="mt-8 grid gap-5 lg:grid-cols-2">
         <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
@@ -139,7 +173,7 @@ export default function MiAreaPage() {
           {certificates.length > 0 ? (
             <div className="mt-5 space-y-3">
               {certificates.map((certificate) => {
-                const course = courses.find((item) => item.id === certificate.curso_id);
+                const course = allCourses.find((item) => item.id === certificate.curso_id);
                 return (
                   <div key={certificate.codigo} className="rounded-xl border border-slate-200 p-4">
                     <p className="font-black">{course?.title || certificate.curso_id}</p>
