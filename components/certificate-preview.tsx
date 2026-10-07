@@ -300,6 +300,7 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
             </div>
             {internalTest ? <button type="button" onClick={simulateInternalPayment} className="block w-full rounded-xl bg-safety px-5 py-4 text-center text-sm font-black uppercase tracking-wide text-navy">Simular certificación</button> : (
               <form action={paymentUrl} method="get" target="_blank">
+                <input type="hidden" name="codigo" value={certificateCode} />
                 <button type="submit" className="block w-full rounded-xl bg-safety px-5 py-4 text-center text-sm font-black uppercase tracking-wide text-navy hover:bg-yellow-400">
                   CERTIFÍCATE
                 </button>
