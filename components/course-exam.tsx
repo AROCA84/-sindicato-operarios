@@ -59,11 +59,47 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
     setAffiliated(isAffiliated);
     if (!isAffiliated) return;
 
+    const storedRaw = window.localStorage.getItem("sdo-resultado-" + course.id);
+    let storedPassed: ServerResult | null = null;
+    if (storedRaw) {
+      try {
+        const parsed = JSON.parse(storedRaw) as Partial<ServerResult>;
+        if (
+          typeof parsed.attemptId === "string" &&
+          typeof parsed.score === "number" &&
+          parsed.score >= PASS_MARK &&
+          typeof parsed.total === "number" &&
+          parsed.total === questions.length &&
+          (parsed.answers === null || Array.isArray(parsed.answers))
+        ) {
+          storedPassed = {
+            attemptId: parsed.attemptId,
+            score: parsed.score,
+            total: parsed.total,
+            answers: Array.isArray(parsed.answers) ? parsed.answers.map(Number) : null,
+            approved: true,
+          };
+        }
+      } catch {
+        // Ignore malformed local result and continue with the server check.
+      }
+    }
+
+    // Restore a previously approved result immediately. The server check below
+    // only refreshes it; a temporary API failure must never send the user back
+    // to the test.
+    if (storedPassed) {
+      setServerResult(storedPassed);
+      setAttemptId(storedPassed.attemptId);
+      if (storedPassed.answers) setAnswers(storedPassed.answers);
+      setPhase("result");
+    }
+
     const numero = window.localStorage.getItem("sdo-numero-afiliado") || "";
     const email = window.localStorage.getItem("sdo-afiliado-email") || "";
     if (!numero || !email) return;
 
-    setCheckingServer(true);
+    setCheckingServer(!storedPassed);
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 10000);
 
@@ -94,7 +130,7 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
           setAttemptId(result.attemptId);
           if (result.answers) setAnswers(result.answers);
           setPhase("result");
-        } else {
+        } else if (!storedPassed) {
           window.localStorage.removeItem("sdo-resultado-" + course.id);
         }
         return null;
