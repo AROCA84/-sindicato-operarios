@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { allCourses } from "@/lib/academy-catalog";
+import { trainingGroups } from "@/components/course-catalog";
 
 type Member = { nombre: string; apellidos: string; email: string; numero_afiliado: number };
 
@@ -116,33 +117,73 @@ export default function MiAreaPage() {
             </div>
           ) : null;
         })()}
-        <div className="mt-5 space-y-3">
-          {allCourses.map((course) => {
-            const value = progress[course.id] || 0;
-            return (
-              <details key={course.id} className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
-                <summary className="flex cursor-pointer list-none items-center gap-4 p-4 sm:p-5">
-                  <img src={course.image} alt="" className="h-16 w-20 shrink-0 rounded-xl object-cover" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold uppercase text-safety-dark">{course.category}</p>
-                    <h3 className="mt-1 font-black leading-snug">{course.title}</h3>
-                    <div className="mt-2 flex items-center gap-3">
-                      <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-safety" style={{ width: value + "%" }} /></div>
-                      <span className="shrink-0 text-xs font-black">{value}%</span>
+        <div className="mt-5 space-y-4">
+          {(() => {
+            const [openGroup, setOpenGroup] = useState<string | null>(null);
+            const [openCategory, setOpenCategory] = useState<string | null>(null);
+            return trainingGroups.map((group) => {
+              const isGroupOpen = openGroup === group.title;
+              return (
+                <div key={group.title} className="overflow-hidden rounded-xl bg-white ring-1 ring-slate-200 shadow-sm">
+                  <button type="button" onClick={() => setOpenGroup(isGroupOpen ? null : group.title)} aria-expanded={isGroupOpen}
+                    className="group flex w-full items-center gap-5 px-5 py-5 text-left transition-all duration-200 hover:bg-slate-50 sm:gap-7 sm:px-8 sm:py-6">
+                    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border-2 border-slate-200 bg-slate-50 text-2xl shadow-sm sm:h-18 sm:w-18">
+                      {group.icon === "forklift" ? "🚜" : group.icon === "warehouse" ? "📦" : group.icon === "safety" ? "🦺" : group.icon === "excavator" ? "🏗️" : group.icon === "platform" ? "💻" : "⚙️"}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-base font-black uppercase text-navy sm:text-xl">{group.title}</span>
+                      <span className="mt-1 block text-xs text-slate-500 sm:text-sm">{group.description}</span>
+                      <span className="mt-2 block text-[11px] font-black uppercase tracking-wider text-safety-dark">{group.categories.length} categorías</span>
+                    </span>
+                    <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 text-2xl text-safety transition-transform ${isGroupOpen ? "rotate-90 bg-safety/10" : ""}`}>›</span>
+                  </button>
+                  {isGroupOpen && (
+                    <div className="space-y-2 border-t border-slate-100 bg-slate-50/70 p-3 sm:p-4">
+                      {group.categories.map((category) => {
+                        const categoryCourses = allCourses.filter((course) => course.category === category);
+                        const isCategoryOpen = openCategory === category;
+                        return (
+                          <div key={category} className="overflow-hidden rounded-lg bg-white ring-1 ring-slate-200">
+                            <button type="button" onClick={() => setOpenCategory(isCategoryOpen ? null : category)} aria-expanded={isCategoryOpen}
+                              className="flex w-full items-center gap-4 px-4 py-4 text-left transition-colors hover:bg-slate-50 sm:px-5">
+                              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-navy text-lg">📚</span>
+                              <span className="min-w-0 flex-1">
+                                <span className="block text-sm font-black uppercase text-navy sm:text-base">{category}</span>
+                                <span className="mt-1 block text-xs text-slate-500">{categoryCourses.length} {categoryCourses.length === 1 ? "curso" : "cursos"} disponibles</span>
+                              </span>
+                              <span className={`text-2xl text-safety transition-transform ${isCategoryOpen ? "rotate-90" : ""}`}>›</span>
+                            </button>
+                            {isCategoryOpen && (
+                              <div className="space-y-3 border-t border-slate-100 bg-slate-50/70 p-3">
+                                {categoryCourses.map((course) => {
+                                  const value = progress[course.id] || 0;
+                                  return (
+                                    <article key={course.id} className="flex items-center gap-3 rounded-xl bg-white p-3 shadow-sm ring-1 ring-slate-200 sm:p-4">
+                                      <img src={course.image} alt="" className="hidden h-16 w-20 shrink-0 rounded-lg object-cover sm:block" />
+                                      <div className="min-w-0 flex-1">
+                                        <p className="text-xs font-black uppercase text-safety-dark">{course.category}</p>
+                                        <h3 className="mt-1 text-sm font-black leading-snug sm:text-base">{course.title}</h3>
+                                        <div className="mt-2 flex items-center gap-3">
+                                          <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-safety" style={{ width: value + "%" }} /></div>
+                                          <span className="shrink-0 text-xs font-black">{value}%</span>
+                                        </div>
+                                      </div>
+                                      <Link href={"/cursos/" + course.id} className="shrink-0 text-2xl font-light text-safety" aria-label={`Abrir ${course.title}`}>›</Link>
+                                    </article>
+                                  );
+                                })}
+                                {categoryCourses.length === 0 && <p className="rounded-lg border border-dashed border-safety/40 bg-white p-4 text-center text-sm text-slate-500">Esta categoría está preparada para nuevos cursos.</p>}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
-                  </div>
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy text-lg font-black text-white transition group-open:rotate-180">⌄</span>
-                </summary>
-                <div className="border-t border-slate-100 px-4 pb-5 pt-4 sm:px-5">
-                  <p className="text-sm text-slate-600">{value >= 100 ? "Curso completado." : value > 0 ? "Curso en progreso." : "Curso todavía sin comenzar."}</p>
-                  <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-                    <Link href={"/cursos/" + course.id} className="inline-flex justify-center rounded-lg bg-navy px-4 py-2.5 text-sm font-black text-white">{value >= 100 ? "Repasar curso" : value > 0 ? "Continuar formación" : "Ver curso"}</Link>
-                    {value >= 100 && <Link href={"/cursos/" + course.id + "/test"} className="inline-flex justify-center rounded-lg border-2 border-navy px-4 py-2.5 text-sm font-black text-navy">Ver test y resultado</Link>}
-                  </div>
+                  )}
                 </div>
-              </details>
-            );
-          })}
+              );
+            });
+          })()}
         </div>
       </section>
       <section className="mt-8">
