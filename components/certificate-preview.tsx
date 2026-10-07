@@ -14,7 +14,7 @@ type Props = {
   attemptId: string;
 };
 
-const PAYMENT_URL = "/api/certificados/pago";
+const PAYMENT_URL = "https://mypos.com/vmp/btn/BD3M7OT3ERV11";
 
 function SindicatoMark({ size = "md" }: { size?: "sm" | "md" }) {
   const box = size === "sm" ? "h-12 w-12" : "h-16 w-16";
@@ -139,9 +139,9 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "No se pudo iniciar el certificado.");
       setCertificateCode(data.codigo);
-      setPaymentUrl(data.payment_url || `${PAYMENT_URL}?codigo=${encodeURIComponent(data.codigo)}`);
+      setPaymentUrl(PAYMENT_URL);
       setPaymentStarted(true);
-      window.location.assign(data.payment_url || `${PAYMENT_URL}?codigo=${encodeURIComponent(data.codigo)}`);
+      window.location.assign(PAYMENT_URL);
     } catch (e) {
       setError(e instanceof DOMException && e.name === "AbortError" ? "La preparación del pago está tardando demasiado. Vuelve a intentarlo." : e instanceof Error ? e.message : "No se pudo iniciar el certificado.");
     } finally {
