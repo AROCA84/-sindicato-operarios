@@ -1,23 +1,30 @@
+const resourceCards = [
+  { icon: "🦺", title: "Equipamiento profesional", text: "EPIs, herramientas y material seleccionado para cada especialidad.", href: "#recursos" },
+  { icon: "🚜", title: "Maquinaria y servicios", text: "Recursos, proveedores y servicios útiles para el trabajo industrial.", href: "#recursos" },
+  { icon: "💻", title: "Tecnología e IA", text: "Herramientas digitales para mejorar tu trabajo y productividad.", href: "#recursos" },
+  { icon: "💼", title: "Empleo y oportunidades", text: "Recursos profesionales, empresas y oportunidades para operarios.", href: "#recursos" },
+];
+
 const steps = [
   {
     number: "01",
     title: "Afíliate gratis",
-    text: "Únete al Sindicato de Operarios gratis y de por vida.",
+    text: "Afíliate gratis y accede a la plataforma profesional.",
   },
   {
     number: "02",
     title: "Formación gratis",
-    text: "Accede a cursos y temarios para mejorar tu preparación profesional.",
+    text: "Accede a formación gratuita y temarios para mejorar tu preparación profesional.",
   },
   {
     number: "03",
     title: "Test gratis",
-    text: "Estudia y realiza el test sin pagar nada.",
+    text: "Realiza el test gratis después de tu formación.",
   },
   {
     number: "04",
     title: "Certificado de aptitud",
-    text: "Si apruebas, podrás continuar con el proceso para obtener tu certificado APTO.",
+    text: "Si apruebas, podrás continuar con el proceso para obtener tu certificado.",
   },
 ];
 
@@ -37,10 +44,10 @@ export function UnionBenefits() {
             Cómo funciona
           </p>
           <h2 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
-            Únete y consigue tu formación
+            Una plataforma profesional para operarios
           </h2>
           <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
-            Un proceso sencillo: afiliación gratuita, formación, test y certificado de aptitud.
+            Formación, herramientas y recursos profesionales en un mismo lugar. Diseñada para móvil y pensada para el trabajo real.
           </p>
         </div>
 
@@ -63,8 +70,28 @@ export function UnionBenefits() {
 
         <div className="mx-auto mt-5 max-w-4xl rounded-xl border border-safety/30 bg-safety/10 px-4 py-3 text-center">
           <p className="text-sm font-black text-white sm:text-base">
-            ESTUDIAR Y HACER EL TEST ES GRATIS. EL CERTIFICADO SE GESTIONA DESPUÉS DE APROBAR.
+            AFÍLIATE GRATIS · FORMACIÓN Y TEST GRATUITOS · CERTIFICADO OPCIONAL TRAS APROBAR
           </p>
+        </div>
+
+        <div id="recursos" className="mt-12 scroll-mt-24">
+          <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-safety">Recursos profesionales</p>
+              <h3 className="mt-2 text-2xl font-black sm:text-3xl">Todo lo que necesitas después de formarte</h3>
+            </div>
+            <p className="max-w-md text-sm leading-6 text-white/60">Estamos preparando una nueva zona de recursos con equipamiento, herramientas, tecnología, servicios y oportunidades para operarios.</p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {resourceCards.map((item) => (
+              <a key={item.title} href={item.href} className="group rounded-2xl border border-white/10 bg-white/[0.055] p-5 transition-all duration-300 hover:-translate-y-1 hover:border-safety/50 hover:bg-white/[0.09] hover:shadow-[0_18px_50px_rgba(0,0,0,.28)]">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-safety/10 text-xl ring-1 ring-safety/20">{item.icon}</div>
+                <h4 className="mt-4 text-base font-black">{item.title}</h4>
+                <p className="mt-2 text-xs leading-5 text-white/60">{item.text}</p>
+                <span className="mt-4 inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider text-safety">Próximamente <span className="transition-transform group-hover:translate-x-1">→</span></span>
+              </a>
+            ))}
+          </div>
         </div>
 
         <div className="mt-5 flex justify-center">
