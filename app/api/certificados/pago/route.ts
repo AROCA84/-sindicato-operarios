@@ -81,7 +81,7 @@ export async function GET(request: Request) {
       CardTokenRequest: "0",
       KeyIndex: keyIndex,
       PaymentParametersRequired: "1",
-      PaymentMethod: "3",
+      PaymentMethod: "1",
       CustomerEmail: member.email,
       CustomerFirstNames: member.nombre.trim(),
       CustomerFamilyName: member.apellidos.trim(),
