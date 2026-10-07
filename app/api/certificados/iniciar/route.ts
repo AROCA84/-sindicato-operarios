@@ -49,7 +49,7 @@ export async function POST(request: Request) {
 
     // Reuse only a certificate belonging to this exact approved attempt.
     const existingResponse = await supabaseFetch(
-      `${url}/rest/v1/certificados?select=codigo_certificado,estado,pago_realizado,intento_id&afiliado_id=eq.${encodeURIComponent(member.id)}&curso_id=eq.${encodeURIComponent(cursoId)}&intento_id=eq.${encodeURIComponent(intentoId)}&limit=1`,
+      `${url}/rest/v1/certificados?select=codigo_certificado,estado,pago_realizado,intento_id&afiliado_id=eq.${encodeURIComponent(member.id)}&curso_id=eq.${encodeURIComponent(cursoId)}&limit=1`,
       { headers: h, cache: "no-store" }
     );
     if (!existingResponse.ok) {
@@ -93,7 +93,6 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         afiliado_id: member.id,
         curso_id: cursoId,
-        intento_id: intentoId,
         nombre: nombreCompleto,
         email: member.email,
         numero_afiliado: member.numero_afiliado,
