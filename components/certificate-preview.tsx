@@ -36,7 +36,7 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [certificateCode, setCertificateCode] = useState("");
-  const [paymentUrl, setPaymentUrl] = useState("");
+  const [paymentUrl, setPaymentUrl] = useState("https://mypos.com/vmp/btn/BD3M7OT3ERV11");
   const [affiliationNumber, setAffiliationNumber] = useState("");
   const [error, setError] = useState("");
   const [startingPayment, setStartingPayment] = useState(false);
@@ -140,7 +140,6 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
       setCertificateCode(data.codigo);
       setPaymentUrl(nextPaymentUrl);
       setPaymentStarted(true);
-      window.location.assign(nextPaymentUrl);
     } catch (e) {
       setError(e instanceof DOMException && e.name === "AbortError" ? "La preparación del pago está tardando demasiado. Vuelve a intentarlo." : e instanceof Error ? e.message : "No se pudo iniciar el certificado.");
     } finally {
@@ -228,10 +227,16 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
           </button>
         ) : (
           <div className="mt-5 space-y-3">
-            {internalTest ? <button type="button" onClick={simulateInternalPayment} className="block w-full rounded-xl bg-safety px-5 py-4 text-center text-sm font-black uppercase tracking-wide text-navy">Simular pago completado</button> : null}
-            <button type="button" onClick={checkPayment} className="block w-full rounded-xl border-2 border-safety bg-transparent px-5 py-4 text-center text-sm font-black uppercase tracking-wide text-safety hover:bg-safety/10">
+            {internalTest ? <button type="button" onClick={simulateInternalPayment} className="block w-full rounded-xl bg-safety px-5 py-4 text-center text-sm font-black uppercase tracking-wide text-navy">Simular pago completado</button> : (
+              <form action="https://mypos.com/vmp/btn/BD3M7OT3ERV11" method="post" target="_blank">
+                <button type="submit" className="block w-full rounded-xl bg-safety px-5 py-4 text-center text-sm font-black uppercase tracking-wide text-navy hover:bg-yellow-400">
+                  PAGAR 4,99 € CON myPOS
+                </button>
+              </form>
+            )}
+            {!internalTest ? <button type="button" onClick={checkPayment} className="block w-full rounded-xl border-2 border-safety bg-transparent px-5 py-4 text-center text-sm font-black uppercase tracking-wide text-safety hover:bg-safety/10">
               Comprobar pago
-            </button>
+            </button> : null}
           </div>
         )}
         {error && <div role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">{error}</div>}
