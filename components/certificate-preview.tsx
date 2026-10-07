@@ -169,45 +169,97 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
     if (!canPreview || downloading || !paymentConfirmed || !certificateCode) return;
     setDownloading(true);
     try {
-      const qrDataUrl = await QRCode.toDataURL(verificationUrl, { width: 420, margin: 2, errorCorrectionLevel: "H" });
+      const qrDataUrl = await QRCode.toDataURL(verificationUrl, { width: 420, margin: 1, errorCorrectionLevel: "H" });
       const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-      const W = 297, H = 210, navy = "#101820", gold = "#f5b400", orange = "#e86f00", grey = "#68727c";
-      pdf.setFillColor(255, 255, 255); pdf.rect(0, 0, W, H, "F");
-      pdf.setDrawColor(navy); pdf.setLineWidth(1.4); pdf.rect(8, 8, W - 16, H - 16, "S");
-      pdf.setDrawColor(gold); pdf.setLineWidth(0.7); pdf.rect(12, 12, W - 24, H - 24, "S");
-      pdf.setFillColor(navy); pdf.rect(8, 8, W - 16, 27, "F");
-      pdf.setFillColor(gold); pdf.rect(8, 32.5, W - 16, 2.5, "F");
-      pdf.setFillColor(gold); pdf.circle(26.5, 22.5, 8.5, "F");
-      pdf.setFillColor(navy); pdf.setFont("helvetica", "bold"); pdf.setFontSize(10.5); pdf.text("SO", 26.5, 25.7, { align: "center" });
-      pdf.setDrawColor(gold); pdf.setLineWidth(0.6); pdf.circle(26.5, 22.5, 6.2, "S");
-      pdf.setTextColor(255, 255, 255); pdf.setFont("helvetica", "bold"); pdf.setFontSize(15); pdf.text("SINDICATO DE OPERARIOS", 42, 21.5);
-      pdf.setFont("helvetica", "normal"); pdf.setFontSize(6.8); pdf.setTextColor(210, 218, 224); pdf.text("FORMACIÓN PROFESIONAL · CERTIFICACIÓN DE APTITUD", 42, 27);
-      pdf.setTextColor(navy); pdf.setFont("helvetica", "bold"); pdf.setFontSize(25); pdf.text("CERTIFICADO", W / 2, 53, { align: "center" });
-      pdf.setFontSize(8.5); pdf.setTextColor(grey); pdf.text("DE FORMACIÓN Y APTITUD", W / 2, 60, { align: "center" });
-      pdf.setTextColor(grey); pdf.setFont("helvetica", "bold"); pdf.setFontSize(7.5); pdf.text("SE CERTIFICA QUE", W / 2, 73, { align: "center" });
-      pdf.setTextColor(navy); pdf.setFontSize(name.trim().length > 32 ? 19 : 23); pdf.text(name.trim(), W / 2, 85, { align: "center" });
-      pdf.setDrawColor(gold); pdf.setLineWidth(0.8); pdf.line(62, 91, 235, 91);
-      pdf.setFillColor(245, 247, 248); pdf.roundedRect(38, 99, 221, 30, 3, 3, "F");
-      pdf.setTextColor(grey); pdf.setFont("helvetica", "bold"); pdf.setFontSize(7); pdf.text("FORMACIÓN SUPERADA", W / 2, 108, { align: "center" });
-      pdf.setTextColor(navy); pdf.setFontSize(courseTitle.length > 58 ? 10.5 : 13);
-      const courseLines = courseTitle.trim().split(/\s+/).reduce<string[]>((lines, word) => {
+      const W = 297, H = 210;
+      const navy = "#111A22", navy2 = "#1D2A35", gold = "#D99A00", orange = "#E36B16";
+      const cream = "#F7F3EA", warm = "#EFE8D8", grey = "#66717A", green = "#247A50";
+      const today = new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" });
+
+      // Fondo y marco exterior
+      pdf.setFillColor(247, 243, 234); pdf.rect(0, 0, W, H, "F");
+      pdf.setFillColor(17, 26, 34); pdf.rect(0, 0, 8, H, "F");
+      pdf.setFillColor(217, 154, 0); pdf.rect(8, 0, 2.5, H, "F");
+      pdf.setDrawColor(17, 26, 34); pdf.setLineWidth(0.8); pdf.rect(15, 12, W - 27, H - 24, "S");
+      pdf.setDrawColor(217, 154, 0); pdf.setLineWidth(0.35); pdf.rect(19, 16, W - 35, H - 32, "S");
+
+      // Cabecera institucional
+      pdf.setFillColor(17, 26, 34); pdf.roundedRect(24, 22, 249, 31, 2, 2, "F");
+      pdf.setFillColor(217, 154, 0); pdf.circle(40, 37.5, 9.5, "F");
+      pdf.setFillColor(17, 26, 34); pdf.circle(40, 37.5, 7.1, "F");
+      pdf.setDrawColor(217, 154, 0); pdf.setLineWidth(0.55); pdf.circle(40, 37.5, 6.1, "S");
+      pdf.setTextColor(217, 154, 0); pdf.setFont("helvetica", "bold"); pdf.setFontSize(8); pdf.text("SO", 40, 40.1, { align: "center" });
+      pdf.setTextColor(255, 255, 255); pdf.setFont("helvetica", "bold"); pdf.setFontSize(13); pdf.text("SINDICATO DE OPERARIOS", 56, 36.2);
+      pdf.setFont("helvetica", "normal"); pdf.setFontSize(6.3); pdf.setTextColor(205, 213, 218); pdf.text("ACREDITACIÓN DE FORMACIÓN PROFESIONAL", 56, 43);
+      pdf.setDrawColor(217, 154, 0); pdf.setLineWidth(0.45); pdf.line(224, 31, 224, 45);
+      pdf.setTextColor(217, 154, 0); pdf.setFont("helvetica", "bold"); pdf.setFontSize(6); pdf.text("DOCUMENTO", 233, 35);
+      pdf.setTextColor(255, 255, 255); pdf.setFontSize(8); pdf.text("CERTIFICADO", 233, 42);
+
+      // Título
+      pdf.setTextColor(17, 26, 34); pdf.setFont("helvetica", "bold"); pdf.setFontSize(25);
+      pdf.text("CERTIFICADO", W / 2, 69, { align: "center" });
+      pdf.setTextColor(gold); pdf.setFontSize(7.2); pdf.text("DE FORMACIÓN Y APTITUD", W / 2, 76, { align: "center" });
+      pdf.setDrawColor(gold); pdf.setLineWidth(0.8); pdf.line(105, 80, 192, 80);
+
+      // Titular
+      pdf.setTextColor(grey); pdf.setFont("helvetica", "bold"); pdf.setFontSize(6.8); pdf.text("SE ACREDITA QUE", W / 2, 91, { align: "center" });
+      pdf.setTextColor(navy); pdf.setFont("times", "italic"); pdf.setFontSize(name.trim().length > 34 ? 18 : 22);
+      pdf.text(name.trim(), W / 2, 102, { align: "center" });
+      pdf.setDrawColor(217, 154, 0); pdf.setLineWidth(0.45); pdf.line(76, 107, 221, 107);
+
+      // Formación
+      pdf.setFillColor(239, 232, 216); pdf.roundedRect(45, 115, 207, 31, 2.5, 2.5, "F");
+      pdf.setTextColor(grey); pdf.setFont("helvetica", "bold"); pdf.setFontSize(6.2); pdf.text("FORMACIÓN SUPERADA", W / 2, 123, { align: "center" });
+      pdf.setTextColor(navy); pdf.setFont("helvetica", "bold"); pdf.setFontSize(courseTitle.length > 58 ? 10.5 : 12.2);
+      const courseLines = courseTitle.trim().split(/\\s+/).reduce<string[]>((lines, word) => {
         const current = lines[lines.length - 1] || "";
-        if (!current || (current + " " + word).length <= (courseTitle.length > 58 ? 55 : 62)) {
-          if (lines.length === 0) lines.push(word); else lines[lines.length - 1] = current ? current + " " + word : word;
-        } else lines.push(word);
+        const maxChars = courseTitle.length > 58 ? 55 : 65;
+        if (!current) lines.push(word);
+        else if ((current + " " + word).length <= maxChars) lines[lines.length - 1] = current + " " + word;
+        else lines.push(word);
         return lines;
       }, []).slice(0, 2);
-      courseLines.forEach((line, index) => pdf.text(line, W / 2, 117 + index * 6, { align: "center" }));
-      pdf.setFillColor(225, 247, 235); pdf.roundedRect(42, 139, 45, 24, 3, 3, "F");
-      pdf.setTextColor(27, 122, 72); pdf.setFont("helvetica", "bold"); pdf.setFontSize(7); pdf.text("RESULTADO", 64.5, 147, { align: "center" }); pdf.setFontSize(14); pdf.text("APTO", 64.5, 157, { align: "center" });
-      pdf.setTextColor(grey); pdf.setFont("helvetica", "bold"); pdf.setFontSize(6.5); pdf.text("Nº DE AFILIADO", 98, 145); pdf.text("CÓDIGO DE VERIFICACIÓN", 98, 156); pdf.text("CORREO ELECTRÓNICO", 98, 167);
-      pdf.setTextColor(navy); pdf.setFontSize(9); pdf.text(affiliationNumber, 98, 150.5); pdf.setFontSize(8); pdf.text(certificateCode, 98, 161.5); pdf.setFontSize(email.trim().length > 35 ? 6.8 : 8); pdf.text(email.trim(), 98, 172);
-      pdf.setDrawColor(navy); pdf.setLineWidth(0.6); pdf.roundedRect(239, 136, 39, 39, 2, 2, "S"); pdf.addImage(qrDataUrl, "PNG", 242, 139, 33, 33);
-      pdf.setTextColor(grey); pdf.setFont("helvetica", "bold"); pdf.setFontSize(5.2); pdf.text("ESCANEA PARA VERIFICAR", 258.5, 179, { align: "center" });
-      pdf.setDrawColor(220, 224, 227); pdf.setLineWidth(0.3); pdf.line(20, 184, 277, 184);
-      pdf.setTextColor(grey); pdf.setFont("helvetica", "normal"); pdf.setFontSize(5.8); pdf.text("Documento emitido por Sindicato de Operarios · Verificación digital mediante código QR.", 20, 189);
-      pdf.setFontSize(5.3); pdf.text("La formación y el test se realizan gratuitamente. El certificado se obtiene tras superar la evaluación.", 20, 197);
-      pdf.setTextColor(orange); pdf.setFont("helvetica", "bold"); pdf.text("SINDICATO DE OPERARIOS", 277, 197, { align: "right" });
+      courseLines.forEach((line, index) => pdf.text(line, W / 2, 133 + index * 6, { align: "center" }));
+
+      // Resultado destacado
+      pdf.setFillColor(36, 122, 80); pdf.roundedRect(45, 153, 48, 25, 3, 3, "F");
+      pdf.setTextColor(255, 255, 255); pdf.setFont("helvetica", "bold"); pdf.setFontSize(6); pdf.text("EVALUACIÓN", 69, 161, { align: "center" });
+      pdf.setFontSize(13); pdf.text("APTO", 69, 171, { align: "center" });
+      pdf.setFontSize(6); pdf.setFont("helvetica", "normal"); pdf.text(`${score}/${total} respuestas`, 69, 176, { align: "center" });
+
+      // Datos del documento
+      pdf.setTextColor(grey); pdf.setFont("helvetica", "bold"); pdf.setFontSize(5.8);
+      pdf.text("Nº DE AFILIADO", 103, 157); pdf.text("CÓDIGO DE VERIFICACIÓN", 103, 166); pdf.text("FECHA DE EMISIÓN", 103, 175);
+      pdf.setTextColor(navy); pdf.setFontSize(7.5); pdf.text(affiliationNumber || "—", 103, 161.5);
+      pdf.setFont("courier", "bold"); pdf.setFontSize(7); pdf.text(certificateCode, 103, 170.5);
+      pdf.setFont("helvetica", "bold"); pdf.setFontSize(7); pdf.text(today, 103, 179.5);
+
+      // Firma y sello
+      pdf.setDrawColor(130, 137, 143); pdf.setLineWidth(0.35); pdf.line(178, 174, 218, 174);
+      pdf.setTextColor(navy); pdf.setFont("times", "italic"); pdf.setFontSize(10); pdf.text("Sindicato de Operarios", 198, 170.5, { align: "center" });
+      pdf.setFont("helvetica", "bold"); pdf.setFontSize(5.2); pdf.setTextColor(grey); pdf.text("FIRMA DE EMISIÓN", 198, 179, { align: "center" });
+
+      // Sello circular
+      pdf.setDrawColor(gold); pdf.setLineWidth(0.8); pdf.circle(238, 168, 11, "S");
+      pdf.setLineWidth(0.35); pdf.circle(238, 168, 8.5, "S");
+      pdf.setTextColor(gold); pdf.setFont("helvetica", "bold"); pdf.setFontSize(5); pdf.text("SINDICATO", 238, 166.5, { align: "center" }); pdf.text("OPERARIOS", 238, 170.2, { align: "center" });
+      pdf.setFontSize(4.2); pdf.text("FORMACIÓN", 238, 173.2, { align: "center" });
+
+      // QR y verificación
+      pdf.setDrawColor(navy); pdf.setLineWidth(0.6); pdf.roundedRect(258, 139, 27, 38, 2, 2, "S");
+      pdf.addImage(qrDataUrl, "PNG", 260, 143, 23, 23);
+      pdf.setTextColor(grey); pdf.setFont("helvetica", "bold"); pdf.setFontSize(4.3); pdf.text("VERIFICACIÓN", 271.5, 171, { align: "center" });
+      pdf.setFont("helvetica", "normal"); pdf.text("ESCANEA EL QR", 271.5, 174.5, { align: "center" });
+
+      // Pie institucional
+      pdf.setDrawColor(190, 194, 196); pdf.setLineWidth(0.25); pdf.line(24, 187, 273, 187);
+      pdf.setTextColor(grey); pdf.setFont("helvetica", "normal"); pdf.setFontSize(5.3);
+      pdf.text("Documento digital verificable mediante código QR. La formación y el test se realizan gratuitamente.", 24, 194);
+      pdf.setFont("helvetica", "bold"); pdf.setTextColor(orange); pdf.text("SINDICATO DE OPERARIOS", 273, 194, { align: "right" });
+      pdf.setFont("helvetica", "normal"); pdf.setTextColor(grey); pdf.setFontSize(4.8);
+      pdf.text("Este certificado acredita la superación de la evaluación asociada a la formación indicada.", 24, 199.5);
+      pdf.text("Código: " + certificateCode, 273, 199.5, { align: "right" });
+
       const safeName = name.trim().replace(/[^a-zA-Z0-9À-ÿ]+/g, "-").replace(/^-|-$/g, "");
       pdf.save(`Certificado-Sindicato-de-Operarios-${safeName || "alumno"}.pdf`);
     } finally {
