@@ -141,6 +141,9 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
       setCertificateCode(data.codigo);
       setPaymentUrl(nextPaymentUrl);
       setPaymentStarted(true);
+      // El botón CERTIFÍCATE debe llevar directamente al checkout de myPOS.
+      // No dependemos de un segundo clic ni de un formulario oculto.
+      window.location.assign(nextPaymentUrl);
     } catch (e) {
       setError(e instanceof DOMException && e.name === "AbortError" ? "La preparación del pago está tardando demasiado. Vuelve a intentarlo." : e instanceof Error ? e.message : "No se pudo iniciar el certificado.");
     } finally {
