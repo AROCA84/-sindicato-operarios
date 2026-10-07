@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { cacheResult, clearCachedResult, fetchApprovedResult, getStoredAffiliate, readCachedResult } from "@/lib/affiliate-client";
 import { ArrowLeft, CheckCircle2, BookOpen, ClipboardCheck, UserPlus } from "lucide-react";
 import type { Course, Module } from "@/lib/courses";
 import { TemarioDownload } from "@/components/temario-download";
@@ -9,7 +10,22 @@ interface CourseDetailProps { course: Course; modules: Module[]; }
 
 export function CourseDetail({ course, modules }: CourseDetailProps) {
   const [affiliated, setAffiliated] = useState(false);
-  useEffect(() => { setAffiliated(window.localStorage.getItem("sdo-afiliado") === "true"); }, []);
+  const [approved, setApproved] = useState(false);
+  useEffect(() => {
+    setAffiliated(window.localStorage.getItem("sdo-afiliado") === "true");
+    const affiliate = getStoredAffiliate();
+    if (!affiliate) return;
+    setApproved(Boolean(readCachedResult(course.id)));
+    const controller = new AbortController();
+    fetchApprovedResult(course.id, affiliate, controller.signal).then((result) => {
+      if (result === "error") return;
+      if (result) cacheResult(course.id, result);
+      else clearCachedResult(course.id);
+      setApproved(Boolean(result));
+    });
+    return () => controller.abort();
+  }, [course.id]);
+  const testLabel = approved ? "Test aprobado · Ver resultado y certificado" : "Realizar Test Final Gratis";
 
   return (
     <main className="min-h-screen bg-navy text-white">
@@ -27,7 +43,7 @@ export function CourseDetail({ course, modules }: CourseDetailProps) {
           <p className="mt-5 max-w-3xl text-lg leading-relaxed text-white/70">{course.description}</p>
           {affiliated && (
             <a href={`/cursos/${course.id}/test`} className="mt-7 inline-flex items-center justify-center gap-2 rounded-lg bg-safety px-7 py-4 text-sm font-black uppercase tracking-wide text-navy shadow-lg transition-colors hover:bg-safety-dark">
-              Realizar Test Final Gratis <ClipboardCheck className="h-5 w-5" />
+              {testLabel} <ClipboardCheck className="h-5 w-5" />
             </a>
           )}
         </div></div>
@@ -118,7 +134,7 @@ export function CourseDetail({ course, modules }: CourseDetailProps) {
           )}
           {affiliated && (
             <a href={`/cursos/${course.id}/test`} className="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-safety px-8 py-4 text-base font-black uppercase tracking-wide text-navy shadow-lg transition-colors hover:bg-safety-dark">
-              Realizar Test Final Gratis <ClipboardCheck className="h-5 w-5" />
+              {testLabel} <ClipboardCheck className="h-5 w-5" />
             </a>
           )}
         </div>

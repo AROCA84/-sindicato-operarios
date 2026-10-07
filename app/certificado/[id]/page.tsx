@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { allCourses } from "@/lib/academy-catalog";
-import { PASS_MARK, TOTAL_QUESTIONS } from "@/lib/exam";
+import { PASS_MARK, PASS_PERCENT, TOTAL_QUESTIONS } from "@/lib/exam";
+import { internalPreviewEnabled } from "@/lib/internal-preview";
 import { supabaseConfig, headers, supabaseFetch } from "@/lib/supabase-server";
 import { CertificatePreview } from "@/components/certificate-preview";
 
@@ -74,7 +75,9 @@ export default async function CertificatePage({ params, searchParams }: Certific
   let validatedTotal = TOTAL_QUESTIONS;
   let passed = false;
 
-  if (prueba === "1") {
+  const internalTest = prueba === "1" && internalPreviewEnabled();
+
+  if (internalTest) {
     // Ruta interna de pruebas: no crea certificados reales ni procesa pagos.
     validatedScore = TOTAL_QUESTIONS;
     validatedTotal = TOTAL_QUESTIONS;
@@ -111,7 +114,7 @@ export default async function CertificatePage({ params, searchParams }: Certific
           <section className="rounded-3xl border border-slate-700 bg-slate-900 p-8 text-center shadow-2xl">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-800 text-2xl">!</div>
             <h1 className="mt-5 text-2xl font-black">Certificado no disponible todavía</h1>
-            <p className="mt-3 text-slate-300">Debes superar el test con al menos <strong className="text-white">14 de 20 respuestas correctas (70 %)</strong> y acceder desde el resultado oficial del intento.</p>
+            <p className="mt-3 text-slate-300">Debes superar el test con al menos <strong className="text-white">{PASS_MARK} de {TOTAL_QUESTIONS} respuestas correctas ({PASS_PERCENT} %)</strong> y acceder desde el resultado oficial del intento.</p>
             <Link href={`/cursos/${course.id}/test`} className="mt-6 inline-flex rounded-xl bg-safety px-6 py-3 text-sm font-black uppercase tracking-wide text-navy">Ir al test</Link>
           </section>
         </div>
@@ -133,7 +136,7 @@ export default async function CertificatePage({ params, searchParams }: Certific
             <div className="rounded-2xl border border-slate-700 bg-slate-950/70 p-5 text-center"><p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Test</p><p className="mt-2 text-2xl font-black text-white">GRATUITO</p></div>
           </div>
         </section>
-        <CertificatePreview courseId={course.id} courseTitle={course.title} score={validatedScore} total={validatedTotal} attemptId={intento || codigo || ""} />
+        <CertificatePreview courseId={course.id} courseTitle={course.title} score={validatedScore} total={validatedTotal} attemptId={intento || codigo || ""} internalTest={internalTest} />
       </div>
     </main>
   );

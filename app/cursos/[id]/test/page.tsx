@@ -1,21 +1,15 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { allCourses } from "@/lib/academy-catalog";
+import { getExam, toPublicQuestions } from "@/lib/exam";
 import { CourseExam } from "@/components/course-exam";
 
 export function generateStaticParams() {
   return allCourses.map((c) => ({ id: c.id }));
 }
 
-export async function generateMetadata({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ id: string }>;
-  searchParams?: Promise<{ prueba?: string }>;
-}): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  const prueba = searchParams ? (await searchParams).prueba === "1" : false;
   const course = allCourses.find((item) => item.id === id);
   if (!course) return { title: "Examen no encontrado" };
   return {
@@ -24,16 +18,10 @@ export async function generateMetadata({
   };
 }
 
-export default async function TestPage({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ id: string }>;
-  searchParams?: Promise<{ prueba?: string }>;
-}) {
+export default async function TestPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const prueba = searchParams ? (await searchParams).prueba === "1" : false;
   const course = allCourses.find((item) => item.id === id);
   if (!course) notFound();
-  return <CourseExam course={course} internalPreview={prueba} />;
+  // Correct answers stay on the server; the API scores the attempt.
+  return <CourseExam course={course} questions={toPublicQuestions(getExam(course))} />;
 }

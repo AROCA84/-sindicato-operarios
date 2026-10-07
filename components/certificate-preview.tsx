@@ -12,6 +12,8 @@ type Props = {
   score: number;
   total: number;
   attemptId: string;
+  /** Server-validated internal preview flag (requires ENABLE_INTERNAL_PREVIEW=1). */
+  internalTest?: boolean;
 };
 
 function SindicatoMark({ size = "md" }: { size?: "sm" | "md" }) {
@@ -29,7 +31,7 @@ function SindicatoMark({ size = "md" }: { size?: "sm" | "md" }) {
   );
 }
 
-export function CertificatePreview({ courseId, courseTitle, score, total, attemptId }: Props) {
+export function CertificatePreview({ courseId, courseTitle, score, total, attemptId, internalTest = false }: Props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [paymentStarted, setPaymentStarted] = useState(false);
@@ -41,9 +43,15 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
   const [error, setError] = useState("");
   const [startingPayment, setStartingPayment] = useState(false);
   const searchParams = useSearchParams();
-  const internalTest = searchParams.get("prueba") === "1";
   const returnedCode = searchParams.get("codigo")?.trim() || "";
   const paymentReturnOk = searchParams.get("pago") === "ok";
+
+  // Once issued, the certificate shows the holder stored in the database, not what was typed.
+  function applyIssuedCertificate(data: { nombre?: unknown; numero_afiliado?: unknown }) {
+    if (typeof data.nombre === "string" && data.nombre.trim()) setName(data.nombre.trim());
+    if (data.numero_afiliado !== undefined && data.numero_afiliado !== null && String(data.numero_afiliado).trim()) setAffiliationNumber(String(data.numero_afiliado));
+    setPaymentConfirmed(true);
+  }
 
   useEffect(() => {
     setAffiliationNumber(window.localStorage.getItem("sdo-numero-afiliado") || "");
@@ -76,7 +84,7 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
         const response = await fetch(`/api/certificados/estado?codigo=${encodeURIComponent(returnedCode)}`, { cache: "no-store" });
         const data = await response.json();
         if (active && response.ok && data.emitido) {
-          setPaymentConfirmed(true);
+          applyIssuedCertificate(data);
           setError("");
           return;
         }
@@ -159,7 +167,7 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "No se pudo comprobar el pago.");
       if (data.emitido) {
-        setPaymentConfirmed(true);
+        applyIssuedCertificate(data);
       } else {
         setError("El pago todavía no ha sido confirmado. Si acabas de pagar, espera unos segundos y vuelve a comprobarlo.");
       }
@@ -275,8 +283,8 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
       <div className="rounded-3xl border border-safety/30 bg-navy p-6 shadow-2xl sm:p-8">
         <div className="flex items-center gap-4"><SindicatoMark /><div><p className="text-xs font-black uppercase tracking-[0.18em] text-safety">Certificación</p><h2 className="mt-1 text-2xl font-black text-white">Diploma Digital</h2></div></div>
         <p className="mt-4 text-sm leading-6 text-slate-300">{internalTest ? "Ruta interna de prueba: puedes simular el pago sin realizar ningún cobro y comprobar la descarga del certificado." : "Obtén tu certificado digital verificable tras superar el test y descárgalo una vez completes la certificación."}</p>
-        <label className="mt-6 block text-sm font-bold text-white">Nombre y apellidos<input value={name} onChange={(event) => setName(event.target.value)} placeholder="Nombre y apellidos" autoComplete="name" type="text" className="mt-2 w-full rounded-xl border border-slate-600 bg-slate-950 px-4 py-3 text-white placeholder-slate-400 focus:border-safety focus:outline-none" /></label>
-        <label className="mt-4 block text-sm font-bold text-white">Correo electrónico<input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="tu@email.com" type="email" autoComplete="email" className="mt-2 w-full rounded-xl border border-slate-600 bg-slate-950 px-4 py-3 text-white placeholder-slate-400 focus:border-safety focus:outline-none" /></label>
+        <label className="mt-6 block text-sm font-bold text-white">Nombre y apellidos<input value={name} readOnly={paymentConfirmed && !internalTest} onChange={(event) => setName(event.target.value)} placeholder="Nombre y apellidos" autoComplete="name" type="text" className="mt-2 w-full rounded-xl border border-slate-600 bg-slate-950 px-4 py-3 text-white placeholder-slate-400 focus:border-safety focus:outline-none" /></label>
+        <label className="mt-4 block text-sm font-bold text-white">Correo electrónico<input value={email} readOnly={paymentConfirmed && !internalTest} onChange={(event) => setEmail(event.target.value)} placeholder="tu@email.com" type="email" autoComplete="email" className="mt-2 w-full rounded-xl border border-slate-600 bg-slate-950 px-4 py-3 text-white placeholder-slate-400 focus:border-safety focus:outline-none" /></label>
         {!paymentStarted ? (
           <button type="button" disabled={!canPreview || startingPayment} onClick={goToPayment} className="mt-5 w-full rounded-xl bg-safety px-5 py-4 text-sm font-black uppercase tracking-wide text-navy hover:bg-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed">
             {startingPayment ? "Preparando certificación..." : "CERTIFÍCATE"}
@@ -292,6 +300,7 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
             </div>
             {internalTest ? <button type="button" onClick={simulateInternalPayment} className="block w-full rounded-xl bg-safety px-5 py-4 text-center text-sm font-black uppercase tracking-wide text-navy">Simular certificación</button> : (
               <form action={paymentUrl} method="get" target="_blank">
+                <input type="hidden" name="codigo" value={certificateCode} />
                 <button type="submit" className="block w-full rounded-xl bg-safety px-5 py-4 text-center text-sm font-black uppercase tracking-wide text-navy hover:bg-yellow-400">
                   CERTIFÍCATE
                 </button>

@@ -3,14 +3,42 @@ import { test, expect } from "@playwright/test";
 /**
  * E2E tests for the full approved flow and certificate.
  *
- * Tests run against the internal preview route (/pruebas/test?prueba=1) which
- * simulates an approved result without needing a real afiliado in the database.
- * This covers the entire UI flow from result → certificate → payment.
+ * The internal preview route (/pruebas/test) simulates an approved result
+ * without needing a real afiliado in the database. It only exists when the
+ * server runs with ENABLE_INTERNAL_PREVIEW=1 (never in production), so those
+ * tests are skipped unless INTERNAL_PREVIEW=1 is set for the test run.
  *
  * Additional tests verify security: forged scores are rejected.
  */
 
+const previewEnabled = process.env.INTERNAL_PREVIEW === "1";
+
+test.describe("Rutas internas — cerradas en producción", () => {
+  test.skip(previewEnabled, "Solo aplica cuando las rutas internas están desactivadas");
+
+  for (const path of ["/pruebas/test", "/prueba-certificado", "/admin/certificados"]) {
+    test(`${path} no es accesible`, async ({ page }) => {
+      const response = await page.goto(path, { waitUntil: "domcontentloaded" });
+      expect(response?.status()).toBe(404);
+    });
+  }
+
+  test("?prueba=1 no desbloquea el certificado", async ({ page }) => {
+    await page.goto("/certificado/carretillero?prueba=1", { waitUntil: "domcontentloaded" });
+    await expect(page.getByText(/no disponible/i)).toBeVisible({ timeout: 10000 });
+  });
+});
+
+test.describe("Examen — sin soluciones en el navegador", () => {
+  test("la página del test no incluye las respuestas correctas", async ({ request }) => {
+    const html = await (await request.get("/cursos/carretillero/test")).text();
+    expect(html).not.toMatch(/\\?"answer\\?"\s*:/);
+  });
+});
+
 test.describe("Flujo de aprobado — prueba interna", () => {
+  test.skip(!previewEnabled, "Requiere ENABLE_INTERNAL_PREVIEW=1 en el servidor");
+
   test("muestra APROBADO con puntuación, revisión y acceso a certificado", async ({ page }) => {
     await page.goto("/pruebas/test", { waitUntil: "domcontentloaded" });
 
@@ -99,6 +127,8 @@ test.describe("Página de test — control de acceso", () => {
 });
 
 test.describe("Recuperación del aprobado — persistencia", () => {
+  test.skip(!previewEnabled, "Requiere ENABLE_INTERNAL_PREVIEW=1 en el servidor");
+
   test("recarga la página y sigue mostrando el aprobado (prueba interna)", async ({ page }) => {
     // The internal preview simulates an approved state
     await page.goto("/pruebas/test", { waitUntil: "domcontentloaded" });

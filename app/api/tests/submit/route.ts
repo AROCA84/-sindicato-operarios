@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { allCourses } from "@/lib/academy-catalog";
-import { getExam, PASS_MARK, TOTAL_QUESTIONS } from "@/lib/exam";
+import { getExam, PASS_MARK, reviewAnswers, TOTAL_QUESTIONS } from "@/lib/exam";
 import { supabaseConfig, headers, supabaseFetch } from "@/lib/supabase-server";
 
 export const runtime = "nodejs";
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     if (questions.length !== TOTAL_QUESTIONS) return NextResponse.json({ error: "El examen no está disponible correctamente." }, { status: 500 });
 
     // Server calculates the score — client cannot forge it
-    const puntuacion = answers.reduce((s, a, i) => s + (a === questions[i].answer ? 1 : 0), 0);
+    const { puntuacion, aciertos, correctas } = reviewAnswers(questions, answers);
     const aprobado = puntuacion >= PASS_MARK;
 
     const { url, key } = supabaseConfig();
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
 
     // Look up the afiliado — include nombre and apellidos (required by intentos_test)
     const memberResponse = await supabaseFetch(
-      `${url}/rest/v1/afiliados?select=id,numero_afiliado,nombre,apellidos,email&numero_afiliado=eq.${numero}&email=eq.${encodeURIComponent(email)}&limit=1`,
+      `${url}/rest/v1/afiliados?select=id,numero_afiliado,nombre,apellidos,email&numero_afiliado=eq.${numero}&email=eq.${encodeURIComponent(email)}&activo=eq.true&limit=1`,
       { headers: h, cache: "no-store" }
     );
     if (!memberResponse.ok) return NextResponse.json({ error: "No se pudo comprobar la afiliación." }, { status: 502 });
@@ -68,8 +68,16 @@ export async function POST(request: Request) {
     const rows = await insert.json() as Array<{ id: string }>;
     if (!rows[0]?.id) return NextResponse.json({ error: "No se recibió el identificador del intento." }, { status: 502 });
 
-    // Return normalized response (total field for frontend compatibility)
-    return NextResponse.json({ ok: true, intento_id: rows[0].id, puntuacion, total: TOTAL_QUESTIONS, aprobado });
+    // Correct answers are only revealed once the attempt is approved.
+    return NextResponse.json({
+      ok: true,
+      intento_id: rows[0].id,
+      puntuacion,
+      total: TOTAL_QUESTIONS,
+      aprobado,
+      aciertos,
+      correctas: aprobado ? correctas : null,
+    });
   } catch (error) {
     console.error("Test submit error:", error);
     return NextResponse.json({ error: "Error del servidor al guardar el test." }, { status: 500 });

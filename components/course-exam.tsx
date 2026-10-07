@@ -1,8 +1,10 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { Course } from "@/lib/courses";
-import { getExam, PASS_MARK, TOTAL_QUESTIONS, type ExamQuestion } from "@/lib/exam";
+import type { PublicExamQuestion } from "@/lib/exam";
+import { PASS_MARK, PASS_PERCENT, TOTAL_QUESTIONS } from "@/lib/exam-config";
+import { cacheResult, clearCachedResult, fetchApprovedResult, getStoredAffiliate, readCachedResult, type ApprovedResult } from "@/lib/affiliate-client";
 
 type Phase = "quiz" | "result";
 
@@ -10,136 +12,83 @@ type ServerResult = {
   attemptId: string;
   score: number;
   total: number;
-  answers: number[] | null;
   approved: boolean;
+  /** Per-question hit/miss computed by the server. */
+  hits: boolean[] | null;
+  /** Correct option per question, only sent by the server for approved attempts. */
+  correct: number[] | null;
 };
 
-export function CourseExam({ course, internalPreview = false }: { course: Course; internalPreview?: boolean }) {
-  const questions = useMemo(() => getExam(course), [course]);
+function fromApproved(result: ApprovedResult): ServerResult {
+  const hits = result.answers && result.correct ? result.answers.map((answer, i) => answer === result.correct![i]) : null;
+  return { attemptId: result.attemptId, score: result.score, total: result.total, approved: true, hits, correct: result.correct };
+}
+
+/**
+ * `previewResult` is only provided by the internal preview route, which is
+ * disabled unless ENABLE_INTERNAL_PREVIEW=1 on the server.
+ */
+export function CourseExam({ course, questions, previewResult }: { course: Course; questions: PublicExamQuestion[]; previewResult?: { answers: number[]; correct: number[] } }) {
+  const internalPreview = Boolean(previewResult);
   const [current, setCurrent] = useState(0);
-  const [answers, setAnswers] = useState<number[]>(() =>
-    internalPreview
-      ? questions.map((q, i) => (i < Math.max(PASS_MARK, Math.min(questions.length, PASS_MARK + 2)) ? q.answer : (q.answer + 1) % q.options.length))
-      : Array(questions.length).fill(-1)
-  );
+  const [answers, setAnswers] = useState<number[]>(() => previewResult?.answers ?? Array(questions.length).fill(-1));
   const [phase, setPhase] = useState<Phase>(internalPreview ? "result" : "quiz");
-  const [affiliated, setAffiliated] = useState<boolean | null>(null);
-  const [serverResult, setServerResult] = useState<ServerResult | null>(null);
+  const [affiliated, setAffiliated] = useState<boolean | null>(internalPreview ? true : null);
+  const [serverResult, setServerResult] = useState<ServerResult | null>(() => {
+    if (!previewResult) return null;
+    const hits = previewResult.answers.map((answer, i) => answer === previewResult.correct[i]);
+    return { attemptId: "PRUEBA-INTERNA", score: hits.filter(Boolean).length, total: questions.length, approved: true, hits, correct: previewResult.correct };
+  });
   const [submitting, setSubmitting] = useState(false);
-  const [attemptId, setAttemptId] = useState(internalPreview ? "PRUEBA-INTERNA" : "");
   const [submitError, setSubmitError] = useState("");
   const [checkingServer, setCheckingServer] = useState(false);
-  const internalScore = Math.max(PASS_MARK, Math.min(questions.length, PASS_MARK + 2));
-  const internalAnswers = useMemo(
-    () => questions.map((q, i) => (i < internalScore ? q.answer : (q.answer + 1) % q.options.length)),
-    [questions, internalScore]
-  );
-
-  useEffect(() => {
-    if (!internalPreview) return;
-    setAnswers(internalAnswers);
-    setAttemptId("PRUEBA-INTERNA");
-    setPhase("result");
-  }, [internalPreview, internalAnswers]);
 
   const selected = answers[current];
   const isLast = current === questions.length - 1;
-  const score = useMemo(() => {
-    if (serverResult) return serverResult.score;
-    return answers.reduce((acc, ans, i) => (ans === questions[i].answer ? acc + 1 : acc), 0);
-  }, [answers, questions, serverResult]);
-  const passed = serverResult ? serverResult.score >= PASS_MARK : score >= PASS_MARK;
 
   useEffect(() => {
-    if (internalPreview) {
-      setAffiliated(true);
-      return;
-    }
-    const isAffiliated = window.localStorage.getItem("sdo-afiliado") === "true";
-    setAffiliated(isAffiliated);
-    if (!isAffiliated) return;
+    if (internalPreview) return;
+    const affiliate = getStoredAffiliate();
+    setAffiliated(Boolean(affiliate));
+    if (!affiliate) return;
 
-    const storedRaw = window.localStorage.getItem("sdo-resultado-" + course.id);
-    let storedPassed: ServerResult | null = null;
-    if (storedRaw) {
-      try {
-        const parsed = JSON.parse(storedRaw) as Partial<ServerResult>;
-        if (
-          typeof parsed.attemptId === "string" &&
-          typeof parsed.score === "number" &&
-          parsed.score >= PASS_MARK &&
-          typeof parsed.total === "number" &&
-          parsed.total === questions.length &&
-          (parsed.answers === null || Array.isArray(parsed.answers))
-        ) {
-          storedPassed = {
-            attemptId: parsed.attemptId,
-            score: parsed.score,
-            total: parsed.total,
-            answers: Array.isArray(parsed.answers) ? parsed.answers.map(Number) : null,
-            approved: true,
-          };
-        }
-      } catch {
-        // Ignore malformed local result and continue with the server check.
-      }
-    }
-
-    // Restore a previously approved result immediately. The server check below
-    // only refreshes it; a temporary API failure must never send the user back
-    // to the test.
-    if (storedPassed) {
-      setServerResult(storedPassed);
-      setAttemptId(storedPassed.attemptId);
-      if (storedPassed.answers) setAnswers(storedPassed.answers);
+    // A cached approval is shown immediately; the server check below refreshes
+    // it. A temporary API failure must never send the user back to the test.
+    const cached = readCachedResult(course.id);
+    if (cached) {
+      setServerResult(fromApproved(cached));
+      if (cached.answers) setAnswers(cached.answers);
       setPhase("result");
     }
 
-    const numero = window.localStorage.getItem("sdo-numero-afiliado") || "";
-    const email = window.localStorage.getItem("sdo-afiliado-email") || "";
-    if (!numero || !email) return;
-
-    setCheckingServer(!storedPassed);
+    setCheckingServer(!cached);
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 10000);
-
-    fetch(
-      `/api/tests/result?email=${encodeURIComponent(email)}&numero_afiliado=${encodeURIComponent(numero)}&curso_id=${encodeURIComponent(course.id)}`,
-      { cache: "no-store", signal: controller.signal }
-    )
-      .then(async (response) => {
-        if (!response.ok) return null;
-        const data = await response.json();
-        if (
-          data?.found &&
-          data.aprobado === true &&
-          typeof data.intento_id === "string" &&
-          typeof data.puntuacion === "number" &&
-          data.puntuacion >= PASS_MARK
-        ) {
-          const result: ServerResult = {
-            attemptId: data.intento_id,
-            score: data.puntuacion,
-            total: questions.length,
-            answers: Array.isArray(data.respuestas) ? data.respuestas.map(Number) : null,
-            approved: true,
-          };
-          window.localStorage.setItem("sdo-progreso-" + course.id, "100");
-          window.localStorage.setItem("sdo-resultado-" + course.id, JSON.stringify(result));
-          setServerResult(result);
-          setAttemptId(result.attemptId);
+    fetchApprovedResult(course.id, affiliate, controller.signal)
+      .then((result) => {
+        if (result === "error") return;
+        if (result) {
+          cacheResult(course.id, result);
+          setServerResult(fromApproved(result));
           if (result.answers) setAnswers(result.answers);
           setPhase("result");
-        } else if (!storedPassed) {
-          window.localStorage.removeItem("sdo-resultado-" + course.id);
+        } else if (cached) {
+          // The server is the source of truth: a cached approval it does not know about is discarded.
+          clearCachedResult(course.id);
+          setServerResult(null);
+          setAnswers(Array(questions.length).fill(-1));
+          setCurrent(0);
+          setPhase("quiz");
         }
-        return null;
       })
-      .catch(() => undefined)
       .finally(() => {
         window.clearTimeout(timeout);
         setCheckingServer(false);
       });
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
   }, [course.id, internalPreview, questions.length]);
 
   function select(optionIndex: number) {
@@ -147,76 +96,79 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
   }
 
   async function next() {
-    if (isLast) {
-      setSubmitting(true);
-      setSubmitError("");
-      try {
-        const email = window.localStorage.getItem("sdo-afiliado-email") || "";
-        const numero = window.localStorage.getItem("sdo-numero-afiliado") || "";
-        const controller = new AbortController();
-        const timeout = window.setTimeout(() => controller.abort(), 15000);
-        let response: Response;
-        try {
-          response = await fetch("/api/tests/submit", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, numero_afiliado: numero, curso_id: course.id, respuestas: answers }),
-            signal: controller.signal,
-          });
-        } catch (error) {
-          if (error instanceof DOMException && error.name === "AbortError") {
-            throw new Error("La comprobación del resultado está tardando demasiado. Comprueba la conexión y vuelve a intentarlo.");
-          }
-          throw error;
-        } finally {
-          window.clearTimeout(timeout);
-        }
-        const raw = await response.text();
-        let data: { error?: string; intento_id?: string; puntuacion?: number; total?: number; aprobado?: boolean } = {};
-        try {
-          data = JSON.parse(raw);
-        } catch {
-          throw new Error(`El servidor devolvió una respuesta no válida (HTTP ${response.status}).`);
-        }
-        if (!response.ok) throw new Error(data.error || `No se pudo guardar el resultado (HTTP ${response.status}).`);
-        if (!data.intento_id || typeof data.puntuacion !== "number" || typeof data.total !== "number" || typeof data.aprobado !== "boolean") {
-          throw new Error("El servidor no devolvió un resultado de test válido.");
-        }
-        const serverScore = data.puntuacion;
-        const serverPassed = data.aprobado;
-        setServerResult({ attemptId: data.intento_id, score: serverScore, total: data.total, answers: serverPassed ? answers : null, approved: serverPassed });
-        setAttemptId(data.intento_id);
-        if (serverPassed) {
-          window.localStorage.setItem("sdo-progreso-" + course.id, "100");
-          window.localStorage.setItem(
-            "sdo-resultado-" + course.id,
-            JSON.stringify({ attemptId: data.intento_id, score: serverScore, total: data.total, answers: serverPassed ? answers : undefined })
-          );
-        } else {
-          window.localStorage.setItem("sdo-progreso-" + course.id, String(Math.min(99, Math.round((serverScore / data.total) * 100))));
-          window.localStorage.removeItem("sdo-resultado-" + course.id);
-        }
-        setPhase("result");
-      } catch (error) {
-        setSubmitError(error instanceof Error ? error.message : "No se pudo guardar el resultado.");
-      } finally {
-        setSubmitting(false);
-      }
+    if (!isLast) {
+      setCurrent((c) => c + 1);
       return;
     }
-    setCurrent((c) => c + 1);
+    const affiliate = getStoredAffiliate();
+    if (!affiliate) {
+      setAffiliated(false);
+      return;
+    }
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 15000);
+      let response: Response;
+      try {
+        response = await fetch("/api/tests/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: affiliate.email, numero_afiliado: affiliate.numero, curso_id: course.id, respuestas: answers }),
+          signal: controller.signal,
+        });
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          throw new Error("La comprobación del resultado está tardando demasiado. Comprueba la conexión y vuelve a intentarlo.");
+        }
+        throw error;
+      } finally {
+        window.clearTimeout(timeout);
+      }
+      const raw = await response.text();
+      let data: { error?: string; intento_id?: string; puntuacion?: number; total?: number; aprobado?: boolean; aciertos?: unknown; correctas?: unknown } = {};
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        throw new Error(`El servidor devolvió una respuesta no válida (HTTP ${response.status}).`);
+      }
+      if (!response.ok) throw new Error(data.error || `No se pudo guardar el resultado (HTTP ${response.status}).`);
+      if (!data.intento_id || typeof data.puntuacion !== "number" || typeof data.total !== "number" || typeof data.aprobado !== "boolean") {
+        throw new Error("El servidor no devolvió un resultado de test válido.");
+      }
+      const hits = Array.isArray(data.aciertos) && data.aciertos.length === questions.length ? data.aciertos.map(Boolean) : null;
+      const correct = Array.isArray(data.correctas) && data.correctas.length === questions.length ? data.correctas.map(Number) : null;
+      setServerResult({ attemptId: data.intento_id, score: data.puntuacion, total: data.total, approved: data.aprobado, hits, correct });
+      if (data.aprobado) {
+        cacheResult(course.id, { attemptId: data.intento_id, score: data.puntuacion, total: data.total, answers, correct });
+      } else {
+        window.localStorage.setItem("sdo-progreso-" + course.id, String(Math.min(99, Math.round((data.puntuacion / data.total) * 100))));
+        clearCachedResult(course.id);
+      }
+      setPhase("result");
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "No se pudo guardar el resultado.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function retry() {
     setServerResult(null);
-    setAttemptId("");
     setSubmitError("");
     setAnswers(Array(questions.length).fill(-1));
     setCurrent(0);
     setPhase("quiz");
   }
 
-  if (affiliated === null || checkingServer) return <div className="min-h-screen bg-slate-50" />;
+  if (affiliated === null || checkingServer) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-slate-50" aria-busy="true">
+        <p className="text-sm font-bold text-slate-500">Comprobando tu resultado…</p>
+      </main>
+    );
+  }
 
   if (!affiliated && !internalPreview) {
     const returnTo = `/cursos/${course.id}/test`;
@@ -257,17 +209,19 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
         <h1 className="mt-4 text-balance text-2xl font-black leading-tight sm:text-3xl">Test Final · <span className="text-safety">{course.title.replace(/^Curso de /, "")}</span></h1>
         {phase === "quiz" && <div className="mt-6"><div className="flex items-center justify-between text-sm font-semibold text-slate-300"><span>Pregunta {current + 1} de {questions.length}</span><span>{Math.round(((current + 1) / questions.length) * 100)}%</span></div><div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/15"><div className="h-full rounded-full bg-safety transition-all duration-300" style={{ width: `${((current + 1) / questions.length) * 100}%` }} /></div></div>}
       </div></header>
-      <div className="mx-auto max-w-3xl px-6 py-10 sm:py-14">{phase === "quiz" ? <QuizCard question={questions[current]} selected={selected} onSelect={select} onNext={next} isLast={isLast} submitting={submitting} submitError={submitError} /> : <ResultCard passed={passed} score={score} total={serverResult?.total ?? questions.length} course={course} attemptId={attemptId} questions={questions} answers={answers} onRetry={retry} internalPreview={internalPreview} serverApproved={Boolean(serverResult?.approved)} />}</div>
+      <div className="mx-auto max-w-3xl px-6 py-10 sm:py-14">{phase === "quiz" || !serverResult ? <QuizCard question={questions[current]} selected={selected} onSelect={select} onNext={next} isLast={isLast} submitting={submitting} submitError={submitError} /> : <ResultCard result={serverResult} course={course} questions={questions} answers={answers} onRetry={retry} internalPreview={internalPreview} />}</div>
     </main>
   );
 }
 
-function QuizCard({ question, selected, onSelect, onNext, isLast, submitting, submitError }: { question: ExamQuestion; selected: number; onSelect: (i: number) => void; onNext: () => void; isLast: boolean; submitting: boolean; submitError: string }) {
+function QuizCard({ question, selected, onSelect, onNext, isLast, submitting, submitError }: { question: PublicExamQuestion; selected: number; onSelect: (i: number) => void; onNext: () => void; isLast: boolean; submitting: boolean; submitError: string }) {
   const letters = ["A", "B", "C", "D"];
-  return <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 sm:p-8"><h2 className="text-balance text-xl font-black leading-snug text-navy sm:text-2xl">{question.q}</h2><div className="mt-6 grid gap-3">{question.options.map((option, i) => { const active = selected === i; return <button key={option} type="button" onClick={() => onSelect(i)} aria-pressed={active} className={`flex items-center gap-4 rounded-xl border-2 px-4 py-4 text-left transition-all ${active ? "border-safety bg-safety/10 shadow-sm" : "border-slate-200 bg-white hover:border-navy/40 hover:bg-slate-50"}`}><span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-black ${active ? "bg-safety text-navy" : "bg-slate-100 text-slate-500"}`}>{letters[i]}</span><span className={`text-sm font-semibold leading-snug sm:text-base ${active ? "text-navy" : "text-slate-700"}`}>{option}</span></button>; })}</div><div className="mt-8 flex items-center justify-between border-t border-slate-200 pt-6"><p className="text-xs font-medium text-slate-400">Selecciona una respuesta para continuar</p><button type="button" onClick={onNext} disabled={selected === -1} className="inline-flex items-center gap-2 rounded-lg bg-navy px-6 py-3 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-navy-light disabled:cursor-not-allowed disabled:opacity-40">{submitting ? "Guardando resultado…" : isLast ? "Finalizar Test" : "Siguiente Pregunta"}<ArrowIcon /></button></div>{submitError && <div role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">{submitError}</div>}</div>;
+  return <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 sm:p-8"><h2 className="text-balance text-xl font-black leading-snug text-navy sm:text-2xl">{question.q}</h2><div className="mt-6 grid gap-3">{question.options.map((option, i) => { const active = selected === i; return <button key={option} type="button" onClick={() => onSelect(i)} aria-pressed={active} className={`flex items-center gap-4 rounded-xl border-2 px-4 py-4 text-left transition-all ${active ? "border-safety bg-safety/10 shadow-sm" : "border-slate-200 bg-white hover:border-navy/40 hover:bg-slate-50"}`}><span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-black ${active ? "bg-safety text-navy" : "bg-slate-100 text-slate-500"}`}>{letters[i]}</span><span className={`text-sm font-semibold leading-snug sm:text-base ${active ? "text-navy" : "text-slate-700"}`}>{option}</span></button>; })}</div><div className="mt-8 flex items-center justify-between border-t border-slate-200 pt-6"><p className="text-xs font-medium text-slate-400">Selecciona una respuesta para continuar</p><button type="button" onClick={onNext} disabled={selected === -1 || submitting} className="inline-flex items-center gap-2 rounded-lg bg-navy px-6 py-3 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-navy-light disabled:cursor-not-allowed disabled:opacity-40">{submitting ? "Guardando resultado…" : isLast ? "Finalizar Test" : "Siguiente Pregunta"}<ArrowIcon /></button></div>{submitError && <div role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">{submitError}</div>}</div>;
 }
 
-function ResultCard({ passed, score, total, course, attemptId, questions, answers, onRetry, internalPreview, serverApproved }: { passed: boolean; score: number; total: number; course: Course; attemptId: string; questions: ExamQuestion[]; answers: number[]; onRetry: () => void; internalPreview: boolean; serverApproved: boolean }) {
+function ResultCard({ result, course, questions, answers, onRetry, internalPreview }: { result: ServerResult; course: Course; questions: PublicExamQuestion[]; answers: number[]; onRetry: () => void; internalPreview: boolean }) {
+  const passed = result.approved && result.score >= PASS_MARK;
+  const { score, total, attemptId } = result;
   return (
     <div className="space-y-6">
       <div className="overflow-hidden rounded-2xl bg-white shadow-lg ring-1 ring-slate-200">
@@ -275,7 +229,9 @@ function ResultCard({ passed, score, total, course, attemptId, questions, answer
           <div className={`mx-auto flex h-20 w-20 items-center justify-center rounded-full ${passed ? "bg-safety text-navy" : "bg-white/10 text-white"}`}>
             {passed ? <TrophyIcon /> : <RetryIcon />}
           </div>
-          <h2 className="mt-6 text-3xl font-black text-white sm:text-4xl">{passed ? "¡APROBADO!" : "NO APROBADO"}</h2>
+          {passed && <p className="mt-6 text-sm font-black uppercase tracking-[0.2em] text-safety">¡Enhorabuena!</p>}
+          <h2 className={`${passed ? "mt-2" : "mt-6"} text-3xl font-black text-white sm:text-4xl`}>{passed ? "¡APROBADO!" : "NO APROBADO"}</h2>
+          <p className="mt-1 text-lg font-black uppercase tracking-wide text-white/80">{passed ? "APTO" : "NO APTO"}</p>
           <p className="mt-3 text-pretty text-slate-300">
             {passed ? "Has superado el test final. Tu resultado ha quedado registrado." : `Necesitas al menos ${PASS_MARK} aciertos para aprobar. Repasa el temario y vuelve a intentarlo, es gratis.`}
           </p>
@@ -284,12 +240,12 @@ function ResultCard({ passed, score, total, course, attemptId, questions, answer
             <span className="text-lg font-bold text-white/70">/ {total}</span>
             <span className="ml-2 text-sm font-semibold text-white/70">aciertos</span>
           </div>
-          {passed && <p className="mt-4 text-sm font-bold text-safety">✓ APTO · 70 % mínimo superado</p>}
+          {passed && <p className="mt-4 text-sm font-bold text-safety">✓ APTO · {PASS_PERCENT} % mínimo superado</p>}
         </div>
         <div className="p-6 sm:p-10">
           {passed ? (
             <div className="flex flex-col gap-4">
-              <a href={`/certificado/${course.id}?score=${score}&total=${total}&intento=${encodeURIComponent(attemptId)}${internalPreview ? "&prueba=1" : ""}`} className="inline-flex items-center justify-center gap-2 rounded-lg bg-safety px-8 py-4 text-base font-black uppercase tracking-wide text-navy shadow-lg transition-colors hover:bg-safety-dark">
+              <a href={`/certificado/${course.id}?intento=${encodeURIComponent(attemptId)}${internalPreview ? "&prueba=1" : ""}`} className="inline-flex items-center justify-center gap-2 rounded-lg bg-safety px-8 py-4 text-base font-black uppercase tracking-wide text-navy shadow-lg transition-colors hover:bg-safety-dark">
                 Obtener diploma / certificado · 4,99 € <ArrowIcon />
               </a>
               <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center">
@@ -301,8 +257,8 @@ function ResultCard({ passed, score, total, course, attemptId, questions, answer
           ) : (
             <div className="flex flex-col gap-4">
               <Link href={`/cursos/${course.id}`} className="inline-flex items-center justify-center gap-2 rounded-lg border-2 border-navy bg-white px-8 py-4 text-base font-black uppercase tracking-wide text-navy shadow-sm transition-colors hover:bg-slate-50">Repasar el temario<ArrowIcon /></Link>
-              {!serverApproved && <button type="button" onClick={onRetry} className="inline-flex items-center justify-center gap-2 rounded-lg bg-navy px-8 py-4 text-base font-black uppercase tracking-wide text-white shadow-lg transition-colors hover:bg-navy-light"><RetryIcon />Repetir Test Gratis</button>}
-              {!serverApproved && <p className="text-center text-sm leading-relaxed text-slate-500">No has obtenido el apto. Repasa el temario y vuelve a intentarlo gratis. No se realiza ningún pago por suspender.</p>}
+              {!result.approved && <button type="button" onClick={onRetry} className="inline-flex items-center justify-center gap-2 rounded-lg bg-navy px-8 py-4 text-base font-black uppercase tracking-wide text-white shadow-lg transition-colors hover:bg-navy-light"><RetryIcon />Repetir Test Gratis</button>}
+              {!result.approved && <p className="text-center text-sm leading-relaxed text-slate-500">No has obtenido el apto. Repasa el temario y vuelve a intentarlo gratis. No se realiza ningún pago por suspender.</p>}
             </div>
           )}
         </div>
@@ -311,12 +267,13 @@ function ResultCard({ passed, score, total, course, attemptId, questions, answer
       <section className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
         <div className="border-b border-slate-200 bg-slate-50 px-6 py-5">
           <h3 className="text-xl font-black text-navy">Revisión de tus respuestas</h3>
-          <p className="mt-1 text-sm text-slate-500">Comprueba qué has acertado y cuál era la respuesta correcta en cada pregunta.</p>
+          <p className="mt-1 text-sm text-slate-500">{result.correct ? "Comprueba qué has acertado y cuál era la respuesta correcta en cada pregunta." : "Comprueba qué preguntas has acertado. Repasa el temario de las que has fallado antes de volver a intentarlo."}</p>
         </div>
         <div className="divide-y divide-slate-200">
           {questions.map((question, index) => {
             const selectedAns = answers[index];
-            const correct = selectedAns === question.answer;
+            const correctAns = result.correct?.[index];
+            const correct = result.hits ? result.hits[index] : correctAns !== undefined && selectedAns === correctAns;
             return (
               <article key={index} className="p-5 sm:p-6">
                 <div className="flex items-start gap-3">
@@ -329,9 +286,9 @@ function ResultCard({ passed, score, total, course, attemptId, questions, answer
                       <span className="font-black">Tu respuesta: </span>
                       {selectedAns >= 0 ? question.options[selectedAns] : "Sin respuesta"}
                     </p>
-                    {!correct && (
+                    {!correct && correctAns !== undefined && (
                       <p className="mt-1 text-sm leading-6 text-emerald-700">
-                        <span className="font-black">Respuesta correcta:</span> {question.options[question.answer]}
+                        <span className="font-black">Respuesta correcta:</span> {question.options[correctAns]}
                       </p>
                     )}
                   </div>
