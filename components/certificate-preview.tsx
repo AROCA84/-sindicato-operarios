@@ -141,7 +141,7 @@ export function CertificatePreview({ courseId, courseTitle, score, total, attemp
       setCertificateCode(data.codigo);
       setPaymentUrl(data.payment_url || `${PAYMENT_URL}?codigo=${encodeURIComponent(data.codigo)}`);
       setPaymentStarted(true);
-      window.location.href = data.payment_url || PAYMENT_URL;
+      window.location.assign(data.payment_url || `${PAYMENT_URL}?codigo=${encodeURIComponent(data.codigo)}`);
     } catch (e) {
       setError(e instanceof DOMException && e.name === "AbortError" ? "La preparación del pago está tardando demasiado. Vuelve a intentarlo." : e instanceof Error ? e.message : "No se pudo iniciar el certificado.");
     } finally {
