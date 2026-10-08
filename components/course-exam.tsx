@@ -289,9 +289,11 @@ function ResultCard({ passed, score, total, course, attemptId, questions, answer
         <div className="p-6 sm:p-10">
           {passed ? (
             <div className="flex flex-col gap-4">
-              <a href={`/certificado/${course.id}?score=${score}&total=${total}&intento=${encodeURIComponent(attemptId)}${internalPreview ? "&prueba=1" : ""}`} className="inline-flex items-center justify-center gap-2 rounded-lg bg-safety px-8 py-4 text-base font-black uppercase tracking-wide text-navy shadow-lg transition-colors hover:bg-safety-dark">
-                Obtener diploma / certificado · 4,99 € <ArrowIcon />
-              </a>
+              <form action="https://mypos.com/vmp/btn/BD3M7OT3ERV11" method="post" target="_blank" className="w-full">
+                <button type="submit" value="submit" className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-safety px-8 py-4 text-base font-black uppercase tracking-wide text-navy shadow-lg transition-colors hover:bg-safety-dark">
+                  CERTIFICADO · 4,99 € <ArrowIcon />
+                </button>
+              </form>
               <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center">
                 <p className="text-sm font-black uppercase tracking-wide text-emerald-700">✓ APROBADO Y REGISTRADO</p>
                 <p className="mt-1 text-sm leading-relaxed text-emerald-800">El test es gratuito. Si quieres tu diploma/certificado, continúa con el pago de 4,99 €. Después podrás descargar el PDF.</p>
