@@ -29,6 +29,7 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
   const [attemptId, setAttemptId] = useState(internalPreview ? "PRUEBA-INTERNA" : "");
   const [submitError, setSubmitError] = useState("");
   const [checkingServer, setCheckingServer] = useState(false);
+  const [startingCertificate, setStartingCertificate] = useState(false);
   const internalScore = Math.max(PASS_MARK, Math.min(questions.length, PASS_MARK + 2));
   const internalAnswers = useMemo(
     () => questions.map((q, i) => (i < internalScore ? q.answer : (q.answer + 1) % q.options.length)),
@@ -205,6 +206,28 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
       return;
     }
     setCurrent((c) => c + 1);
+  }
+
+  async function startCertificatePayment() {
+    if (internalPreview || !attemptId || !passed || startingCertificate) return;
+    setStartingCertificate(true);
+    setSubmitError("");
+    try {
+      const email = window.localStorage.getItem("sdo-afiliado-email") || "";
+      const numero = window.localStorage.getItem("sdo-numero-afiliado") || "";
+      const response = await fetch("/api/certificados/iniciar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, numero_afiliado: numero, curso_id: course.id, intento_id: attemptId }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "No se pudo preparar el certificado.");
+      if (!data?.payment_url || !data?.codigo) throw new Error("El servidor no devolvió un checkout de certificado válido.");
+      window.location.assign(data.payment_url);
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "No se pudo iniciar el pago del certificado.");
+      setStartingCertificate(false);
+    }
   }
 
   function retry() {
