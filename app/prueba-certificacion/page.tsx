@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CertificatePreview } from "@/components/certificate-preview";
@@ -10,11 +10,14 @@ const COURSE_TITLE = "Operario de Carretillas Elevadoras, Frontales y Retráctil
 
 export default function PruebaCertificacionPage() {
   const router = useRouter();
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     if (window.location.search !== "?prueba=1") {
       router.replace("/prueba-certificacion?prueba=1");
+      return;
     }
+    setReady(true);
   }, [router]);
 
   return (
@@ -29,21 +32,27 @@ export default function PruebaCertificacionPage() {
           </p>
         </div>
 
-        <Suspense
-          fallback={
-            <section className="rounded-3xl border border-white/10 bg-white/5 p-6 text-center text-sm text-slate-300">
-              Preparando la previsualización del certificado…
-            </section>
-          }
-        >
-          <CertificatePreview
-            courseId={COURSE_ID}
-            courseTitle={COURSE_TITLE}
-            score={18}
-            total={20}
-            attemptId="PRUEBA-CERTIFICACION"
-          />
-        </Suspense>
+        {ready ? (
+          <Suspense
+            fallback={
+              <section className="rounded-3xl border border-white/10 bg-white/5 p-6 text-center text-sm text-slate-300">
+                Preparando la previsualización del certificado…
+              </section>
+            }
+          >
+            <CertificatePreview
+              courseId={COURSE_ID}
+              courseTitle={COURSE_TITLE}
+              score={18}
+              total={20}
+              attemptId="PRUEBA-CERTIFICACION"
+            />
+          </Suspense>
+        ) : (
+          <section className="rounded-3xl border border-white/10 bg-white/5 p-6 text-center text-sm text-slate-300">
+            Preparando el entorno de prueba…
+          </section>
+        )}
 
         <section className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-safety">Carné de aptitud</p>
