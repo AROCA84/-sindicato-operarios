@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CertificatePreview } from "@/components/certificate-preview";
@@ -29,13 +29,21 @@ export default function PruebaCertificacionPage() {
           </p>
         </div>
 
-        <CertificatePreview
-          courseId={COURSE_ID}
-          courseTitle={COURSE_TITLE}
-          score={18}
-          total={20}
-          attemptId="PRUEBA-CERTIFICACION"
-        />
+        <Suspense
+          fallback={
+            <section className="rounded-3xl border border-white/10 bg-white/5 p-6 text-center text-sm text-slate-300">
+              Preparando la previsualización del certificado…
+            </section>
+          }
+        >
+          <CertificatePreview
+            courseId={COURSE_ID}
+            courseTitle={COURSE_TITLE}
+            score={18}
+            total={20}
+            attemptId="PRUEBA-CERTIFICACION"
+          />
+        </Suspense>
 
         <section className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-safety">Carné de aptitud</p>
