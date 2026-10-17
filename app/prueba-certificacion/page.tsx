@@ -1,11 +1,9 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { CertificatePreview } from "@/components/certificate-preview";
 
-const COURSE_ID = "carretillas-elevadoras";
 const COURSE_TITLE = "Operario de Carretillas Elevadoras, Frontales y Retráctiles";
 
 export default function PruebaCertificacionPage() {
