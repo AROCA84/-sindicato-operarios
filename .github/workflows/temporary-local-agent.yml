@@ -53,6 +53,9 @@ jobs:
         run: |
           if [ -f package-lock.json ]; then npm ci; elif [ -f package.json ]; then npm install; fi
 
+      - name: Instalar herramienta de lint para las comprobaciones del agente
+        run: npm install --no-save eslint@9 eslint-config-next@15.5.27
+
       - name: Ejecutar agente en modo controlado
         env:
           TASK: ${{ inputs.task }}
