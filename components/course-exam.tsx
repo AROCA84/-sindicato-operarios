@@ -280,7 +280,7 @@ export function CourseExam({ course, internalPreview = false }: { course: Course
         <h1 className="mt-4 text-balance text-2xl font-black leading-tight sm:text-3xl">Test Final · <span className="text-safety">{course.title.replace(/^Curso de /, "")}</span></h1>
         {phase === "quiz" && <div className="mt-6"><div className="flex items-center justify-between text-sm font-semibold text-slate-300"><span>Pregunta {current + 1} de {questions.length}</span><span>{Math.round(((current + 1) / questions.length) * 100)}%</span></div><div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/15"><div className="h-full rounded-full bg-safety transition-all duration-300" style={{ width: `${((current + 1) / questions.length) * 100}%` }} /></div></div>}
       </div></header>
-      <div className="mx-auto max-w-3xl px-6 py-10 sm:py-14">{phase === "quiz" ? <QuizCard question={questions[current]} selected={selected} onSelect={select} onNext={next} isLast={isLast} submitting={submitting} submitError={submitError} /> : <ResultCard passed={passed} score={score} total={serverResult?.total ?? questions.length} course={course} attemptId={attemptId} questions={questions} answers={answers} onRetry={retry} internalPreview={internalPreview} serverApproved={Boolean(serverResult?.approved)} />}</div>
+      <div className="mx-auto max-w-3xl px-6 py-10 sm:py-14">{phase === "quiz" ? <QuizCard question={questions[current]} selected={selected} onSelect={select} onNext={next} isLast={isLast} submitting={submitting} submitError={submitError} /> : <ResultCard passed={passed} score={score} total={serverResult?.total ?? questions.length} course={course} attemptId={attemptId} questions={questions} answers={answers} onRetry={retry} onStartCertificatePayment={startCertificatePayment} startingCertificate={startingCertificate} submitError={submitError} internalPreview={internalPreview} serverApproved={Boolean(serverResult?.approved)} />}</div>
     </main>
   );
 }
@@ -290,7 +290,7 @@ function QuizCard({ question, selected, onSelect, onNext, isLast, submitting, su
   return <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 sm:p-8"><h2 className="text-balance text-xl font-black leading-snug text-navy sm:text-2xl">{question.q}</h2><div className="mt-6 grid gap-3">{question.options.map((option, i) => { const active = selected === i; return <button key={option} type="button" onClick={() => onSelect(i)} aria-pressed={active} className={`flex items-center gap-4 rounded-xl border-2 px-4 py-4 text-left transition-all ${active ? "border-safety bg-safety/10 shadow-sm" : "border-slate-200 bg-white hover:border-navy/40 hover:bg-slate-50"}`}><span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-black ${active ? "bg-safety text-navy" : "bg-slate-100 text-slate-500"}`}>{letters[i]}</span><span className={`text-sm font-semibold leading-snug sm:text-base ${active ? "text-navy" : "text-slate-700"}`}>{option}</span></button>; })}</div><div className="mt-8 flex items-center justify-between border-t border-slate-200 pt-6"><p className="text-xs font-medium text-slate-400">Selecciona una respuesta para continuar</p><button type="button" onClick={onNext} disabled={selected === -1} className="inline-flex items-center gap-2 rounded-lg bg-navy px-6 py-3 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-navy-light disabled:cursor-not-allowed disabled:opacity-40">{submitting ? "Guardando resultado…" : isLast ? "Finalizar Test" : "Siguiente Pregunta"}<ArrowIcon /></button></div>{submitError && <div role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">{submitError}</div>}</div>;
 }
 
-function ResultCard({ passed, score, total, course, attemptId, questions, answers, onRetry, internalPreview, serverApproved }: { passed: boolean; score: number; total: number; course: Course; attemptId: string; questions: ExamQuestion[]; answers: number[]; onRetry: () => void; internalPreview: boolean; serverApproved: boolean }) {
+function ResultCard({ passed, score, total, course, attemptId, questions, answers, onRetry, onStartCertificatePayment, startingCertificate, submitError, internalPreview, serverApproved }: { passed: boolean; score: number; total: number; course: Course; attemptId: string; questions: ExamQuestion[]; answers: number[]; onRetry: () => void; onStartCertificatePayment: () => void; startingCertificate: boolean; submitError: string; internalPreview: boolean; serverApproved: boolean }) {
   return (
     <div className="space-y-6">
       <div className="overflow-hidden rounded-2xl bg-white shadow-lg ring-1 ring-slate-200">
@@ -312,11 +312,16 @@ function ResultCard({ passed, score, total, course, attemptId, questions, answer
         <div className="p-6 sm:p-10">
           {passed ? (
             <div className="flex flex-col gap-4">
-              <form action="https://mypos.com/vmp/btn/BD3M7OT3ERV11" method="post" target="_blank" className="w-full">
-                <button type="submit" value="submit" className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-safety px-8 py-4 text-base font-black uppercase tracking-wide text-navy shadow-lg transition-colors hover:bg-safety-dark">
-                  CERTIFICADO · 4,99 € <ArrowIcon />
+              {internalPreview ? (
+                <div className="rounded-xl border border-safety/40 bg-safety/10 p-4 text-center text-sm font-bold text-navy">
+                  Vista previa interna: no se inicia ningún pago real.
+                </div>
+              ) : (
+                <button type="button" onClick={onStartCertificatePayment} disabled={startingCertificate} className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-safety px-8 py-4 text-base font-black uppercase tracking-wide text-navy shadow-lg transition-colors hover:bg-safety-dark disabled:cursor-wait disabled:opacity-60">
+                  {startingCertificate ? "PREPARANDO CERTIFICADO…" : "CERTIFICADO · 4,99 €"} <ArrowIcon />
                 </button>
-              </form>
+              )}
+              {submitError && <div role="alert" className="mt-3 rounded-xl border border-red-300 bg-red-50 p-3 text-sm font-semibold text-red-700">{submitError}</div>}
               <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center">
                 <p className="text-sm font-black uppercase tracking-wide text-emerald-700">✓ APROBADO Y REGISTRADO</p>
                 <p className="mt-1 text-sm leading-relaxed text-emerald-800">El test es gratuito. Si quieres tu diploma/certificado, continúa con el pago de 4,99 €. Después podrás descargar el PDF.</p>
