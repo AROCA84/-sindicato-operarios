@@ -53,8 +53,10 @@ jobs:
         run: |
           if [ -f package-lock.json ]; then npm ci; elif [ -f package.json ]; then npm install; fi
 
-      - name: Instalar herramienta de lint para las comprobaciones del agente
-        run: npm install --no-save eslint@9 eslint-config-next@15.5.27
+      - name: Comprobar herramientas de lint
+        run: |
+          node -e "const p=require('./package.json'); if (!p.devDependencies?.eslint || !p.devDependencies?.['eslint-config-next']) { console.log('ESLint no está declarado como dependencia del proyecto; se instalará temporalmente para esta comprobación.'); }"
+          npm install --no-save eslint@9 eslint-config-next@15.5.27
 
       - name: Ejecutar agente en modo controlado
         env:
@@ -75,6 +77,7 @@ jobs:
             npm run lint --if-present
             npm run typecheck --if-present
             npm test --if-present
+            npm run build --if-present
           fi
 
       - name: Crear pull request para revisión humana
@@ -97,3 +100,4 @@ jobs:
             tests/**
             package.json
             package-lock.json
+            eslint.config.mjs
