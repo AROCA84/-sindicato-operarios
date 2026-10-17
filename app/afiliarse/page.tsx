@@ -2,6 +2,7 @@
 
 import { FormEvent, Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 function AfiliarseForm() {
   const searchParams = useSearchParams();
@@ -114,12 +115,12 @@ function AfiliarseForm() {
                 >
                   Entrar en Mi área
                 </a>
-                <a
+                <Link
                   href="/"
                   className="rounded-xl border-2 border-slate-200 bg-white px-5 py-3 text-center text-sm font-black text-navy transition hover:border-safety"
                 >
                   Volver al inicio
-                </a>
+                </Link>
               </div>
             </div>
           ) : (
