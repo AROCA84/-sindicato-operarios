@@ -1,0 +1,96 @@
+name: Prueba de agente local (Ollama)
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "Tarea concreta para la web. No incluyas secretos ni datos personales."
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: local-agent-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  agent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Preparar Python y Node
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Instalar y arrancar Ollama
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          (ollama serve > /tmp/ollama.log 2>&1 &) 
+          for i in $(seq 1 30); do
+            if ollama list >/dev/null 2>&1; then break; fi
+            sleep 2
+          done
+          ollama pull qwen2.5-coder:3b
+
+      - name: Instalar Aider
+        run: python -m pip install --upgrade aider-chat
+
+      - name: Instalar dependencias del proyecto
+        run: |
+          if [ -f package-lock.json ]; then npm ci; elif [ -f package.json ]; then npm install; fi
+
+      - name: Ejecutar agente en modo controlado
+        env:
+          TASK: ${{ inputs.task }}
+        run: |
+          test -n "$TASK" || { echo "La tarea está vacía"; exit 1; }
+          aider --model ollama_chat/qwen2.5-coder:3b \
+            --yes-always \
+            --no-auto-commits \
+            --no-check-update \
+            --message "Trabaja únicamente en esta tarea concreta de la web: $TASK. Lee primero los archivos relevantes. Cambia solo lo imprescindible. No inventes variables de entorno ni secretos. No modifiques pagos, autenticación, credenciales, configuración de producción ni migraciones de base de datos salvo que la tarea lo exija explícitamente. No afirmes que has probado algo que no has ejecutado. Mantén los cambios pequeños y coherentes."
+
+      - name: Comprobar cambios y ejecutar comprobaciones disponibles
+        run: |
+          git status --short
+          if [ -f package.json ]; then
+            node -e "const p=require('./package.json'); console.log(JSON.stringify(p.scripts||{},null,2))"
+            npm run lint --if-present
+            npm run typecheck --if-present
+            npm test --if-present
+          fi
+
+      - name: Crear pull request para revisión humana
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: agent/ollama-trial
+          delete-branch: false
+          title: "Prueba de agente local: cambios propuestos"
+          body: |
+            PR generado por una prueba manual del agente local Ollama + Aider.
+            - Los cambios requieren revisión humana.
+            - No se fusiona ni despliega automáticamente.
+            - El modelo local es pequeño; revisa especialmente la corrección técnica.
+          commit-message: "chore(agent): proponer cambios de prueba"
+          add-paths: |
+            app/**
+            components/**
+            lib/**
+            public/**
+            tests/**
+            package.json
+            package-lock.json
