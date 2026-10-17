@@ -21,7 +21,7 @@ test.describe("Flujo de aprobado — prueba interna", () => {
     await expect(page.getByText(/Respuesta correcta/).first()).toBeVisible();
 
     // Certificate access link should be visible
-    await expect(page.getByRole("link", { name: /Obtener diploma.*certificado/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /CERTIFICADO.*4,99 €/i })).toBeVisible();
   });
 
   test("no muestra botón de repetir test tras aprobar", async ({ page }) => {
