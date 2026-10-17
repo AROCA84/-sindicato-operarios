@@ -1138,8 +1138,8 @@ function buildTemarioQuestions(course: Course): ExamQuestion[] {
     (heading: string) => `Según el contenido desarrollado en «${heading}», ¿cuál es una afirmación correcta para el curso «${course.title}»?`,
   ];
   let index = 0;
-  for (const module of modules) {
-    for (const section of module.lesson.sections ?? []) {
+  for (const courseModule of modules) {
+    for (const section of courseModule.lesson.sections ?? []) {
       const bullets = section.bullets ?? [];
       if (bullets.length < 4) continue;
       const correctIndex = index % 4;
