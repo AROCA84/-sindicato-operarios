@@ -3,6 +3,8 @@ name: E2E web
 on:
   push:
     branches: ["main"]
+  pull_request:
+    branches: ["main"]
   workflow_dispatch:
 
 jobs:
@@ -20,10 +22,10 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Install Playwright test runner
-        run: npm install --no-save --no-package-lock @playwright/test@latest
+        run: npm install --no-save --no-package-lock @playwright/test@1.55.0
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium webkit
