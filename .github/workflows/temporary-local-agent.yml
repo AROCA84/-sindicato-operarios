@@ -33,7 +33,7 @@ jobs:
           python-version: "3.11"
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "24"
           cache: npm
 
       - name: Instalar y arrancar Ollama
@@ -56,7 +56,7 @@ jobs:
       - name: Comprobar herramientas de lint
         run: |
           node -e "const p=require('./package.json'); if (!p.devDependencies?.eslint || !p.devDependencies?.['eslint-config-next']) { console.log('ESLint no está declarado como dependencia del proyecto; se instalará temporalmente para esta comprobación.'); }"
-          npm install --no-save eslint@9 eslint-config-next@15.5.27
+          npm install --no-save --no-package-lock eslint@9 eslint-config-next@15.5.27 @eslint/eslintrc
 
       - name: Ejecutar agente en modo controlado
         env:
