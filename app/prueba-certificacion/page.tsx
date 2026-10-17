@@ -3,12 +3,15 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import jsPDF from "jspdf";
+import QRCode from "qrcode";
 
 const COURSE_TITLE = "Operario de Carretillas Elevadoras, Frontales y Retráctiles";
 
 export default function PruebaCertificacionPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
 
   useEffect(() => {
     if (window.location.search !== "?prueba=1") {
@@ -17,6 +20,88 @@ export default function PruebaCertificacionPage() {
     }
     setReady(true);
   }, [router]);
+
+  async function downloadDemoPdf() {
+    if (generatingPdf) return;
+    setGeneratingPdf(true);
+    try {
+      const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+      const qr = await QRCode.toDataURL("DEMO SINDICATO DE OPERARIOS - SIN VALIDEZ ACREDITATIVA", {
+        width: 300, margin: 1, errorCorrectionLevel: "M",
+      });
+      const navy: [number, number, number] = [17, 26, 34];
+      const gold: [number, number, number] = [217, 154, 0];
+      const cream: [number, number, number] = [247, 243, 234];
+
+      // Página 1: certificado A4 apaisado.
+      pdf.setFillColor(...cream); pdf.rect(0, 0, 297, 210, "F");
+      pdf.setFillColor(...navy); pdf.rect(0, 0, 9, 210, "F");
+      pdf.setFillColor(...gold); pdf.rect(9, 0, 2, 210, "F");
+      pdf.setDrawColor(...navy); pdf.setLineWidth(0.8); pdf.rect(17, 12, 263, 186);
+      pdf.setDrawColor(...gold); pdf.setLineWidth(0.4); pdf.rect(21, 16, 255, 178);
+      pdf.setFillColor(...navy); pdf.roundedRect(26, 22, 245, 29, 2, 2, "F");
+      pdf.setFillColor(...gold); pdf.circle(41, 36.5, 8, "F");
+      pdf.setTextColor(...navy); pdf.setFont("helvetica", "bold"); pdf.setFontSize(10);
+      pdf.text("SO", 41, 40, { align: "center" });
+      pdf.setTextColor(255, 255, 255); pdf.setFontSize(13);
+      pdf.text("SINDICATO DE OPERARIOS", 55, 36);
+      pdf.setFont("helvetica", "normal"); pdf.setFontSize(6.5);
+      pdf.text("VISTA PREVIA DE FORMACIÓN · DOCUMENTO DE DEMOSTRACIÓN", 55, 43);
+      pdf.setTextColor(...navy); pdf.setFont("helvetica", "bold"); pdf.setFontSize(24);
+      pdf.text("CERTIFICADO", 148.5, 69, { align: "center" });
+      pdf.setTextColor(...gold); pdf.setFontSize(8);
+      pdf.text("DE FORMACIÓN Y APTITUD · MUESTRA", 148.5, 77, { align: "center" });
+      pdf.setDrawColor(...gold); pdf.line(104, 82, 193, 82);
+      pdf.setTextColor(90, 98, 104); pdf.setFontSize(7);
+      pdf.text("TITULAR DE EJEMPLO", 148.5, 95, { align: "center" });
+      pdf.setTextColor(...navy); pdf.setFont("times", "italic"); pdf.setFontSize(22);
+      pdf.text("Nombre y Apellidos", 148.5, 107, { align: "center" });
+      pdf.setFillColor(239, 232, 216); pdf.roundedRect(42, 117, 213, 29, 2, 2, "F");
+      pdf.setTextColor(90, 98, 104); pdf.setFont("helvetica", "bold"); pdf.setFontSize(6.5);
+      pdf.text("FORMACIÓN DE MUESTRA", 148.5, 125, { align: "center" });
+      pdf.setTextColor(...navy); pdf.setFontSize(11);
+      pdf.text("Operario de Carretillas Elevadoras, Frontales y Retráctiles", 148.5, 136, { align: "center", maxWidth: 200 });
+      pdf.setFillColor(...gold); pdf.roundedRect(42, 154, 47, 23, 2, 2, "F");
+      pdf.setTextColor(...navy); pdf.setFontSize(7); pdf.text("ESTADO", 65.5, 162, { align: "center" });
+      pdf.setFontSize(11); pdf.text("DEMO", 65.5, 171, { align: "center" });
+      pdf.addImage(qr, "PNG", 249, 151, 23, 23);
+      pdf.setTextColor(80, 80, 80); pdf.setFontSize(6);
+      pdf.text("QR DE DEMOSTRACIÓN", 260.5, 179, { align: "center" });
+      pdf.setDrawColor(180, 180, 180); pdf.line(26, 185, 271, 185);
+      pdf.setFont("helvetica", "bold"); pdf.setFontSize(7); pdf.setTextColor(170, 45, 30);
+      pdf.text("MUESTRA SIN VALIDEZ ACREDITATIVA · NO ES UN CERTIFICADO REAL", 148.5, 191, { align: "center" });
+
+      // Página 2: carné PVC horizontal en proporción 85,6 × 54 mm.
+      pdf.addPage([85.6, 54], "landscape");
+      pdf.setFillColor(...navy); pdf.rect(0, 0, 85.6, 54, "F");
+      pdf.setDrawColor(...gold); pdf.setLineWidth(0.7); pdf.roundedRect(2, 2, 81.6, 50, 2, 2, "S");
+      pdf.setFillColor(...gold); pdf.circle(10, 10, 4.5, "F");
+      pdf.setTextColor(...navy); pdf.setFont("helvetica", "bold"); pdf.setFontSize(6);
+      pdf.text("SO", 10, 12, { align: "center" });
+      pdf.setTextColor(...gold); pdf.setFontSize(6.5);
+      pdf.text("SINDICATO DE OPERARIOS", 17, 9);
+      pdf.setTextColor(255, 255, 255); pdf.setFontSize(4);
+      pdf.text("CARNÉ DE MUESTRA · NO OFICIAL", 17, 13);
+      pdf.setFontSize(8); pdf.setFont("helvetica", "bold");
+      pdf.text("Nombre y Apellidos", 6, 25);
+      pdf.setFontSize(5); pdf.setFont("helvetica", "normal");
+      pdf.text("Operario de Carretillas Elevadoras", 6, 31);
+      pdf.text("Frontales y Retráctiles", 6, 35);
+      pdf.setTextColor(...gold); pdf.setFont("helvetica", "bold"); pdf.setFontSize(6);
+      pdf.text("APTO · DEMO", 6, 43);
+      pdf.setTextColor(255, 255, 255); pdf.setFontSize(4.5);
+      pdf.text("CÓDIGO: DEMO-001 · SIN VALIDEZ", 6, 48);
+      pdf.addImage(qr, "PNG", 66, 30, 13, 13);
+      pdf.setFontSize(3.2); pdf.text("QR DEMO", 72.5, 45, { align: "center" });
+
+      pdf.save("Vista-previa-Sindicato-de-Operarios-DEMO.pdf");
+    } catch (error) {
+      console.error("No se pudo generar el PDF de demostración", error);
+      window.alert("No se pudo generar el PDF. Recarga la página y vuelve a intentarlo.");
+    } finally {
+      setGeneratingPdf(false);
+    }
+  }
 
   return (
     <main className="min-h-screen bg-navy px-4 py-8 text-white sm:px-6">
@@ -109,6 +194,9 @@ export default function PruebaCertificacionPage() {
           Estas son maquetas visuales con datos ficticios. El QR y los códigos son marcadores de demostración; no verifican una certificación real.
         </div>
 
+        <button type="button" onClick={downloadDemoPdf} disabled={!ready || generatingPdf} className="mb-3 block w-full rounded-xl bg-safety px-5 py-4 text-center text-sm font-black uppercase tracking-wide text-navy hover:bg-yellow-400 disabled:cursor-wait disabled:opacity-60">
+          {generatingPdf ? "Generando PDF..." : "Descargar PDF de muestra (certificado + carné)"}
+        </button>
         <Link href="/" className="block rounded-xl border border-white/20 px-5 py-3 text-center text-sm font-bold text-white hover:bg-white/10">Volver a la web</Link>
       </div>
     </main>
